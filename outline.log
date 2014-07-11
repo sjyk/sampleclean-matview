@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  10 JUL 2014 17:54
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  11 JUL 2014 11:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -331,37 +331,34 @@ Overfull \hbox (2.76859pt too wide) in paragraph at lines 8--18
 []\T1/aer/m/n/9 However, pre-computed query re-sults face the ob-vi-ous chal-
  []
 
+) (./architecture.tex <figs/sys-arch.png, id=11, 605.1408pt x 273.1806pt>
+File: figs/sys-arch.png Graphic file (type png)
 
-Overfull \hbox (9.22609pt too wide) in paragraph at lines 76--76
-[]\secfnt Taxonomy of Sup-ported Ma-te-ri-al-ized Views 
+<use figs/sys-arch.png>
+Package pdftex.def Info: figs/sys-arch.png used on input line 8.
+(pdftex.def)             Requested size: 240.0pt x 108.34491pt.
+
+Overfull \hbox (3.70642pt too wide) in paragraph at lines 14--17
+\T1/aer/m/n/9 vide ex-am-ple sit-u-a-tions when view main-te-nance can be costl
+y. 
  []
 
-[2]
-Overfull \hbox (53.92696pt too wide) in paragraph at lines 153--154
-[][][][][][][][][][][][][][][][][] 
- []
-
-
-Overfull \hbox (81.65591pt too wide) in paragraph at lines 155--156
-[][][][][][][][][][][][][][][][][][][][][][] 
- []
-
-
-Overfull \hbox (9.24995pt too wide) in paragraph at lines 172--172
+[2 <./figs/sys-arch.png>]
+Overfull \hbox (9.24995pt too wide) in paragraph at lines 101--101
 []\secfnt Reducing Main-te-nance Cost With Sam-pling 
  []
 
 
-Overfull \hbox (1.25006pt too wide) in paragraph at lines 188--193
+Overfull \hbox (1.25006pt too wide) in paragraph at lines 117--122
 []\T1/aer/m/n/9 Given the three cat-e-gories of views and the SUM, COUNT,
  []
 
-) (./correction.tex
+[3]) (./correction.tex
 Overfull \hbox (2.42216pt too wide) in paragraph at lines 12--12
 []\secfnt Select-Project and Foreign-Key Join Views 
  []
 
-[3]
+[4]
 Overfull \hbox (59.47275pt too wide) in paragraph at lines 212--213
 [][][][][][][][][][][][][][] 
  []
@@ -371,24 +368,24 @@ Overfull \hbox (1.9054pt too wide) in paragraph at lines 3--14
 \T1/aer/m/n/9 for ex-am-ple ac-tiv-ity logs, we may want to know which records
  []
 
-[4]
+
 Overfull \hbox (1.498pt too wide) in paragraph at lines 44--44
 []\secfnt Increased Ac-cu-racy For Heavy-Tailed Dis-
  []
 
-) (./analysis.tex)
+) (./analysis.tex [5])
 No file outline.bbl.
-[5
+[6
 
 ] (./outline.aux) ) 
 Here is how much of TeX's memory you used:
- 3980 strings out of 493315
- 53000 string characters out of 6137904
- 128350 words of memory out of 5000000
- 7338 multiletter control sequences out of 15000+600000
+ 3992 strings out of 493315
+ 53170 string characters out of 6137904
+ 127358 words of memory out of 5000000
+ 7344 multiletter control sequences out of 15000+600000
  53239 words of font info for 68 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 41i,8n,32p,448b,839s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 41i,8n,32p,672b,839s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.
 enc}</usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pf
 b></usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb>
@@ -405,10 +402,10 @@ ve/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive
 mf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fo
 nts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/
 urw/times/utmri8a.pfb>
-Output written on outline.pdf (5 pages, 188525 bytes).
+Output written on outline.pdf (6 pages, 258069 bytes).
 PDF statistics:
- 81 PDF objects out of 1000 (max. 8388607)
- 58 compressed objects within 1 object stream
+ 87 PDF objects out of 1000 (max. 8388607)
+ 61 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
 
