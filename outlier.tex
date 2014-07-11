@@ -1,0 +1,51 @@
+\section{Outlier Indexing}
+
+An application of particular interest for up-to-date query results
+is outlier detection. When we have growing datasets, for example activity
+logs, we may want to know which records correspond to abnormal activity.
+Up-to-date query results, as opposed to long periods of staleness,
+have to potential to detect these outliers quickly. However, as we
+use sampling to processes aggregate queries on the views, this has
+a potential to mask outliers. Our framework can be extended to guarantee
+that outliers records will be incorporated into the sample. In this
+section, we discuss how not only are these outliers themselves of
+interest but that these outliers give information about the distribution
+of an column, and can greatly improve the accuracy of estimates.
+
+
+\subsection{A Model For Outlier Indexing}
+
+We propose the following model for detecting and indexing outliers.
+When creating a view, the user specifies an attribute in the base
+relation to ``outlier index''. What this means is the that the records
+with the $l$ largest attribute values are guaranteed to be included
+in the sample view. In this outlier model, we detect outliers in updates
+with a single pass and without having to build the entire delta table.
+For aggregation views, for the records that are indexed as outliers,
+we simply add those group by keys to the sample.
+
+
+\subsection{Query Processing with the Outlier Index}
+
+We can incorporate the outliers into our estimates of the correction
+$\epsilon$. By guaranteeing that certain rows are in the index, we
+have to merge a deterministic result (set of outlier rows) with the
+estimate. One way to think of this is that we have $\epsilon$ is
+calculated from the set of records that are not outliers. Let $|V_{T}^{'}|$
+be the size of the updated view, $l$ be the number of rows in the
+outlier index, and let $D_{o}$ be the set of differences (as defined
+in Section ?) for the rows in the outlier index. We can update $\epsilon$
+with the outlier information by:
+\[
+\frac{|V_{T}^{'}|}{|V_{T}^{'}|-l}\epsilon+c\cdot f(D_{o})
+\]
+
+
+\subsection{Increased Accuracy For Heavy-Tailed Distributions}
+
+This outlier indexing procedure can greatly increase the accuracy
+of estimates where the set of difference is heavy tailed. This approach
+has been well studied in AQP {[}?{]} and is called truncation in Statistics
+{[}?{]}. The intuition is that by removing the tail, you are reducing
+the variance of the distribution, and thus, making it easier to estimate
+an aggregate from a sample.

@@ -1,0 +1,72 @@
+\section{Introduction}
+Database systems increasingly use materialization, caching a computed
+query result, to speed up queries on large datasets {[}?{]}. However,
+as the base tables update, materialized views derived from these tables
+become increasingly stale. Incrementally keeping the views up-to-date,
+also called incremental maintenance, has been well studied {[}?{]}
+including a variety of techniques such as batch maintenance {[}?{]}
+and lazy maintenance {[}?{]}. 
+
+Unfortunately, in many desired applications, incremental view maintenance
+can be very costly. This cost breaks down into two components: applying
+the view definition to the updates, and then writing the ``delta''
+view to the out-of-date view. These two pieces can be costly in different
+applications. (1) In distributed environments where the view is partitioned
+over a cluster, incremental view maintenance often neccesitates communicating
+the delta view. (2) Systems such as Apache Spark, Cloudera Impala,
+and Apache Tez {[}?{]} offer materialized view support, however, are
+not optimized for selective updates nor have native support for indices.
+This can lead to high maintenance costs in applications where the
+views are derived from joins that are not aligned with the partitioning
+of the base tables. (3) Base data is often raw requiring pre-processing
+such as string processing, deserialization, and formatting; all of
+which can can be expensive to run on a large number of updates. Consequently,
+a commonly applied approach is to extend the maintenance period and
+schedule maintenance at less active times eg. nightly; while accepting
+that in the interim results will be stale. This approach avoids placing
+an undue bottleneck on updates to the base tables and reduces contention
+on hot data; however a user querying the system can get results that
+are arbitrarily stale.
+
+Querying a stale view is similar to problems studied in data cleaning{[}?{]}.
+SampleClean is a query processing framework that answers aggregate
+queries on dirty datasets by applying potentially expensive cleaning
+techniques to just a sample. The results, while approximate, are bounded
+with respect to the clean data and the system offers a flexible tradeoff
+between cleaning cost and result accuracy. Similarly, a stale row
+and an expensive incremental maintenance scheme, mirrors the problem
+setting studied in SampleClean. 
+
+In this paper, we propose a data cleaning approach for approximate,
+bounded aggregation queries on stale views. Instead of maintaining
+the entire view, we maintain only a small sample of the view. Then
+given an aggregation query on this view, from this small sample, we
+can estimate how the updates affect the query result. We apply this
+estimate to correct the dirty aggregation query result on the stale
+data. Our results are provably bounded, as opposed to unbounded stalness,
+and the sampling gives a flexible tradeoff to meet performance constraints.
+Sampling helps reduces both bottlenecks in view maintenance, delta
+view calculation and view updating, as it reduces the number of updates
+that need to processed and then written.
+
+Another relevant concept from data cleaning is outlier detection {[}?{]}.
+Sampling has the potential to mask outliers and in fact it is known
+heavy-tailed distributions are poorly approximated from samples {[}?{]}.
+Recent work has shown that outlier indexing, ie. separating the values
+from the tail, can improve sample estimates in such distributions.
+Coupling outlier detection with sampled views has an interesting implication;
+not only are the outliers themselves interesting for analysis, but
+the information from the outliers can potentially improve query accuracy
+or likewise reduce the number of needed samples.
+
+In summary, our contributions are as follows:
+\begin{itemize}
+\item We present a query processing framework that gives bounded error for
+aggregation queries on stale views, while providing a tradeoff between
+error and performance.
+\item We show how coupling concepts from data cleaning such as correction
+estimates and outlier detection can give increased accuracy (and performance).
+\item We evaluate our approach on two systems, Apache SparkSQL and MySQL,
+and discuss how the different systems affect performance performance
+parameters.
+\end{itemize}

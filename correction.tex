@@ -1,0 +1,228 @@
+\section{Correction Approximate Query Processing}
+
+In this section, we will extend the NormalizedSC algorithm to estimate
+corrections for queries on stale views. The key challenge is to estimate
+$\epsilon$ such that:
+\[
+f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
+\]
+
+
+
+\subsection{Select-Project and Foreign-Key Join Views}
+
+We will first derive the exact value for $\epsilon$ without sampling.
+Since we only consider a model were records are inserted into the
+base tables, for these two categories of views $\textbf{V}_{T}\subseteq\textbf{V}_{T}^{'}$.
+The row differences between $\textbf{V}_{T}$ and $\textbf{V}_{T}^{'}$
+are completely represented by the delta table $\Delta\textbf{V}$;
+that is rows will only be inserted into the views. The aggregation
+functions SUM, COUNT, AVG, and VAR are special as they can be expressed
+as summations. The summative forms lead to the following insight:
+\[
+f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
+\]
+\[
+f(\textbf{V}_{T}^{'})-f(\textbf{V}_{T})=\epsilon
+\]
+
+
+\[
+c\cdot f(\Delta\textbf{V})=\epsilon
+\]
+Up-to a scaling constant c, $\epsilon$ is the aggregation function
+applied to the delta table. 
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+Aggregation Query F & Scaling Constant c\tabularnewline
+\hline 
+\hline 
+SUM & 1\tabularnewline
+\hline 
+COUNT & 1\tabularnewline
+\hline 
+AVG & $\frac{|\Delta V|}{|\Delta V|+|V|}$\tabularnewline
+\hline 
+\end{tabular}
+\par\end{center}
+
+
+\subsubsection{Sampling the Delta View}
+
+We can extend this theory to a simple random sample $S_{\Delta V}$
+of the delta view $S_{\Delta V}\subseteq\Delta\textbf{V}$. Recall
+that a simple random sample is uniform sample where every row $r\in\Delta V$
+is in $S_{\Delta V}$ with equal probability $p$. For Select-Project
+and Foreign-Key Join Views, this means we have to take a sample of
+the updates and then apply the view definition to the sample of the
+updates. Formally, for every record u inserted into the table, with
+probability $p$, we include it in the sample $S$. Then, we take
+the sample updates $S$ and apply the view definition forming $S_{\Delta V}$.
+Therefore,
+\[
+c\cdot f(S_{\Delta V})\approx\epsilon
+\]
+Due to the summative forms and uniform sampling, we can apply the
+Central Limit Theorem to bound the approximation error. Sums of independent
+random variables converge to a normal distribution, and further more
+the expected value of $c\cdot f(S_{\Delta V})$ is $\epsilon$. 
+\[
+c\cdot f(S_{\Delta V})\sim N(\epsilon,\frac{\sigma_{diff}^{2}}{k})
+\]
+\[
+f(\textbf{V}_{T})+c\cdot f(S_{\Delta V})\sim N(f(\textbf{V}_{T}^{'}),\frac{\sigma_{diff}^{2}}{k})
+\]
+$\sigma_{diff}^{2}$ is an interesting parameter as it quantifies
+the variance of the delta view. In Section ?, we will analyze this
+parameter and describe how the statistics of the updates affect the
+estimate accuracy.
+
+
+\subsection{Aggregation Views}
+
+Applying the view definition to the updates is not enough information
+to calculate $\epsilon$ in aggregation views. Consider the following
+example view and query pair:
+
+\begin{lstlisting}
+View1 := SELECT col2, MAX(col1) as col1_max
+FROM table 
+GROUP BY col2
+\end{lstlisting}
+
+
+\begin{lstlisting}
+Query1 := SELECT AVG(col1_max) 
+FROM View1 
+\end{lstlisting}
+
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+col1 & col2\tabularnewline
+\hline 
+\hline 
+3 & 1\tabularnewline
+\hline 
+6 & 1\tabularnewline
+\hline 
+2 & 2\tabularnewline
+\hline 
+\end{tabular} %
+\begin{tabular}{|c|c|}
+\hline 
+col2 & col1\_max\tabularnewline
+\hline 
+\hline 
+1 & 6\tabularnewline
+\hline 
+2 & 2\tabularnewline
+\hline 
+\end{tabular}
+\par\end{center}
+
+Suppose records are inserted into \textbf{table} and we can apply
+the the definition View1 to set of inserted records:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+col1 & col2\tabularnewline
+\hline 
+\hline 
+3 & 1\tabularnewline
+\hline 
+6 & 1\tabularnewline
+\hline 
+2 & 2\tabularnewline
+\hline 
+\textbf{2} & \textbf{1}\tabularnewline
+\hline 
+\end{tabular} %
+\begin{tabular}{|c|c|}
+\hline 
+col2 & col1\_max\tabularnewline
+\hline 
+\hline 
+2 & 1\tabularnewline
+\hline 
+\end{tabular}
+\par\end{center}
+
+However, we see that when we perform the merge operation, the updated
+View1 remains the same, thus the $\epsilon$ for Query1 is 0, even
+though the delta table has non-zero rows:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+col2 & col1\_max\tabularnewline
+\hline 
+\hline 
+1 & 6\tabularnewline
+\hline 
+2 & 2\tabularnewline
+\hline 
+\end{tabular}
+\par\end{center}
+
+The key point is that the merge operation depends on the aggregations
+in view definition, and we need to know how these aggregates change
+after the merge to estimate $\epsilon$. Let $\textbf{W}$ be the
+join of up-to-date view $\textbf{V}_{T}^{'}$ and the old view $\textbf{V}_{T}$
+on the group-by key. To make the example above more interesting we
+can insert a few more records, $\textbf{W}$ would be:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+col1 & col2\tabularnewline
+\hline 
+\hline 
+3 & 1\tabularnewline
+\hline 
+6 & 1\tabularnewline
+\hline 
+2 & 2\tabularnewline
+\hline 
+\textbf{2} & \textbf{1}\tabularnewline
+\hline 
+\textbf{4} & \textbf{2}\tabularnewline
+\hline 
+\end{tabular} %
+\begin{tabular}{|c|c|c|}
+\hline 
+col2 & col1\_max\_new & col1\_max\_old\tabularnewline
+\hline 
+\hline 
+1 & 6 & 6\tabularnewline
+\hline 
+2 & 4 & 2\tabularnewline
+\hline 
+\end{tabular}
+\par\end{center}
+
+The value of $\epsilon$ for Query1 would be the avg query applied
+to the difference:
+
+\begin{lstlisting}
+QueryEpsilon1 := SELECT AVG(col1_max_new-col1_max_old) 
+FROM W
+\end{lstlisting}
+
+
+
+\subsubsection{Sampling the Merged View}
+
+We realize that in the merged view each GROUP BY key is unique, and
+thus, to sample the merged view we have to sample by GROUP BY keys
+in the inserted records. For each inserted record we apply a hash
+to the cols in the GROUP BY clause, and then we take the result of
+the hash modulo a sampling ratio to sample the table. The result is
+that we ensure that every record with the same group by key is either
+fully in the sample or not, thus none of the rows in the delta view
+are approximate. Then, we merge this sample delta view with the old
+view to get the set of differences.
