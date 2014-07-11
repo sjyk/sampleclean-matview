@@ -1,5 +1,4 @@
 \section{Correction Approximate Query Processing}
-
 In this section, we will extend the NormalizedSC algorithm to estimate
 corrections for queries on stale views. The key challenge is to estimate
 $\epsilon$ such that:
@@ -7,50 +6,76 @@ $\epsilon$ such that:
 f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
 \]
 
+\subsection{Model for Aggregate Queries on Views}
+What is special about SUM, COUNT, AVG, and VAR aggregate functions
+is that upto proportionality constant, they can be expressed as means.
+For example, a SUM is just the mean value times the dataset size, a COUNT 
+is the mean occurance rate times the dataset size, and VAR is mean squared 
+deviation.
+Let $N$ be the number of tuples in the view $V$. 
+These queries can also have predicates so we have to incorporate that
+as an indicator function (true = 1, false = 0) that skips a tuple in the aggregation if the predicate is false. 
+When we couple these queries with predicates, we can express them in the 
+following way:
+\[
+\forall v_i \in V \text{ : } f(V)= \frac{1}{N} \sum_i^N \phi(v_i) \cdot predicate(i)
+\]
 
+We define $\phi$ in the following way:
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+Aggregation Query & $\phi(v_i)$\tabularnewline
+\hline 
+\hline 
+SUM & $N \cdot v_i$\tabularnewline
+\hline 
+COUNT & $N$\tabularnewline
+\hline 
+AVG & $\frac{N}{\sum_i^N predicate(i)} \cdot v_i$\tabularnewline
+\hline 
+\end{tabular}
+\par\end{center}
 
-\subsection{Select-Project and Foreign-Key Join Views}
-
-We will first derive the exact value for $\epsilon$ without sampling.
+\subsection{Corrections For Select-Project and Foreign-Key Join Views}
+With the model for aggregate queries described above, we can
+first derive the exact value for $\epsilon$ without sampling.
 Since we only consider a model were records are inserted into the
 base tables, for these two categories of views $\textbf{V}_{T}\subseteq\textbf{V}_{T}^{'}$.
 The row differences between $\textbf{V}_{T}$ and $\textbf{V}_{T}^{'}$
 are completely represented by the delta table $\Delta\textbf{V}$;
-that is rows will only be inserted into the views. The aggregation
-functions SUM, COUNT, AVG, and VAR are special as they can be expressed
-as summations. The summative forms lead to the following insight:
+that is rows will only be inserted into the views. 
+Since the aggregate queries are in the form of means, we notice that we 
+can exploit the associativity of summations:
 \[
 f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
 \]
 \[
 f(\textbf{V}_{T}^{'})-f(\textbf{V}_{T})=\epsilon
 \]
-
-
+Up-to a scaling constant c, $\epsilon$ is the aggregation function
+applied to the delta table. 
 \[
 c\cdot f(\Delta\textbf{V})=\epsilon
 \]
-Up-to a scaling constant c, $\epsilon$ is the aggregation function
-applied to the delta table. 
 
 \begin{center}
 \begin{tabular}{|c|c|}
 \hline 
-Aggregation Query F & Scaling Constant c\tabularnewline
+Aggregation Query & Scaling Constant c\tabularnewline
 \hline 
 \hline 
 SUM & 1\tabularnewline
 \hline 
 COUNT & 1\tabularnewline
 \hline 
-AVG & $\frac{|\Delta V|}{|\Delta V|+|V|}$\tabularnewline
+AVG & $\frac{|\Delta V|}{|\Delta V|+N}$\tabularnewline
 \hline 
 \end{tabular}
 \par\end{center}
 
 
 \subsubsection{Sampling the Delta View}
-
 We can extend this theory to a simple random sample $S_{\Delta V}$
 of the delta view $S_{\Delta V}\subseteq\Delta\textbf{V}$. Recall
 that a simple random sample is uniform sample where every row $r\in\Delta V$
@@ -64,10 +89,11 @@ Therefore,
 \[
 c\cdot f(S_{\Delta V})\approx\epsilon
 \]
-Due to the summative forms and uniform sampling, we can apply the
-Central Limit Theorem to bound the approximation error. Sums of independent
-random variables converge to a normal distribution, and further more
-the expected value of $c\cdot f(S_{\Delta V})$ is $\epsilon$. 
+The scaling constant $c$ for the SUM and COUNT queries
+depends on the sample size and is $c = \frac{K}{N}$.
+By the Central Limit Theorem, means of independent random variables converge 
+to a Gaussian. Furthermore the expected value of 
+$c\cdot f(S_{\Delta V})$ is $\epsilon$. 
 \[
 c\cdot f(S_{\Delta V})\sim N(\epsilon,\frac{\sigma_{diff}^{2}}{k})
 \]
@@ -79,9 +105,7 @@ the variance of the delta view. In Section ?, we will analyze this
 parameter and describe how the statistics of the updates affect the
 estimate accuracy.
 
-
 \subsection{Aggregation Views}
-
 Applying the view definition to the updates is not enough information
 to calculate $\epsilon$ in aggregation views. Consider the following
 example view and query pair:
@@ -152,7 +176,7 @@ col2 & col1\_max\tabularnewline
 \end{tabular}
 \par\end{center}
 
-However, we see that when we perform the merge operation, the updated
+However, we see that when we perform the refresh operation, the updated
 View1 remains the same, thus the $\epsilon$ for Query1 is 0, even
 though the delta table has non-zero rows:
 
@@ -169,9 +193,9 @@ col2 & col1\_max\tabularnewline
 \end{tabular}
 \par\end{center}
 
-The key point is that the merge operation depends on the aggregations
+The key point is that the refresh operation depends on the aggregations
 in view definition, and we need to know how these aggregates change
-after the merge to estimate $\epsilon$. Let $\textbf{W}$ be the
+after the refresh to estimate $\epsilon$. Let $\textbf{W}$ be the
 join of up-to-date view $\textbf{V}_{T}^{'}$ and the old view $\textbf{V}_{T}$
 on the group-by key. To make the example above more interesting we
 can insert a few more records, $\textbf{W}$ would be:
@@ -213,16 +237,24 @@ QueryEpsilon1 := SELECT AVG(col1_max_new-col1_max_old)
 FROM W
 \end{lstlisting}
 
+However, an interesting about aggregation views is that they do not 
+require scaling constant $c$ as in the the other two categories of views.
+This is because we refresh the delta view; inferring a correction from the
+entire view rather than just the updates.
 
-
-\subsubsection{Sampling the Merged View}
-
-We realize that in the merged view each GROUP BY key is unique, and
-thus, to sample the merged view we have to sample by GROUP BY keys
+\subsubsection{Sampling the Refreshed View}
+We notice that in the refreshed view each GROUP BY key is unique, and
+thus, to sample the refreshed view we have to sample by GROUP BY keys
 in the inserted records. For each inserted record we apply a hash
 to the cols in the GROUP BY clause, and then we take the result of
 the hash modulo a sampling ratio to sample the table. The result is
 that we ensure that every record with the same group by key is either
 fully in the sample or not, thus none of the rows in the delta view
-are approximate. Then, we merge this sample delta view with the old
+are approximate. Then, we refresh this sample delta view with the old
 view to get the set of differences.
+
+As in the Select-Project and Foreign-Key views the Central Limit Theorem can
+be used to bound the approximation, and similarly the result is guaranteed to be unbiased.
+\[
+f(S_{\Delta V})\sim N(\epsilon,\frac{\sigma_{diff}^{2}}{k})
+\]

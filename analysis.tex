@@ -25,5 +25,14 @@ Therefore, in incremental maintenance we have to communicate $\delta_v$ rows whi
 \textbf{Query: } As incremental maintenance completely refreshes the view, the cost of processing a query on the view is at most $v'$. In our approach, we use the old view, sample, and outlier index to process a query. For Select-project and foreign-key join views, the processing cost is $v + p\delta_v + l$ and this is guaranteed to be less than $v'$. For aggregation views, the cost is $v + pv'+l$ where we calculate a correction by processing $pv'+l$ rows and correct an existing aggregation of $v$ records.
 
 \subsection{Variance Analysis}
+We will first analyze the variance of the estimate $\epsilon$ without the outlier index. 
+In Section ?, we discussed how the variance of $\epsilon$ is the variance of the difference set.
+For Select-project and foreign-key join views, this variance can be analytically derived from the variance formula for statistical mixtures [?].
+\begin{equation}
+f(\Delta V)\frac{\delta_v}{v'}(1-\frac{\delta_v}{v'})+var(\Delta V)\frac{\delta_v}{v'}
+\end{equation}
+For Aggregation views, the accuracy depends on both the variance of the inserted rows and the updates to existing rows. 
+<TODO>
 
 \subsection{Optimality of Corrections}
+<TODO>
