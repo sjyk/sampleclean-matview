@@ -35,6 +35,12 @@ view:
 The details of the refresh operation depend on the view definition.
 Refer to [?] for details.
 
+In this work, we address three types of materialized views: Select-Project, Aggregation, and
+Foreign-Key Join views; and four common aggregation queries on these
+views: SUM, COUNT, AVG, and VAR. We further analyze 
+only insertions into the database and defer analysis of updates
+and deletions for future work.
+
 \subsection{Scheduling Maintenance}
 While often less expensive than recomputing a materialized view,
 incremental maintenance can still be computationally expensive.
@@ -59,7 +65,7 @@ For example, a user can update the materialized view
 nightly during times of low-activity in the system.
 More sophisticated deferred scheduling schemes are also possible, refer to [?] for a full survey.
 
-\subsection{Problem Statement}
+\subsection{A Data Cleaning Approach}
 Without consistency guarantees, in many deferred incremental maintenance approaches, 
 queries on the materialized view are stale until the refresh.
 In fact, in general, the relative error between the stale result and the up-to-date result is unbounded.
@@ -86,8 +92,32 @@ The user specifies a sampling ratio that meets the systems performance constrain
 With this, the user gets guarantees that for the aggregate queries the results have bounded error and 
 the queries return with error bars.
 
-In this work, we address three types of materialized views: Select-Project, Aggregation, and
-Foreign-Key Join views; and four common aggregation queries on these
-views: SUM, COUNT, AVG, and VAR. We further analyze 
-only insertions into the database and defer analysis of updates
-and deletions for future work.
+\subsection{Extending SampleClean For Correcting Staleness}
+Given the three categories of views and the SUM, COUNT, AVG, and VAR
+queries on these views, we can formalize the concept of staleness.
+Let $\textbf{V}_{T}$ be the old view, and $\textbf{V}_{T}^{'}$ be
+the up-to-date view. If $f$ is an aggregation function, then we call
+the staleness error of the query $\epsilon$ if :
+\[
+f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
+\]
+Since we already have the out-of-date view, we can easily compute
+$f(\textbf{V}_{T})$. 
+In this work, we look at correcting staleness by estimating $\epsilon$ 
+from the sample.
+In other words, we use sampling to learn how updates affect the aggregation query on the view
+and then correct the query results.
+
+In {[}?{]}, the authors proposed an algorithm called ``NormalizedSC'' 
+which estimated the error term $\epsilon$ from a sample of the \emph{difference set}.
+We address a few new challenges in this work. First, NormalizedSC
+was designed in the context of static tables and data dirtiness that
+can be modeled as record transformations. 
+In this work, we notice that correcting staleness can imply inserting new rows 
+into the view as well as transforming old ones.
+A further addition, is we consider the effects of outliers
+on the estimate of NormalizedSC and characterize the optimality of
+the NormalizedSC algorithm.
+
+
+
