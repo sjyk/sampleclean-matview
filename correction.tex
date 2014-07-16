@@ -1,14 +1,18 @@
-\section{Correction Approximate Query Processing}
-In this section, we will extend the NormalizedSC algorithm to estimate
-corrections for queries on stale views. The key challenge is to estimate
-$\epsilon$ such that:
+\section{Correction Query Processing}
+In this section, we will describe the how to calculate a 
+correction for stale queries.
+Suppose we have an aggregation query $f$ and let $\textbf{V}_{T}^{'}$ be the up-to-date view
+and $\textbf{V}_{T}$ be the old view. 
+The query $f$ is stale with error $\epsilon$ if:
 \[
 f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
 \]
+Before we discuss how sampling can scale this process, we will discuss how to correct
+queries on the full data.
 
 \subsection{Model for Aggregate Queries on Views}
 What is special about SUM, COUNT, AVG, and VAR aggregate functions
-is that upto proportionality constant, they can be expressed as means.
+is that upto proportionality constant, they can be expressed as a mean-value calculation.
 For example, a SUM is just the mean value times the dataset size, a COUNT 
 is the mean occurance rate times the dataset size, and VAR is mean squared 
 deviation.
@@ -53,7 +57,7 @@ f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
 \[
 f(\textbf{V}_{T}^{'})-f(\textbf{V}_{T})=\epsilon
 \]
-Up-to a scaling constant c, $\epsilon$ is the aggregation function
+Upto a scaling constant c, $\epsilon$ is the aggregation function
 applied to the delta table. 
 \[
 c\cdot f(\Delta\textbf{V})=\epsilon
@@ -69,192 +73,147 @@ SUM & 1\tabularnewline
 \hline 
 COUNT & 1\tabularnewline
 \hline 
-AVG & $\frac{|\Delta V|}{|\Delta V|+N}$\tabularnewline
+AVG & $\frac{|\Delta V|}{|\Delta V|+|V|}$\tabularnewline
 \hline 
 \end{tabular}
 \par\end{center}
 
-
-\subsubsection{Sampling the Delta View}
-We can extend this theory to a simple random sample $S_{\Delta V}$
-of the delta view $S_{\Delta V}\subseteq\Delta\textbf{V}$. Recall
-that a simple random sample is uniform sample where every row $r\in\Delta V$
-is in $S_{\Delta V}$ with equal probability $p$. For Select-Project
-and Foreign-Key Join Views, this means we have to take a sample of
-the updates and then apply the view definition to the sample of the
-updates. Formally, for every record u inserted into the table, with
-probability $p$, we include it in the sample $S$. Then, we take
-the sample updates $S$ and apply the view definition forming $S_{\Delta V}$.
-Therefore,
-\[
-c\cdot f(S_{\Delta V})\approx\epsilon
-\]
-The scaling constant $c$ for the SUM and COUNT queries
-depends on the sample size and is $c = \frac{K}{N}$.
-By the Central Limit Theorem, means of independent random variables converge 
-to a Gaussian. Furthermore the expected value of 
-$c\cdot f(S_{\Delta V})$ is $\epsilon$. 
-\[
-c\cdot f(S_{\Delta V})\sim N(\epsilon,\frac{\sigma_{diff}^{2}}{k})
-\]
-\[
-f(\textbf{V}_{T})+c\cdot f(S_{\Delta V})\sim N(f(\textbf{V}_{T}^{'}),\frac{\sigma_{diff}^{2}}{k})
-\]
-$\sigma_{diff}^{2}$ is an interesting parameter as it quantifies
-the variance of the delta view. In Section ?, we will analyze this
-parameter and describe how the statistics of the updates affect the
-estimate accuracy.
+\subsubsection{Example Query Processing}
+Recall, our example dataset of video streaming logs and the example
+selection view:
+\begin{lstlisting}
+View1 := SELECT * FROM Log 
+WHERE userAgent 
+LIKE '%Mozilla%'
+\end{lstlisting}
+This query filters out the log records that came from browsers with the Mozilla tag.
+Let us assume that our old materialized view has 1M rows, and 
+we receive an update of 500,000 new rows with the mozilla tag.
+Now we want to answer the following query:
+\begin{lstlisting}
+SELECT avg(responseTime) 
+FROM View1
+\end{lstlisting}
+On the inserted 500,000 rows, we can run the query and call the result $r_{delta}$.
+Then, we apply the scaling constant c to the result to convert this into an $\epsilon$ and get $r_{delta}\frac{500000}{500000+1000000}$, which 
+equals $\frac{r_{delta}}{3}$.
+Therefore, the up-to-date result is:
+\[r_{old} + \epsilon = r_{old} +\frac{r_{delta}}{3}\].
 
 \subsection{Aggregation Views}
-Applying the view definition to the updates is not enough information
-to calculate $\epsilon$ in aggregation views. Consider the following
-example view and query pair:
-
+The delta view is not enough information to calculate $\epsilon$ in aggregation views. 
+Consider the following example view which we described in the last section:
 \begin{lstlisting}
-View1 := SELECT col2, MAX(col1) as col1_max
-FROM table 
-GROUP BY col2
+View2 := SELECT videoID, 
+max(responseTime) AS maxResponseTime 
+FROM Log
+GROUP BY videoID;
 \end{lstlisting}
-
-
+Now we want to correct the following stale query.
 \begin{lstlisting}
-Query1 := SELECT AVG(col1_max) 
-FROM View1 
+SELECT COUNT(1) 
+FROM View2 
+WHERE maxResponseTime > 100ms;
 \end{lstlisting}
+Now suppose, View2 looks like this:
 
-
-\begin{center}
 \begin{tabular}{|c|c|}
 \hline 
-col1 & col2\tabularnewline
+videoId & maxResponseTime\tabularnewline
 \hline 
 \hline 
-3 & 1\tabularnewline
+125 & 99\tabularnewline
 \hline 
-6 & 1\tabularnewline
+6212 & 160\tabularnewline
 \hline 
-2 & 2\tabularnewline
-\hline 
-\end{tabular} %
-\begin{tabular}{|c|c|}
-\hline 
-col2 & col1\_max\tabularnewline
-\hline 
-\hline 
-1 & 6\tabularnewline
-\hline 
-2 & 2\tabularnewline
+222 & 145\tabularnewline
 \hline 
 \end{tabular}
-\par\end{center}
 
-Suppose records are inserted into \textbf{table} and we can apply
-the the definition View1 to set of inserted records:
+We may get a delta table for this view of the form:
 
-\begin{center}
 \begin{tabular}{|c|c|}
 \hline 
-col1 & col2\tabularnewline
+videoId & maxResponseTime\_max\tabularnewline
 \hline 
 \hline 
-3 & 1\tabularnewline
-\hline 
-6 & 1\tabularnewline
-\hline 
-2 & 2\tabularnewline
-\hline 
-\textbf{2} & \textbf{1}\tabularnewline
-\hline 
-\end{tabular} %
-\begin{tabular}{|c|c|}
-\hline 
-col2 & col1\_max\tabularnewline
-\hline 
-\hline 
-2 & 1\tabularnewline
+125 & 96\tabularnewline
 \hline 
 \end{tabular}
-\par\end{center}
 
 However, we see that when we perform the refresh operation, the updated
-View1 remains the same, thus the $\epsilon$ for Query1 is 0, even
-though the delta table has non-zero rows:
+View2 remains the same since 96 < 99. 
+Thus the $\epsilon$ for query is 0, even though the delta table has non-zero rows. 
+The key point is that the refresh operation depends on the values in the view, 
+and we need to know how these aggregates change
+after the refresh to estimate $\epsilon$. 
+Let $\textbf{W}$ be the join of up-to-date view $\textbf{V}_{T}^{'}$ and the old view $\textbf{V}_{T}$
+on the group-by key:
 
-\begin{center}
-\begin{tabular}{|c|c|}
-\hline 
-col2 & col1\_max\tabularnewline
-\hline 
-\hline 
-1 & 6\tabularnewline
-\hline 
-2 & 2\tabularnewline
-\hline 
-\end{tabular}
-\par\end{center}
-
-The key point is that the refresh operation depends on the aggregations
-in view definition, and we need to know how these aggregates change
-after the refresh to estimate $\epsilon$. Let $\textbf{W}$ be the
-join of up-to-date view $\textbf{V}_{T}^{'}$ and the old view $\textbf{V}_{T}$
-on the group-by key. To make the example above more interesting we
-can insert a few more records, $\textbf{W}$ would be:
-
-\begin{center}
-\begin{tabular}{|c|c|}
-\hline 
-col1 & col2\tabularnewline
-\hline 
-\hline 
-3 & 1\tabularnewline
-\hline 
-6 & 1\tabularnewline
-\hline 
-2 & 2\tabularnewline
-\hline 
-\textbf{2} & \textbf{1}\tabularnewline
-\hline 
-\textbf{4} & \textbf{2}\tabularnewline
-\hline 
-\end{tabular} %
 \begin{tabular}{|c|c|c|}
 \hline 
-col2 & col1\_max\_new & col1\_max\_old\tabularnewline
+videoId & maxResponseTime\_new & maxResponseTime\_old \tabularnewline
 \hline 
 \hline 
-1 & 6 & 6\tabularnewline
+125 & 99 & 99\tabularnewline
 \hline 
-2 & 4 & 2\tabularnewline
+6212 & 160 & 160\tabularnewline
+\hline 
+222 & 145 & 145\tabularnewline
 \hline 
 \end{tabular}
-\par\end{center}
-
-The value of $\epsilon$ for Query1 would be the avg query applied
-to the difference:
-
-\begin{lstlisting}
-QueryEpsilon1 := SELECT AVG(col1_max_new-col1_max_old) 
-FROM W
-\end{lstlisting}
 
 However, an interesting about aggregation views is that they do not 
 require scaling constant $c$ as in the the other two categories of views.
 This is because we refresh the delta view; inferring a correction from the
 entire view rather than just the updates.
 
-\subsubsection{Sampling the Refreshed View}
-We notice that in the refreshed view each GROUP BY key is unique, and
-thus, to sample the refreshed view we have to sample by GROUP BY keys
-in the inserted records. For each inserted record we apply a hash
-to the cols in the GROUP BY clause, and then we take the result of
-the hash modulo a sampling ratio to sample the table. The result is
-that we ensure that every record with the same group by key is either
-fully in the sample or not, thus none of the rows in the delta view
-are approximate. Then, we refresh this sample delta view with the old
-view to get the set of differences.
+\subsubsection{Example Query Processing}
+We can make the example in the previous section more interesting to illustrate the query processing steps.
+Suppose our delta table was the following:
 
-As in the Select-Project and Foreign-Key views the Central Limit Theorem can
-be used to bound the approximation, and similarly the result is guaranteed to be unbiased.
-\[
-f(S_{\Delta V})\sim N(\epsilon,\frac{\sigma_{diff}^{2}}{k})
-\]
+\begin{tabular}{|c|c|}
+\hline 
+videoId & maxResponseTime\_max\tabularnewline
+\hline 
+\hline 
+125 & 96\tabularnewline
+\hline 
+1336 & 214\tabularnewline
+\hline 
+\end{tabular}
+
+Then the joined result would be:
+
+\begin{tabular}{|c|c|c|}
+\hline 
+videoId & maxResponseTime\_new & maxResponseTime\_old \tabularnewline
+\hline 
+\hline 
+125 & 99 & 99\tabularnewline
+\hline 
+6212 & 160 & 160\tabularnewline
+\hline 
+222 & 145 & 145\tabularnewline
+\hline 
+1336 & 214 & NULL\tabularnewline
+\hline 
+\end{tabular}
+
+We can transform the example:
+
+\begin{lstlisting}
+SELECT COUNT(1) 
+FROM View2 
+WHERE maxResponseTime > 100ms;
+\end{lstlisting}
+
+in terms of SQL case statements that evaluate a boolean to 1 or 0 if true or false/NULL.
+\begin{lstlisting}
+SELECT (maxResponseTime_new > 100ms) 
+- (maxResponseTime_old > 100ms)
+
+FROM Joined_View2 
+\end{lstlisting}
+The result of this query on the example is 1 which is a correction to the stale count 
+of videos with a max response time of greater than 100ms.

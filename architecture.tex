@@ -1,14 +1,30 @@
 \section{System Architecture}
 The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
 In this section, we will give an overview of each of the blocks of the system.
-To illustrate our approach, we use the following running example which is a 
-simplified schema of one of our experimental datasets.
-
-
 \begin{figure}[h]
 \label{sys-arch}
 \centering
  \includegraphics[width=\columnwidth]{figs/sys-arch.png}
+ \caption{TODO}
+\end{figure}
+
+To illustrate our approach, we use the following running example which is a 
+simplified schema of one of our experimental datasets (Figure \ref{example}).
+Imagine, we are querying logs from a video streaming company. 
+These logs record visits from users as they happen and grow over time.
+We have two table: Log and Video, with the following schema:
+\begin{lstlisting}
+Log(sessionID, videoID, responseTime, userAgent)
+Video(videoID, title, duration)
+\end{lstlisting}
+These tables are related with a foreign-key relationship between
+Log and Video, and there is an integrity constraint that every log
+record must link to one video in the video table.
+
+\begin{figure}[h]
+\label{example}
+\centering
+ \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}
  \caption{TODO}
 \end{figure}
 
@@ -79,7 +95,8 @@ clause is very selective. Consider the following example:
 
 \begin{lstlisting}
 SELECT videoID, 
-	   max(responseTime) as maxResponseTime  
+max(responseTime) AS maxResponseTime 
+ 
 FROM Log 
 GROUP BY videoID;
 \end{lstlisting}
@@ -133,7 +150,7 @@ view example application, we would have to parse only a sample of
 the inserted records. Similarly, for the Aggregation view, sampling
 $\Delta\textbf{V}$ reduces the cardinality of the result and consequently
 communication/merging costs. And finally, for the Join views, we would
-only have to join a sample of the inserted records.
+only have to join a sample of the inserted records. 
 
 \subsection{Outlier Indexing}
 We are often interested in records that outliers, 
