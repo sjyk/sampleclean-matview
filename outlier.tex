@@ -1,17 +1,38 @@
 \section{Outlier Indexing}
+One feature of many large datasets is long-tailed distributions[?].
+Such distributions pose a challenge to sample-based approaches as the
+distributions often have variances that are orders of magnitude larger
+than the mean.
+As a result, answering queries such as SUM, COUNT, AVG may require a large 
+sample size for sufficient accuracy.
 
+Furthermore, the outliers themselves are interesting, and often these are the
+most frequently queried records.
 An application of particular interest for up-to-date query results
 is outlier detection. When we have growing datasets, for example activity
 logs, we may want to know which records correspond to abnormal activity.
-Up-to-date query results, as opposed to long periods of staleness,
-have to potential to detect these outliers quickly. However, as we
-use sampling to processes aggregate queries on the views, this has
-a potential to mask outliers. Our framework can be extended to guarantee
-that outliers records will be incorporated into the sample. In this
-section, we discuss how not only are these outliers themselves of
-interest but that these outliers give information about the distribution
-of an column, and can greatly improve the accuracy of estimates.
 
+The key question is how can we incorporate guarantees about outliers
+and efficiency guarantees on long tails in our estimation framework.
+The approach is to build an outlier index similar to that proposed in prior work [?].
+The user specifies an attribute in the base table and a percentage $o\%$, and we 
+identify the records whose attribute value is in the top $o$ percentile.
+We then construct an index to ensure that rows in the materialized view
+that are derived from the top-o percentile records are guaranteed to be in the sample.
+
+Recall, our example base table:
+\begin{lstlisting}
+Log(sessionID, videoID, responseTime, userAgent)
+\end{lstlisting}
+and the selection view:
+\begin{lstlisting}
+View1 := SELECT * FROM Log 
+WHERE userAgent 
+LIKE '%Mozilla%'
+\end{lstlisting}
+If the user creates an outlier index on ``responseTime" with $o=1\%$, then
+the records containing the top 1\% of response times are guaranteed to be 
+in the sample of the delta view regardless of the sample size.
 
 \subsection{A Model For Outlier Indexing}
 
