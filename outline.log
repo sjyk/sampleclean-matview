@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  16 JUL 2014 23:08
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  17 JUL 2014 00:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -403,12 +403,7 @@ rds,
  []
 
 [6]) (./outlier.tex
-Overfull \hbox (1.9054pt too wide) in paragraph at lines 3--14
-\T1/aer/m/n/9 for ex-am-ple ac-tiv-ity logs, we may want to know which records
- []
-
-
-Overfull \hbox (1.498pt too wide) in paragraph at lines 44--44
+Overfull \hbox (1.498pt too wide) in paragraph at lines 65--65
 []\secfnt Increased Ac-cu-racy For Heavy-Tailed Dis-
  []
 
@@ -452,7 +447,7 @@ amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/helve
 tic/uhvb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmb8a
 .pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on outline.pdf (9 pages, 376372 bytes).
+Output written on outline.pdf (9 pages, 378053 bytes).
 PDF statistics:
  117 PDF objects out of 1000 (max. 8388607)
  81 compressed objects within 1 object stream

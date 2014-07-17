@@ -1,38 +1,10 @@
-\section{Analysis}
+\section{Extensions}
 
-\subsection{Cost Analysis}
-Let $n$ be the number of inserted records, $v$ be the cardinality of the old view, $v'$ be the cardinality of the new view, $\delta_v$ be the cardinality of the delta view, $p$ be the sampling ratio, and $l$ be the size of the outlier index.  
+\subsection{Proof of Optimality of Correction}
 
-\textbf{Scan of Updates: }
-Both incremental maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can
-load the updates into memory once and amortize that I/O cost over all views. 
-If a user chooses to add an outlier index on an attribute in the updates building this index also requires a single scan of the inserted records.
-However, as the index is based on the base relation and not the delta view this can be populated when the record is inserted.
+\subsection{Selection Queries}
 
-\textbf{Delta View: } For Select-project and foreign-key join views, incremental maintenance has processing cost of $n$ records where the predicate or the join has to be evaluated for each inserted record. Our approach has a cost of $np$ as we have to evaluate this only on our sample. For aggregation views, incremental maintenance has the processing cost of $n$ and in addition an aggregation cost of $\delta_v$ where aggregates for each of the groups have to be maintained. In contrast, for aggregation views, our approach has a cost of $p\delta_v$ as we sample the group by keys and an expected processing cost of $np$. 
-If there is an outlier index, the cost increases additively to $p\delta_v+l$.
-For aggregation views, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group by key.
+\subsection{Different Types of Aggregation Views}
 
-\textbf{Refresh: } Let us first analyze the refresh step in a single node system with a join index. For Select-project and foreign-key join views, incremental maintenance has to insert $\delta_v$ rows while we have to insert only $p\delta_v$ records. If there is an outlier index, this cost increases to $p\delta_v + l$. For aggregation views, the cost is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
-Incremental maintenance has to refresh $\delta_v$ rows while we have to refresh $p\delta_v$ rows. 
-If there is a join index, in constant time, we can determine which rows are new insertions and which correspond to rows already in the view.
 
-The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
-For aggregation views, we want to partition the data by the group by key.
-This allows a paritioned join which only requires communication (a shuffle operation) of the delta table.
-Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $p\delta_v$ rows.
-
-\textbf{Query: } As incremental maintenance completely refreshes the view, the cost of processing a query on the view is at most $v'$. In our approach, we use the old view, sample, and outlier index to process a query. For Select-project and foreign-key join views, the processing cost is $v + p\delta_v + l$ and this is guaranteed to be less than $v'$. For aggregation views, the cost is $v + pv'+l$ where we calculate a correction by processing $pv'+l$ rows and correct an existing aggregation of $v$ records.
-
-\subsection{Variance Analysis}
-We will first analyze the variance of the estimate $\epsilon$ without the outlier index. 
-In Section ?, we discussed how the variance of $\epsilon$ is the variance of the difference set.
-For Select-project and foreign-key join views, this variance can be analytically derived from the variance formula for statistical mixtures [?].
-\begin{equation}
-f(\Delta V)\frac{\delta_v}{v'}(1-\frac{\delta_v}{v'})+var(\Delta V)\frac{\delta_v}{v'}
-\end{equation}
-For Aggregation views, the accuracy depends on both the variance of the inserted rows and the updates to existing rows. 
-<TODO>
-
-\subsection{Optimality of Corrections}
-<TODO>
+\section{Related Work}

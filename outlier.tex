@@ -34,22 +34,39 @@ If the user creates an outlier index on ``responseTime" with $o=1\%$, then
 the records containing the top 1\% of response times are guaranteed to be 
 in the sample of the delta view regardless of the sample size.
 
-\subsection{A Model For Outlier Indexing}
+\subsection{A Framework For Outlier Indexing}
+A key aspect of our outlier index is that it is derived on the base table, yet 
+can still give benefits to queries on the view.
+This has a few advantages: (1) the outlier index does not require materialization of the full delta table,
+(2) the cost of building the index amortizes over all the materialized views, and (3) it can be built with a 
+single pass of the updates.
+In principle, other outlier detection schemes [?] can be applied to build the index, but in this work, we 
+implement and analyze an index of top o\%. 
+In attributes with both positive and negative values, this can also be the records with top o\% in absolute value terms.
 
-We propose the following model for detecting and indexing outliers.
-When creating a view, the user specifies an attribute in the base
-relation to ``outlier index''. What this means is the that the records
-with the $l$ largest attribute values are guaranteed to be included
-in the sample view. In this outlier model, we detect outliers in updates
-with a single pass and without having to build the entire delta table.
-For aggregation views, for the records that are indexed as outliers,
-we simply add those group by keys to the sample.
+\subsection{Building The Outlier Index}
+The first step is that the user selects an attribute to index and specifies the parameter $o\%$.
+In a single pass of only the inserted records, the index is built storing references to the records in the top o\%.
+For Select-Project and Foreign-Key Join views, this is sufficient as we can additionally iterate through the index when sampling and mark 
+which records satisfy the view definition and perform any neccessary joins. 
+This adds an additional scanning cost of $o\%$ to the creation of each view, but we envision that in most datasets the outlier index will be
+very small.
+In our experiments, we show that even a very small outlier index (less than .01\% of records) is sufficent to greatly improve the accuracy of
+correction estimates.
 
+For aggregation views, at sample creation time, we must ensure that all rows in the materialized view that are derived from a record in the outlier index are added to the view. 
+This means that we have to run a COUNT(DISTINCT) for the group by key of the view on the outlier index and then ensure that all of those keys are added to the view (that is ensure they are sampled).
 
 \subsection{Query Processing with the Outlier Index}
+The outlier index has two uses: (1) we can answer SELECTION queries on the outliers, 
+and (2) we can improve the accuracy of our AGGREGATION queries.
+For selection queries, we must simply check to see if the record satisfying the query is in the outlier index.
+While the outlier index is small, outliers (and their derived materialized view rows) are often the records that
+we want to query.
+To see a more general handling of Selection Queries, see Section [?].
 
-We can incorporate the outliers into our estimates of the correction
-$\epsilon$. By guaranteeing that certain rows are in the index, we
+We can also incorporate the outliers into our estimates of the correction
+$\epsilon$ for aggregation queries. By guaranteeing that certain rows are in the index, we
 have to merge a deterministic result (set of outlier rows) with the
 estimate. One way to think of this is that we have $\epsilon$ is
 calculated from the set of records that are not outliers. Let $|V_{T}^{'}|$
@@ -62,7 +79,7 @@ with the outlier information by:
 \]
 
 
-\subsection{Increased Accuracy For Heavy-Tailed Distributions}
+\subsection{Increased Accuracy For Long-Tailed Distributions}
 
 This outlier indexing procedure can greatly increase the accuracy
 of estimates where the set of difference is heavy tailed. This approach
