@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 11:04
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 13:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -334,24 +334,17 @@ Overfull \hbox (2.76859pt too wide) in paragraph at lines 8--18
 []\T1/aer/m/n/9 However, pre-computed query re-sults face the ob-vi-ous chal-
  []
 
-
-Overfull \hbox (14.92593pt too wide) in paragraph at lines 95--95
-[]\secfnt Extending Sam-ple-Clean For Cor-rect-ing Stal-
- []
-
-
-Overfull \hbox (1.25006pt too wide) in paragraph at lines 96--101
-[]\T1/aer/m/n/9 Given the three cat-e-gories of views and the SUM, COUNT,
- []
-
-) (./architecture.tex [2] <figs/sys-arch.png, id=19, 605.1408pt x 273.1806pt>
+) (./architecture.tex <figs/sys-arch.png, id=11, 605.1408pt x 273.1806pt>
 File: figs/sys-arch.png Graphic file (type png)
 
 <use figs/sys-arch.png>
 Package pdftex.def Info: figs/sys-arch.png used on input line 7.
 (pdftex.def)             Requested size: 240.0pt x 108.34491pt.
 
-<figs/sample-clean-example.png, id=21, 510.708pt x 364.7226pt>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[2] <figs/sample-clean-example.png, id=21, 510.708pt x 364.7226pt>
 File: figs/sample-clean-example.png Graphic file (type png)
 
 <use figs/sample-clean-example.png>
@@ -369,12 +362,12 @@ File: omsaer.fd 1999/12/27
 )
 LaTeX Font Info:    Font shape `OMS/aer/m/n' in size <7> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 59.
- [3 <./figs/sys-arch.png> <./figs/sample-clean-example.png>]
+
 Overfull \hbox (9.24995pt too wide) in paragraph at lines 142--142
 []\secfnt Reducing Main-te-nance Cost With Sam-pling 
  []
 
-) (./correction.tex
+[3 <./figs/sys-arch.png> <./figs/sample-clean-example.png>]) (./correction.tex
 Overfull \hbox (8.80614pt too wide) in paragraph at lines 44--44
 []\secfnt Corrections For Select-Project and Foreign-
  []
@@ -486,7 +479,7 @@ d-to.pdf>
 (epstopdf)                    size: 15118 bytes
 (epstopdf)             Command: <repstopdf --outfile=exp/exp4-efficiency-tpcd-s
 kew-eps-converted-to.pdf exp/exp4-efficiency-tpcd-skew.eps>
-(epstopdf)             \includegraphics on input line 141.
+(epstopdf)             \includegraphics on input line 142.
 Package epstopdf Info: Output file is already uptodate.
 
 <exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf, id=55, 1452.42625pt x 361.
@@ -495,7 +488,7 @@ File: exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf Graphic file (type pdf
 )
  <use exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf>
 Package pdftex.def Info: exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf use
-d on input line 141.
+d on input line 142.
 (pdftex.def)             Requested size: 504.0pt x 125.38818pt.
 Package epstopdf Info: Source file: <exp/exp5-coniva-accuracy.eps>
 (epstopdf)                    date: 2014-07-21 00:22:22
@@ -506,7 +499,7 @@ pdf>
 (epstopdf)                    size: 13403 bytes
 (epstopdf)             Command: <repstopdf --outfile=exp/exp5-coniva-accuracy-e
 ps-converted-to.pdf exp/exp5-coniva-accuracy.eps>
-(epstopdf)             \includegraphics on input line 232.
+(epstopdf)             \includegraphics on input line 233.
 Package epstopdf Info: Output file is already uptodate.
 
 <exp/exp5-coniva-accuracy-eps-converted-to.pdf, id=56, 1444.39626pt x 364.36125
@@ -514,10 +507,10 @@ pt>
 File: exp/exp5-coniva-accuracy-eps-converted-to.pdf Graphic file (type pdf)
  <use exp/exp5-coniva-accuracy-eps-converted-to.pdf>
 Package pdftex.def Info: exp/exp5-coniva-accuracy-eps-converted-to.pdf used on 
-input line 232.
+input line 233.
 (pdftex.def)             Requested size: 504.0pt x 127.13916pt.
 
-Overfull \hbox (2.07678pt too wide) in paragraph at lines 237--243
+Overfull \hbox (2.07678pt too wide) in paragraph at lines 238--246
 \T1/aer/m/n/9 sup-ports ma-te-ri-al-ized views through a dis-tributed data stru
 c-
  []
@@ -527,23 +520,19 @@ Package epstopdf Info: Source file: <exp/exp5-efficiency-conviva.eps>
 (epstopdf)                    size: 21989 bytes
 (epstopdf)             Output file: <exp/exp5-efficiency-conviva-eps-converted-
 to.pdf>
+(epstopdf)                    date: 2014-07-22 11:04:27
+(epstopdf)                    size: 17164 bytes
 (epstopdf)             Command: <repstopdf --outfile=exp/exp5-efficiency-conviv
 a-eps-converted-to.pdf exp/exp5-efficiency-conviva.eps>
-(epstopdf)             \includegraphics on input line 247.
-runsystem(repstopdf --outfile=exp/exp5-efficiency-conviva-eps-converted-to.pdf 
-exp/exp5-efficiency-conviva.eps)...executed safely (allowed).
-
-Package epstopdf Info: Result file: <exp/exp5-efficiency-conviva-eps-converted-
-to.pdf>
-(epstopdf)                    date: 2014-07-22 11:04:27
-(epstopdf)                    size: 17164 bytes.
+(epstopdf)             \includegraphics on input line 250.
+Package epstopdf Info: Output file is already uptodate.
 
 <exp/exp5-efficiency-conviva-eps-converted-to.pdf, id=57, 2165.08875pt x 429.60
 5pt>
 File: exp/exp5-efficiency-conviva-eps-converted-to.pdf Graphic file (type pdf)
  <use exp/exp5-efficiency-conviva-eps-converted-to.pdf>
 Package pdftex.def Info: exp/exp5-efficiency-conviva-eps-converted-to.pdf used 
-on input line 247.
+on input line 250.
 (pdftex.def)             Requested size: 504.0pt x 100.00012pt.
 )
 No file outline.bbl.
@@ -562,7 +551,7 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  4068 strings out of 493315
  55303 string characters out of 6137904
- 135468 words of memory out of 5000000
+ 136468 words of memory out of 5000000
  7398 multiletter control sequences out of 15000+600000
  56146 words of font info for 75 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
@@ -587,7 +576,7 @@ fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/t
 ype1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/t
 imes/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri
 8a.pfb>
-Output written on outline.pdf (11 pages, 505350 bytes).
+Output written on outline.pdf (11 pages, 504553 bytes).
 PDF statistics:
  178 PDF objects out of 1000 (max. 8388607)
  123 compressed objects within 2 object streams

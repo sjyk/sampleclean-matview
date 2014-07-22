@@ -80,9 +80,21 @@ In the SampleClean project [?], the authors suggested that to process aggregate 
 one need not clean the entire dataset but rather a random sample to get an approximate answer.
 Rather than an uncleaned result that can be arbitrarily dirty, you acheive an approximate result with bounded sampling error. 
 
-Similarly, in context of materialized views, we address the key question of whether we have to maintain the entire 
-view to answer aggregate queries with bounded error.
-In this work, we use sampling to infer up-to-date results for aggregation queries on stale materialized views. 
+One of key algorithms in SampleClean, NormalizedSC, takes a dirty dataset and query and using a sample of clean data learns how
+to correct the query so the result is ``clean".
+This approach gives highly accurate answers in datasets where errors are sparse since the correction will be small.
+In context of materialized views, we explore whether we can apply a similar algorithm to acheive approximately up-to-date results;
+where we take a sample of up-to-date data and estimate how much we have to correct a stale query result.
+
+However, NormalizedSC alone is not suited for ``staleness" data errors.
+First, the algorithm is designed for sampling base relations and not views.
+Without views, NormalizedSC does not address the challenge of correcting nested queries so unmodified it would not work.
+Provided with a way to uniformly sample the view from the base relation, NormalizedSC still has limitations. 
+The SampleClean model looks at errors that can corrected with a transformation of records.
+Corrections to stale materialized views can imply insertions of new rows in addition to transformations of existing rows.
+
+In this work, we show how ideas from NormalizedSC can be extended to the setting of materialized views.
+And the implication is that we can use sampling to infer up-to-date results for aggregation queries on stale materialized views. 
 We can apply incremental maintenance to just a sample of the view, thus greatly reducing the cost needed to maintain the view (Figure ?). 
 With the sampling ratio, the user has a knob to tradeoff performance (in terms of throughput and refresh latency) and accuracy.
 
@@ -91,33 +103,5 @@ In the periods between full materialized view refreshes, the user maintains a sa
 The user specifies a sampling ratio that meets the systems performance constraints.
 With this, the user gets guarantees that for the aggregate queries the results have bounded error and 
 the queries return with error bars.
-
-\subsection{Extending SampleClean For Correcting Staleness}
-Given the three categories of views and the SUM, COUNT, AVG, and VAR
-queries on these views, we can formalize the concept of staleness.
-Let $\textbf{V}_{T}$ be the old view, and $\textbf{V}_{T}^{'}$ be
-the up-to-date view. If $f$ is an aggregation function, then we call
-the staleness error of the query $\epsilon$ if :
-\[
-f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
-\]
-Since we already have the out-of-date view, we can easily compute
-$f(\textbf{V}_{T})$. 
-In this work, we look at correcting staleness by estimating $\epsilon$ 
-from the sample.
-In other words, we use sampling to learn how updates affect the aggregation query on the view
-and then correct the query results.
-
-In {[}?{]}, the authors proposed an algorithm called ``NormalizedSC'' 
-which estimated the error term $\epsilon$ from a sample of the \emph{difference set}.
-We address a few new challenges in this work. First, NormalizedSC
-was designed in the context of static tables and data dirtiness that
-can be modeled as record transformations. 
-In this work, we notice that correcting staleness can imply inserting new rows 
-into the view as well as transforming old ones.
-A further addition, is we consider the effects of outliers
-on the estimate of NormalizedSC and characterize the optimality of
-the NormalizedSC algorithm.
-
 
 

@@ -133,6 +133,7 @@ We have looked at how small samples can still give highly accurate results.
 In this section, we evaluate the efficiency of sampling in terms of computation.
 We evaluate our approach on a single r3.large Amazon EC2 node with a MySQL database.
 For a batch of updates, we evaluate how long it takes to incrementally maintain a view compared to maintaing a sample.
+For, the join view, we build an index on the foreign key of the view.
 As before, we derived the views from a 10GB base dataset, and inserted records in increments of 500000.
 
 \begin{figure*}[h]
@@ -240,6 +241,8 @@ Spark supports materialized views through a distributed data structure called an
 The RDD's are immutable, thus requiring significant overhead to maintain.
 We compare maintenance to recalculation of the view when the data is in memory and when only the updates are in memory. 
 We derived the views from a 120GB base relation and inserted records in 10GB increments.
+As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
+Each view is partitioned by the group by key, and thus only the sampled delta view has to be shuffled. 
 
 \begin{figure*}[h]
 \label{exp6conviva}
