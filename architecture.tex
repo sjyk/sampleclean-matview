@@ -1,12 +1,25 @@
-\section{System Architecture}
-The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
-In this section, we will give an overview of each of the blocks of the system.
-\begin{figure}[h]
-\label{sys-arch}
-\centering
- \includegraphics[width=\columnwidth]{figs/sys-arch.png}
- \caption{TODO}
-\end{figure}
+\section{System Overview}
+In this work, we address the following problem of stale materialized views.
+Suppose we have an out-of-date view, and we want to answer and aggregation 
+query (SUM, COUNT, AVG, and VAR) on the view.
+Given the three categories of views and the 
+Let $\textbf{V}_{T}$ be the old view, and $\textbf{V}_{T}^{'}$ be
+the up-to-date view. If $f$ is an aggregation function, then we call
+the staleness error of the query $\epsilon$ if :
+\[
+f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
+\]
+Since we already have the out-of-date view, we can easily compute
+$f(\textbf{V}_{T})$. 
+In this work, we look at correcting staleness by estimating $\epsilon$ 
+from the sample.
+In other words, we use sampling to learn how updates affect the aggregation query on the view
+and then correct the query results.
+We extend the NormalizedSC algorithm from SampleClean to estimate $\epsilon$.
+One challenge is that sampling can be sensitive to outliers and may hide mask in the dataset.
+Therefore, we couple sampling with outlier indexing to show that we can not guarantee that outliers 
+are samples (and can be queried) but also give valuable information about the data distribution
+which can be used to improve estimates.
 
 To illustrate our approach, we use the following running example which is a 
 simplified schema of one of our experimental datasets (Figure \ref{example}).
@@ -28,7 +41,23 @@ record must link to one video in the video table.
  \caption{TODO}
 \end{figure}
 
-\subsection{Supported Materialized Views}
+\subsection{System Architecture}
+The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
+The left side of the diagram resembles a tradition view maintenance architecture.
+However, there are a couple of key additions: (1) instead of correcting the view,
+we issue corrections to query results on the view, (2) to acheive this we maintain
+an up-to-date sample, and (3) we have an outlier index.
+In this section, we will overview these three components and contrast our approach 
+to other materialized view and AQP architectures.
+
+\begin{figure}[h]
+\label{sys-arch}
+\centering
+ \includegraphics[width=\columnwidth]{figs/sys-arch.png}
+ \caption{TODO}
+\end{figure}
+
+\subsubsection{Supported Materialized Views}
 We will first introduce the taxonomy of materialized views
 that can benefit from our approach. In particular, we provide example
 situations when view maintenance can be costly. 
@@ -139,7 +168,7 @@ by foreign keys are stored on the same partition. However, when these
 join keys cross partition lines this operation can become increasingly
 expensive.
 
-\subsection{Reducing Maintenance Cost With Sampling}
+\subsubsection{Up-to-date Samples}
 We presented examples where these views can be expensive to maintain.
 In this work, we address the question of whether we need to maintain
 the entire view to answer aggregate queries on these views. Our proposed
@@ -151,7 +180,7 @@ $\Delta\textbf{V}$ reduces the cardinality of the result and consequently
 communication/merging costs. And finally, for the Join views, we would
 only have to join a sample of the inserted records. 
 
-\subsection{Outlier Indexing}
+\subsubsection{Outlier Indexing}
 We are often interested in records that outliers, 
 which we define in this work as records with abnormally large attribute values.
 Outliers and power-law distributions are a common property in web-scale datasets.
@@ -165,7 +194,25 @@ with abnormally large attribute values are included in the sample.
 What is particularly interesting is that these records give information about the distribution 
 and can be used to reduce variance in our estimates.
 
-\subsection{Relationship to SAQP}
+\subsubsection{Alternative Architectures}
+\noindent\textbf{No Maintenance: }
+One approach for up-to-date results is to avoid incremental maintenance altogether.
+In this approach, one would periodically re-calculate the views.
+This approach allows for the highest throughput in terms of records written, but can
+suffer from long periods of stale data.
+
+\vspace{1em}
+
+\noindent\textbf{View Maintenance: }
+The other option is to fully maintain the materialized view. 
+While immediate maintenance offers consistent results, 
+it is at a steep computational cost.
+So often incremental maintenance, is deferred or done periodically [?].
+These deferred schemes can lead to period of staleness as well.
+
+\vspace{1em}
+
+\noindent\textbf{SAQP: }
 Estimating the results of aggregate queries from samples has been
 well studied in a field called Sample-based Approximate Query Processing
 (SAQP). While the concept of estimating a correction from a sample
@@ -179,3 +226,8 @@ SAQP scheme on the sample of the view. We found that empricially estimating
 a correction and leveraging an existing deterministic result lead
 to lower variance results on real datasets (see Section ?). We analyze
 the tradeoffs of these techniques in the following sections.
+
+\vspace{1em}
+
+Our approach provides a flexible tradeoff between the performance benefits of No Maintenance and the Consistency benefits of full maintenance. Accordingly, we evaluate our approach against the accuracy of not maintaining the data and the performance of maintaining the data.
+We further compare our approach to SAQP, configured so it would have the same cost, in terms of accuracy.

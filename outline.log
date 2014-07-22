@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 13:32
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 16:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -334,40 +334,42 @@ Overfull \hbox (2.76859pt too wide) in paragraph at lines 8--18
 []\T1/aer/m/n/9 However, pre-computed query re-sults face the ob-vi-ous chal-
  []
 
-) (./architecture.tex <figs/sys-arch.png, id=11, 605.1408pt x 273.1806pt>
-File: figs/sys-arch.png Graphic file (type png)
+) (./architecture.tex [2]
+<figs/sample-clean-example.png, id=19, 510.708pt x 364.7226pt>
+File: figs/sample-clean-example.png Graphic file (type png)
 
-<use figs/sys-arch.png>
-Package pdftex.def Info: figs/sys-arch.png used on input line 7.
+<use figs/sample-clean-example.png>
+Package pdftex.def Info: figs/sample-clean-example.png used on input line 40.
+(pdftex.def)             Requested size: 240.0pt x 171.39737pt.
+
+<figs/sys-arch.png, id=21, 605.1408pt x 273.1806pt>
+File: figs/sys-arch.png Graphic file (type png)
+ <use figs/sys-arch.png>
+Package pdftex.def Info: figs/sys-arch.png used on input line 56.
 (pdftex.def)             Requested size: 240.0pt x 108.34491pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[2] <figs/sample-clean-example.png, id=21, 510.708pt x 364.7226pt>
-File: figs/sample-clean-example.png Graphic file (type png)
 
-<use figs/sample-clean-example.png>
-Package pdftex.def Info: figs/sample-clean-example.png used on input line 27.
-(pdftex.def)             Requested size: 240.0pt x 171.39737pt.
-
-Overfull \hbox (3.70642pt too wide) in paragraph at lines 32--35
+Overfull \hbox (3.70642pt too wide) in paragraph at lines 61--64
 \T1/aer/m/n/9 vide ex-am-ple sit-u-a-tions when view main-te-nance can be costl
 y. 
  []
 
-LaTeX Font Info:    Try loading font information for OMS+aer on input line 59.
+LaTeX Font Info:    Try loading font information for OMS+aer on input line 88.
 (/usr/local/texlive/2013/texmf-dist/tex/latex/ae/omsaer.fd
 File: omsaer.fd 1999/12/27
 )
 LaTeX Font Info:    Font shape `OMS/aer/m/n' in size <7> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 59.
-
-Overfull \hbox (9.24995pt too wide) in paragraph at lines 142--142
-[]\secfnt Reducing Main-te-nance Cost With Sam-pling 
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 88.
+ [3 <./figs/sample-clean-example.png> <./figs/sys-arch.png>]
+Overfull \hbox (4.63306pt too wide) in paragraph at lines 198--203
+\T1/aer/m/n/9 ap-proach al-lows for the high-est through-put in terms of record
+s
  []
 
-[3 <./figs/sys-arch.png> <./figs/sample-clean-example.png>]) (./correction.tex
+) (./correction.tex [4]
 Overfull \hbox (8.80614pt too wide) in paragraph at lines 44--44
 []\secfnt Corrections For Select-Project and Foreign-
  []
@@ -377,7 +379,7 @@ Overfull \hbox (1.67247pt too wide) in paragraph at lines 89--93
 \T1/aer/m/n/9 This query fil-ters out the log records that came from browsers
  []
 
-[4]
+
 Overfull \hbox (18.00842pt too wide) in paragraph at lines 153--165
 [][] 
  []
@@ -387,18 +389,18 @@ Overfull \hbox (18.00842pt too wide) in paragraph at lines 188--202
 [][] 
  []
 
-) (./sampling.tex
+) (./sampling.tex [5]
 Overfull \hbox (13.98994pt too wide) in paragraph at lines 25--25
 []\secfnt Cost Anal-y-sis for Select-Project and Foreign-
  []
 
-[5]
+
 Overfull \hbox (4.98366pt too wide) in paragraph at lines 87--89
 \T1/aer/m/n/9 posed so-lu-tion re-quire at least one scan of the in-serted reco
 rds,
  []
 
-[6]) (./outlier.tex) (./analysis.tex [7]) (./experiments.tex
+[6]) (./outlier.tex [7]) (./analysis.tex) (./experiments.tex [8]
 Package epstopdf Info: Source file: <exp/exp1-samplesize-accuracy.eps>
 (epstopdf)                    date: 2014-07-19 14:29:15
 (epstopdf)                    size: 19538 bytes
@@ -411,7 +413,7 @@ cy-eps-converted-to.pdf exp/exp1-samplesize-accuracy.eps>
 (epstopdf)             \includegraphics on input line 79.
 Package epstopdf Info: Output file is already uptodate.
 
-<exp/exp1-samplesize-accuracy-eps-converted-to.pdf, id=49, 1444.39626pt x 359.3
+<exp/exp1-samplesize-accuracy-eps-converted-to.pdf, id=52, 1444.39626pt x 359.3
 425pt>
 File: exp/exp1-samplesize-accuracy-eps-converted-to.pdf Graphic file (type pdf)
 
@@ -436,7 +438,7 @@ cy-eps-converted-to.pdf exp/exp2-updatesize-accuracy.eps>
 (epstopdf)             \includegraphics on input line 97.
 Package epstopdf Info: Output file is already uptodate.
 
-<exp/exp2-updatesize-accuracy-eps-converted-to.pdf, id=50, 1610.015pt x 364.361
+<exp/exp2-updatesize-accuracy-eps-converted-to.pdf, id=53, 1610.015pt x 364.361
 25pt>
 File: exp/exp2-updatesize-accuracy-eps-converted-to.pdf Graphic file (type pdf)
 
@@ -462,14 +464,13 @@ eps-converted-to.pdf exp/exp3-query-error-dist.eps>
 (epstopdf)             \includegraphics on input line 119.
 Package epstopdf Info: Output file is already uptodate.
 
-<exp/exp3-query-error-dist-eps-converted-to.pdf, id=51, 1444.39626pt x 364.3612
+<exp/exp3-query-error-dist-eps-converted-to.pdf, id=54, 1444.39626pt x 364.3612
 5pt>
 File: exp/exp3-query-error-dist-eps-converted-to.pdf Graphic file (type pdf)
  <use exp/exp3-query-error-dist-eps-converted-to.pdf>
 Package pdftex.def Info: exp/exp3-query-error-dist-eps-converted-to.pdf used on
  input line 119.
 (pdftex.def)             Requested size: 504.0pt x 127.13916pt.
- [8]
 Package epstopdf Info: Source file: <exp/exp4-efficiency-tpcd-skew.eps>
 (epstopdf)                    date: 2014-07-22 10:33:36
 (epstopdf)                    size: 21744 bytes
@@ -490,6 +491,7 @@ File: exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf Graphic file (type pdf
 Package pdftex.def Info: exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf use
 d on input line 142.
 (pdftex.def)             Requested size: 504.0pt x 125.38818pt.
+ [9]
 Package epstopdf Info: Source file: <exp/exp5-coniva-accuracy.eps>
 (epstopdf)                    date: 2014-07-21 00:22:22
 (epstopdf)                    size: 20586 bytes
@@ -502,7 +504,7 @@ ps-converted-to.pdf exp/exp5-coniva-accuracy.eps>
 (epstopdf)             \includegraphics on input line 233.
 Package epstopdf Info: Output file is already uptodate.
 
-<exp/exp5-coniva-accuracy-eps-converted-to.pdf, id=56, 1444.39626pt x 364.36125
+<exp/exp5-coniva-accuracy-eps-converted-to.pdf, id=59, 1444.39626pt x 364.36125
 pt>
 File: exp/exp5-coniva-accuracy-eps-converted-to.pdf Graphic file (type pdf)
  <use exp/exp5-coniva-accuracy-eps-converted-to.pdf>
@@ -527,7 +529,7 @@ a-eps-converted-to.pdf exp/exp5-efficiency-conviva.eps>
 (epstopdf)             \includegraphics on input line 250.
 Package epstopdf Info: Output file is already uptodate.
 
-<exp/exp5-efficiency-conviva-eps-converted-to.pdf, id=57, 2165.08875pt x 429.60
+<exp/exp5-efficiency-conviva-eps-converted-to.pdf, id=60, 2165.08875pt x 429.60
 5pt>
 File: exp/exp5-efficiency-conviva-eps-converted-to.pdf Graphic file (type pdf)
  <use exp/exp5-efficiency-conviva-eps-converted-to.pdf>
@@ -536,11 +538,13 @@ on input line 250.
 (pdftex.def)             Requested size: 504.0pt x 100.00012pt.
 )
 No file outline.bbl.
-[9] [10 <./exp/exp1-samplesize-accuracy-eps-converted-to.pdf> <./exp/exp2-updat
-esize-accuracy-eps-converted-to.pdf> <./exp/exp3-query-error-dist-eps-converted
--to.pdf> <./exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf>] [11 <./exp/exp
-5-coniva-accuracy-eps-converted-to.pdf> <./exp/exp5-efficiency-conviva-eps-conv
-erted-to.pdf>] (./outline.aux)
+[10
+
+] [11 <./exp/exp1-samplesize-accuracy-eps-converted-to.pdf> <./exp/exp2-updates
+ize-accuracy-eps-converted-to.pdf> <./exp/exp3-query-error-dist-eps-converted-t
+o.pdf> <./exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf>] [12 <./exp/exp5-
+coniva-accuracy-eps-converted-to.pdf> <./exp/exp5-efficiency-conviva-eps-conver
+ted-to.pdf>] (./outline.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -551,11 +555,11 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  4068 strings out of 493315
  55303 string characters out of 6137904
- 136468 words of memory out of 5000000
+ 136470 words of memory out of 5000000
  7398 multiletter control sequences out of 15000+600000
  56146 words of font info for 75 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 41i,8n,32p,448b,1320s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 41i,8n,32p,448b,1431s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/tex
 live/2013/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex7.pfb></usr/local/
@@ -576,10 +580,10 @@ fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/t
 ype1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/t
 imes/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri
 8a.pfb>
-Output written on outline.pdf (11 pages, 504553 bytes).
+Output written on outline.pdf (12 pages, 512172 bytes).
 PDF statistics:
- 178 PDF objects out of 1000 (max. 8388607)
- 123 compressed objects within 2 object streams
+ 181 PDF objects out of 1000 (max. 8388607)
+ 125 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  41 words of extra memory for PDF output out of 10000 (max. 10000000)
 
