@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 01:37
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 11:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -216,9 +216,6 @@ File: listings.cfg 2007/02/22 1.4 listings configuration
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
 
 (./outline.aux
-
-LaTeX Warning: Label `exp3dist' multiply defined.
-
 
 LaTeX Warning: Label `exp3dist' multiply defined.
 
@@ -480,23 +477,26 @@ Package pdftex.def Info: exp/exp3-query-error-dist-eps-converted-to.pdf used on
  input line 119.
 (pdftex.def)             Requested size: 504.0pt x 127.13916pt.
  [8]
-<exp/select.pdf, id=55, 542.025pt x 341.275pt>
-File: exp/select.pdf Graphic file (type pdf)
- <use exp/select.pdf>
-Package pdftex.def Info: exp/select.pdf used on input line 141.
-(pdftex.def)             Requested size: 108.40308pt x 68.25378pt.
+Package epstopdf Info: Source file: <exp/exp4-efficiency-tpcd-skew.eps>
+(epstopdf)                    date: 2014-07-22 10:33:36
+(epstopdf)                    size: 21744 bytes
+(epstopdf)             Output file: <exp/exp4-efficiency-tpcd-skew-eps-converte
+d-to.pdf>
+(epstopdf)                    date: 2014-07-22 10:34:35
+(epstopdf)                    size: 15118 bytes
+(epstopdf)             Command: <repstopdf --outfile=exp/exp4-efficiency-tpcd-s
+kew-eps-converted-to.pdf exp/exp4-efficiency-tpcd-skew.eps>
+(epstopdf)             \includegraphics on input line 141.
+Package epstopdf Info: Output file is already uptodate.
 
-<exp/join.pdf, id=56, 542.025pt x 341.275pt>
-File: exp/join.pdf Graphic file (type pdf)
- <use exp/join.pdf>
-Package pdftex.def Info: exp/join.pdf used on input line 142.
-(pdftex.def)             Requested size: 108.40308pt x 68.25378pt.
-
-<exp/agg.pdf, id=57, 590.205pt x 420.57124pt>
-File: exp/agg.pdf Graphic file (type pdf)
- <use exp/agg.pdf>
-Package pdftex.def Info: exp/agg.pdf used on input line 143.
-(pdftex.def)             Requested size: 118.0389pt x 84.11275pt.
+<exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf, id=55, 1452.42625pt x 361.
+35pt>
+File: exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf Graphic file (type pdf
+)
+ <use exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf>
+Package pdftex.def Info: exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf use
+d on input line 141.
+(pdftex.def)             Requested size: 504.0pt x 125.38818pt.
 Package epstopdf Info: Source file: <exp/exp5-coniva-accuracy.eps>
 (epstopdf)                    date: 2014-07-21 00:22:22
 (epstopdf)                    size: 20586 bytes
@@ -506,52 +506,52 @@ pdf>
 (epstopdf)                    size: 13403 bytes
 (epstopdf)             Command: <repstopdf --outfile=exp/exp5-coniva-accuracy-e
 ps-converted-to.pdf exp/exp5-coniva-accuracy.eps>
-(epstopdf)             \includegraphics on input line 234.
+(epstopdf)             \includegraphics on input line 232.
 Package epstopdf Info: Output file is already uptodate.
 
-<exp/exp5-coniva-accuracy-eps-converted-to.pdf, id=58, 1444.39626pt x 364.36125
+<exp/exp5-coniva-accuracy-eps-converted-to.pdf, id=56, 1444.39626pt x 364.36125
 pt>
 File: exp/exp5-coniva-accuracy-eps-converted-to.pdf Graphic file (type pdf)
  <use exp/exp5-coniva-accuracy-eps-converted-to.pdf>
 Package pdftex.def Info: exp/exp5-coniva-accuracy-eps-converted-to.pdf used on 
-input line 234.
+input line 232.
 (pdftex.def)             Requested size: 504.0pt x 127.13916pt.
 
-Overfull \hbox (2.07678pt too wide) in paragraph at lines 239--245
+Overfull \hbox (2.07678pt too wide) in paragraph at lines 237--243
 \T1/aer/m/n/9 sup-ports ma-te-ri-al-ized views through a dis-tributed data stru
 c-
  []
 
-<exp/coniva-v1.pdf, id=59, 600.2425pt x 326.21875pt>
-File: exp/coniva-v1.pdf Graphic file (type pdf)
- <use exp/coniva-v1.pdf>
-Package pdftex.def Info: exp/coniva-v1.pdf used on input line 249.
-(pdftex.def)             Requested size: 120.04637pt x 65.24258pt.
+Package epstopdf Info: Source file: <exp/exp5-efficiency-conviva.eps>
+(epstopdf)                    date: 2014-07-22 11:03:55
+(epstopdf)                    size: 21989 bytes
+(epstopdf)             Output file: <exp/exp5-efficiency-conviva-eps-converted-
+to.pdf>
+(epstopdf)             Command: <repstopdf --outfile=exp/exp5-efficiency-conviv
+a-eps-converted-to.pdf exp/exp5-efficiency-conviva.eps>
+(epstopdf)             \includegraphics on input line 247.
+runsystem(repstopdf --outfile=exp/exp5-efficiency-conviva-eps-converted-to.pdf 
+exp/exp5-efficiency-conviva.eps)...executed safely (allowed).
 
-<exp/conviva-v2.pdf, id=60, 572.1375pt x 294.09875pt>
-File: exp/conviva-v2.pdf Graphic file (type pdf)
- <use exp/conviva-v2.pdf>
-Package pdftex.def Info: exp/conviva-v2.pdf used on input line 250.
-(pdftex.def)             Requested size: 114.42546pt x 58.8187pt.
+Package epstopdf Info: Result file: <exp/exp5-efficiency-conviva-eps-converted-
+to.pdf>
+(epstopdf)                    date: 2014-07-22 11:04:27
+(epstopdf)                    size: 17164 bytes.
 
-<exp/conviva-v3.pdf, id=61, 699.61375pt x 368.37625pt>
-File: exp/conviva-v3.pdf Graphic file (type pdf)
-
-<use exp/conviva-v3.pdf>
-Package pdftex.def Info: exp/conviva-v3.pdf used on input line 251.
-(pdftex.def)             Requested size: 139.92027pt x 73.67393pt.
-
-
-LaTeX Warning: Reference `exp6conviva' on page \thepage  undefined on input lin
-e 255.
-
+<exp/exp5-efficiency-conviva-eps-converted-to.pdf, id=57, 2165.08875pt x 429.60
+5pt>
+File: exp/exp5-efficiency-conviva-eps-converted-to.pdf Graphic file (type pdf)
+ <use exp/exp5-efficiency-conviva-eps-converted-to.pdf>
+Package pdftex.def Info: exp/exp5-efficiency-conviva-eps-converted-to.pdf used 
+on input line 247.
+(pdftex.def)             Requested size: 504.0pt x 100.00012pt.
 )
 No file outline.bbl.
 [9] [10 <./exp/exp1-samplesize-accuracy-eps-converted-to.pdf> <./exp/exp2-updat
 esize-accuracy-eps-converted-to.pdf> <./exp/exp3-query-error-dist-eps-converted
--to.pdf> <./exp/select.pdf> <./exp/join.pdf> <./exp/agg.pdf>] [11 <./exp/exp5-c
-oniva-accuracy-eps-converted-to.pdf> <./exp/coniva-v1.pdf> <./exp/conviva-v2.pd
-f> <./exp/conviva-v3.pdf>] (./outline.aux)
+-to.pdf> <./exp/exp4-efficiency-tpcd-skew-eps-converted-to.pdf>] [11 <./exp/exp
+5-coniva-accuracy-eps-converted-to.pdf> <./exp/exp5-efficiency-conviva-eps-conv
+erted-to.pdf>] (./outline.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -560,10 +560,10 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 4088 strings out of 493315
- 55357 string characters out of 6137904
- 136456 words of memory out of 5000000
- 7414 multiletter control sequences out of 15000+600000
+ 4068 strings out of 493315
+ 55303 string characters out of 6137904
+ 135468 words of memory out of 5000000
+ 7398 multiletter control sequences out of 15000+600000
  56146 words of font info for 75 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
  41i,8n,32p,448b,1320s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -587,10 +587,10 @@ fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/t
 ype1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/t
 imes/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri
 8a.pfb>
-Output written on outline.pdf (11 pages, 690849 bytes).
+Output written on outline.pdf (11 pages, 505350 bytes).
 PDF statistics:
- 485 PDF objects out of 1000 (max. 8388607)
- 308 compressed objects within 4 object streams
+ 178 PDF objects out of 1000 (max. 8388607)
+ 123 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 61 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 41 words of extra memory for PDF output out of 10000 (max. 10000000)
 
