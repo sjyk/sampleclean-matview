@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  17 JUL 2014 00:43
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  22 JUL 2014 01:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -215,7 +215,14 @@ File: listings.cfg 2007/02/22 1.4 listings configuration
 ))
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
 
-(./outline.aux)
+(./outline.aux
+
+LaTeX Warning: Label `exp3dist' multiply defined.
+
+
+LaTeX Warning: Label `exp3dist' multiply defined.
+
+)
 \openout1 = `outline.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 9.
@@ -230,8 +237,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 9.
 LaTeX Font Info:    ... okay on input line 9.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 9.
 LaTeX Font Info:    ... okay on input line 9.
-
-(/usr/local/texlive/2013/texmf-dist/tex/context/base/supp-pdf.mkii
+ (/usr/local/texlive/2013/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count117
 \scratchdimen=\dimen127
@@ -402,55 +408,189 @@ Overfull \hbox (4.98366pt too wide) in paragraph at lines 87--89
 rds,
  []
 
-[6]) (./outlier.tex
-Overfull \hbox (1.498pt too wide) in paragraph at lines 65--65
-[]\secfnt Increased Ac-cu-racy For Heavy-Tailed Dis-
+[6]) (./outlier.tex) (./analysis.tex [7]) (./experiments.tex
+Package epstopdf Info: Source file: <exp/exp1-samplesize-accuracy.eps>
+(epstopdf)                    date: 2014-07-19 14:29:15
+(epstopdf)                    size: 19538 bytes
+(epstopdf)             Output file: <exp/exp1-samplesize-accuracy-eps-converted
+-to.pdf>
+(epstopdf)                    date: 2014-07-21 23:40:52
+(epstopdf)                    size: 14474 bytes
+(epstopdf)             Command: <repstopdf --outfile=exp/exp1-samplesize-accura
+cy-eps-converted-to.pdf exp/exp1-samplesize-accuracy.eps>
+(epstopdf)             \includegraphics on input line 79.
+Package epstopdf Info: Output file is already uptodate.
+
+<exp/exp1-samplesize-accuracy-eps-converted-to.pdf, id=49, 1444.39626pt x 359.3
+425pt>
+File: exp/exp1-samplesize-accuracy-eps-converted-to.pdf Graphic file (type pdf)
+
+ <use exp/exp1-samplesize-accuracy-eps-converted-to.pdf>
+Package pdftex.def Info: exp/exp1-samplesize-accuracy-eps-converted-to.pdf used
+ on input line 79.
+(pdftex.def)             Requested size: 504.0pt x 125.38794pt.
+
+
+LaTeX Warning: Reference `exp2udpate' on page \thepage  undefined on input line
+ 92.
+
+Package epstopdf Info: Source file: <exp/exp2-updatesize-accuracy.eps>
+(epstopdf)                    date: 2014-07-20 23:25:12
+(epstopdf)                    size: 18209 bytes
+(epstopdf)             Output file: <exp/exp2-updatesize-accuracy-eps-converted
+-to.pdf>
+(epstopdf)                    date: 2014-07-21 23:59:28
+(epstopdf)                    size: 11549 bytes
+(epstopdf)             Command: <repstopdf --outfile=exp/exp2-updatesize-accura
+cy-eps-converted-to.pdf exp/exp2-updatesize-accuracy.eps>
+(epstopdf)             \includegraphics on input line 97.
+Package epstopdf Info: Output file is already uptodate.
+
+<exp/exp2-updatesize-accuracy-eps-converted-to.pdf, id=50, 1610.015pt x 364.361
+25pt>
+File: exp/exp2-updatesize-accuracy-eps-converted-to.pdf Graphic file (type pdf)
+
+ <use exp/exp2-updatesize-accuracy-eps-converted-to.pdf>
+Package pdftex.def Info: exp/exp2-updatesize-accuracy-eps-converted-to.pdf used
+ on input line 97.
+(pdftex.def)             Requested size: 504.0pt x 114.05719pt.
+
+Overfull \hbox (2.33801pt too wide) in paragraph at lines 101--108
+\T1/aer/m/n/9 records are in-serted the ap-prox-i-ma-tion er-ror in our ap-proa
+che
  []
 
-) (./analysis.tex [7]) (./experiments.tex
-<exp/exp1-conviva1.png, id=49, 1581.91pt x 352.31625pt>
-File: exp/exp1-conviva1.png Graphic file (type png)
+Package epstopdf Info: Source file: <exp/exp3-query-error-dist.eps>
+(epstopdf)                    date: 2014-07-21 00:05:04
+(epstopdf)                    size: 3333092 bytes
+(epstopdf)             Output file: <exp/exp3-query-error-dist-eps-converted-to
+.pdf>
+(epstopdf)                    date: 2014-07-22 00:32:13
+(epstopdf)                    size: 76527 bytes
+(epstopdf)             Command: <repstopdf --outfile=exp/exp3-query-error-dist-
+eps-converted-to.pdf exp/exp3-query-error-dist.eps>
+(epstopdf)             \includegraphics on input line 119.
+Package epstopdf Info: Output file is already uptodate.
 
-<use exp/exp1-conviva1.png>
-Package pdftex.def Info: exp/exp1-conviva1.png used on input line 10.
-(pdftex.def)             Requested size: 504.0pt x 112.24892pt.
+<exp/exp3-query-error-dist-eps-converted-to.pdf, id=51, 1444.39626pt x 364.3612
+5pt>
+File: exp/exp3-query-error-dist-eps-converted-to.pdf Graphic file (type pdf)
+ <use exp/exp3-query-error-dist-eps-converted-to.pdf>
+Package pdftex.def Info: exp/exp3-query-error-dist-eps-converted-to.pdf used on
+ input line 119.
+(pdftex.def)             Requested size: 504.0pt x 127.13916pt.
+ [8]
+<exp/select.pdf, id=55, 542.025pt x 341.275pt>
+File: exp/select.pdf Graphic file (type pdf)
+ <use exp/select.pdf>
+Package pdftex.def Info: exp/select.pdf used on input line 141.
+(pdftex.def)             Requested size: 108.40308pt x 68.25378pt.
+
+<exp/join.pdf, id=56, 542.025pt x 341.275pt>
+File: exp/join.pdf Graphic file (type pdf)
+ <use exp/join.pdf>
+Package pdftex.def Info: exp/join.pdf used on input line 142.
+(pdftex.def)             Requested size: 108.40308pt x 68.25378pt.
+
+<exp/agg.pdf, id=57, 590.205pt x 420.57124pt>
+File: exp/agg.pdf Graphic file (type pdf)
+ <use exp/agg.pdf>
+Package pdftex.def Info: exp/agg.pdf used on input line 143.
+(pdftex.def)             Requested size: 118.0389pt x 84.11275pt.
+Package epstopdf Info: Source file: <exp/exp5-coniva-accuracy.eps>
+(epstopdf)                    date: 2014-07-21 00:22:22
+(epstopdf)                    size: 20586 bytes
+(epstopdf)             Output file: <exp/exp5-coniva-accuracy-eps-converted-to.
+pdf>
+(epstopdf)                    date: 2014-07-22 01:04:38
+(epstopdf)                    size: 13403 bytes
+(epstopdf)             Command: <repstopdf --outfile=exp/exp5-coniva-accuracy-e
+ps-converted-to.pdf exp/exp5-coniva-accuracy.eps>
+(epstopdf)             \includegraphics on input line 234.
+Package epstopdf Info: Output file is already uptodate.
+
+<exp/exp5-coniva-accuracy-eps-converted-to.pdf, id=58, 1444.39626pt x 364.36125
+pt>
+File: exp/exp5-coniva-accuracy-eps-converted-to.pdf Graphic file (type pdf)
+ <use exp/exp5-coniva-accuracy-eps-converted-to.pdf>
+Package pdftex.def Info: exp/exp5-coniva-accuracy-eps-converted-to.pdf used on 
+input line 234.
+(pdftex.def)             Requested size: 504.0pt x 127.13916pt.
+
+Overfull \hbox (2.07678pt too wide) in paragraph at lines 239--245
+\T1/aer/m/n/9 sup-ports ma-te-ri-al-ized views through a dis-tributed data stru
+c-
+ []
+
+<exp/coniva-v1.pdf, id=59, 600.2425pt x 326.21875pt>
+File: exp/coniva-v1.pdf Graphic file (type pdf)
+ <use exp/coniva-v1.pdf>
+Package pdftex.def Info: exp/coniva-v1.pdf used on input line 249.
+(pdftex.def)             Requested size: 120.04637pt x 65.24258pt.
+
+<exp/conviva-v2.pdf, id=60, 572.1375pt x 294.09875pt>
+File: exp/conviva-v2.pdf Graphic file (type pdf)
+ <use exp/conviva-v2.pdf>
+Package pdftex.def Info: exp/conviva-v2.pdf used on input line 250.
+(pdftex.def)             Requested size: 114.42546pt x 58.8187pt.
+
+<exp/conviva-v3.pdf, id=61, 699.61375pt x 368.37625pt>
+File: exp/conviva-v3.pdf Graphic file (type pdf)
+
+<use exp/conviva-v3.pdf>
+Package pdftex.def Info: exp/conviva-v3.pdf used on input line 251.
+(pdftex.def)             Requested size: 139.92027pt x 73.67393pt.
+
+
+LaTeX Warning: Reference `exp6conviva' on page \thepage  undefined on input lin
+e 255.
+
 )
 No file outline.bbl.
-[8
+[9] [10 <./exp/exp1-samplesize-accuracy-eps-converted-to.pdf> <./exp/exp2-updat
+esize-accuracy-eps-converted-to.pdf> <./exp/exp3-query-error-dist-eps-converted
+-to.pdf> <./exp/select.pdf> <./exp/join.pdf> <./exp/agg.pdf>] [11 <./exp/exp5-c
+oniva-accuracy-eps-converted-to.pdf> <./exp/coniva-v1.pdf> <./exp/conviva-v2.pd
+f> <./exp/conviva-v3.pdf>] (./outline.aux)
 
-] [9 <./exp/exp1-conviva1.png (PNG copy)>] (./outline.aux) ) 
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
+ ) 
 Here is how much of TeX's memory you used:
- 4037 strings out of 493315
- 53933 string characters out of 6137904
- 130379 words of memory out of 5000000
- 7373 multiletter control sequences out of 15000+600000
+ 4088 strings out of 493315
+ 55357 string characters out of 6137904
+ 136456 words of memory out of 5000000
+ 7414 multiletter control sequences out of 15000+600000
  56146 words of font info for 75 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 41i,8n,32p,672b,1111s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive
-/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2013/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2013/texmf-dist/
-fonts/type1/public/amsfonts/cmextra/cmex7.pfb></usr/local/texlive/2013/texmf-di
-st/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/local/texlive/2013/texmf
--dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local/texlive/2013/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2013/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2013/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2013/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2013/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2013/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/helve
-tic/uhvb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmb8a
-.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
-/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on outline.pdf (9 pages, 378053 bytes).
+ 41i,8n,32p,448b,1320s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
+exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/tex
+live/2013/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex7.pfb></usr/local/
+texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/loc
+al/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local
+/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/t
+exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/tex
+live/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texli
+ve/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/
+2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/201
+3/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2013/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2013/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2013/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2013/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2013/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/texmf-dist/
+fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/t
+ype1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/t
+imes/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri
+8a.pfb>
+Output written on outline.pdf (11 pages, 690849 bytes).
 PDF statistics:
- 117 PDF objects out of 1000 (max. 8388607)
- 81 compressed objects within 1 object stream
+ 485 PDF objects out of 1000 (max. 8388607)
+ 308 compressed objects within 4 object streams
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 61 words of extra memory for PDF output out of 10000 (max. 10000000)
 
