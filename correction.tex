@@ -1,3 +1,40 @@
+\section{Sampling Update Patterns}
+In this section, we discuss how to efficiently sample update patterns for different types of views.
+We first define the update patterns in Section~\ref{subsec:pattern}, and then present fast sampling techniques for them in Section~\ref{subsec:sample-pattern}. In Section~\ref{subsec:sample-pattern-cost}, we analyze the cost of our methods, and show the significant cost savings over incremental view maintenance.
+
+\subsection{Update Patterns}\label{subsec:pattern}
+%Intuitively, update patterns represent the updating information on stale views. For each record in a stale view, there might be four possible updating states: Insertion (I), Deletion (D), Updating (U), No Change (N). 	
+
+
+\subsection{Sampling Techniques}\label{subsec:sample-pattern}
+
+
+
+\subsection{Cost Analysis}\label{subsec:sample-pattern-cost}
+
+
+
+\iffalse
+\section{Correction Query Processing} \label{sec:exact-correct}
+To easily understand how our system works, we first simplify the design of our system by not considering sampling and ourlier indexing. We study the problem that how to \emph{exactly} correct stale query results. We formulate this problem in Section~\ref{subsec:formulation} and present a correction query processing framework to solve this problem in Section~\ref{subsec:framework}. For practical concerns, we further discuss how to implement this framework using SQL in Section~\ref{subsec:impl-sql}.
+
+\subsection{Problem Formulation}\label{subsec:formulation}
+
+
+
+\subsection{Correction Query Processing Framework}\label{subsec:framework}
+
+
+
+
+\subsection{Implementing Correction Query Processing Using SQL}\label{subsec:impl-sql}
+\fi
+
+
+
+
+\iffalse
+
 \section{Correction Query Processing}
 In this section, we will describe the how to calculate a 
 correction for stale queries.
@@ -217,3 +254,5 @@ FROM Joined_View2
 \end{lstlisting}
 The result of this query on the example is 1 which is a correction to the stale count 
 of videos with a max response time of greater than 100ms.
+
+\fi
