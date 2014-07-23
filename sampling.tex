@@ -1,3 +1,11 @@
+
+\section{Correcting Stale Query Results}
+In this section, we discuss how to correct stale query results using sampled update patterns. We first present the principle of this query processing in Section~\ref{subsec:correct-principle} and then describe how to implement it practically in Section~\ref{subsec:correct-practical}.
+\subsection{Correcting Query Processing}\label{subsec:correct-principle}
+
+\subsection{Practical Consideration}\label{subsec:correct-practical}
+
+\iffalse
 \section{Sampling for Approximate Corrections}
 In the previous section, we described how to do the correction using the full delta view.
 However, this is just as expensive as incremental view maintenance.
@@ -144,4 +152,4 @@ We can set $\gamma$ to our desired normal confidence level (eg. 1.96 for 95\% co
 
 To interpret $\sigma^2_{diff}$, it not only has dependence on the variance of the inserted records, but also on the variance of the updates and the relative difference between the updates and inserted records. 
 A worst case, would be if there is a 50-50 split between updates and insertions and changes to existing rows are in distribution very different than the new inserted rows in the materialized view. 
-
+\fi
