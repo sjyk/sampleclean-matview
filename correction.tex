@@ -1,16 +1,97 @@
 \section{Sampling Update Patterns}
 In this section, we discuss how to efficiently sample update patterns for different types of views.
-We first define the update patterns in Section~\ref{subsec:pattern}, and then present fast sampling techniques for them in Section~\ref{subsec:sample-pattern}. In Section~\ref{subsec:sample-pattern-cost}, we analyze the cost of our methods, and show the significant cost savings over incremental view maintenance.
+We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present fast sampling techniques for them in Section~\ref{subsec:sample-pattern}. Furthermore, we also analyze the cost of our methods, and show the significant cost savings over incremental view maintenance.
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.5]{figs/update-pattern.pdf}\vspace{-1em}
+ \caption{Illustration of update patterns (See view definitions in Section~\ref{subsubsec:supported-view}).}\label{fig:update-pattern}
+\end{figure}
+
 
 \subsection{Update Patterns}\label{subsec:pattern}
-%Intuitively, update patterns represent the updating information on stale views. For each record in a stale view, there might be four possible updating states: Insertion (I), Deletion (D), Updating (U), No Change (N). 	
+Intuitively, update patterns represent the update information involved in a stale view. With such information, we can easily transform the stale view to the corresponding up-to-date view. There are three possible update patterns. (1)~Insertion~(I): Insert a new record into a view;
+(2)~Updating~(U): Update attribute values of an existing record; (3)~No Changing~(N): Keep an existing record unchanged. Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
+
+For \spview and \fjview, the only changes of these views are inserting some new records, thus their update patterns only involve insertion. For example, Figure~\ref{fig:update-pattern}(a) shows that we should insert $r_1$, $r_2$ and $r_3$ into the stale \spview. Similarly, Figure~\ref{fig:update-pattern}(c) illustrates the update patterns of the stale \fjview.
+
+For \aggview, the changes of the view could be inserting a new group, updating the aggregation attribute values of an existing group, or keep an existing group unchanged, thus its update patterns involve insertion, updating, and no changing. 
+For example, Figure~\ref{fig:update-pattern}(b) shows that the stale \aggview should be updated by inserting $r_1$, updating $r_2$, and keeping $r_3$ unchanged. 
 
 
-\subsection{Sampling Techniques}\label{subsec:sample-pattern}
+
+\subsection{Sampling Techniques for Update Patterns}\label{subsec:sample-pattern}
+It is easy to see that getting the entire update patterns for a stale view can be as expensive as incremental view maintenance. Therefore, instead of maintaining the entire update patterns, our system only maintains a random sample of the update patterns. Next we describe how to sample update patterns for each type of materialized views.
+
+\subsubsection{Select-Project and Foreign-Key Join Views}
+Consider a base table $T$ and the corresponding insertion table $\triangle T$. Given a \spview defined on the table, its entire update patterns involve the inserted records of $\triangle T$ that satisfy the predicate in the \spview. To sample the update patterns (e.g., sampling ratio = 5 \%), we randomly select 5\% records from $\triangle T$, and then keep the records that satisfy the view's predicate as a sample. 
+
+\vspace{.5em}
+
+
+{\noindent \bf Cost Analysis.} Let $n$ be the number of inserted records, $v$ be the cardinality of the old view, $v'$ be the cardinality of the new view, $\delta_v$ be the cardinality of the delta view, and $p$ be the sampling ratio.  \vspace{-.5em}
+
+\begin{itemize} %[leftmargin=5.5mm]
+\item Scan of Updates. Both incremental maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. \vspace{-0.5em}
+\item Delta View. For Select-project and foreign-key join views, incremental maintenance has processing cost of $n$ records where the predicate or the join has to be evaluated for each inserted record. Our approach has a cost of $np$ as we have to evaluate this only on our sample. \vspace{-0.5em}
+\item Refresh. For Select-project and foreign-key join views, incremental maintenance has to insert $\delta_v$ rows while we have to insert only $p\delta_v$ records. If there is an outlier index, this cost increases to $p\delta_v + l$. 
+\end{itemize}
+
+
+\subsubsection{Aggregation View}
+In the previous section, we discussed how the delta view did not contain enough
+information to calculate a correction.
+Similarly, sampling to estimate the correction for queries on Aggregation Views
+is more challenging.
+We notice that in the refreshed view each GROUP BY key is unique, and
+thus, to sample the refreshed view we have to sample by GROUP BY keys
+in the inserted records. For each inserted record we apply a hash
+to the cols in the GROUP BY clause, and then we take the result of
+the hash modulo a sampling ratio to sample the table. The result is
+that we ensure that every record with the same group by key is either
+fully in the sample or not, thus none of the rows in the delta view
+are approximate. 
+Then, we refresh this sample delta view instead of the full view.
+We can then join this delta view with the old view to approximate $\epsilon$.
+
+Unlike before this is not a sample of a delta view, it is a sample of the entire view joined with the stale resuts.
+Thus, we denote this sample as $S_{V}$.
+Also, recall that unlike the other views, Aggregation Views did not have 
+an additional proportionality constant for a full correction.
+\[
+f(S_{V})\approx\epsilon
+\]
+However, when we introduce sampling a scaling constant is now neccessary.
+The scaling constant $c$ for the SUM and COUNT queries depends on the sample size and is $c = \frac{K}{N}$, 
+but $c = 1$ for the AVG query.
+For SUM, COUNT, AVG, and VAR, this estimate of $\epsilon$ is unbiased as before.
+
+\vspace{.5em}
+{\noindent \bf Cost Analysis: }
+Let $n$ be the number of inserted records, $v$ be the cardinality of the old view, $v'$ be the cardinality of the new view, $\delta_v$ be the cardinality of the delta view, and $p$ be the sampling ratio.  
+
+\begin{itemize}
+\item Scan of Updates.
+As in the Select-Project and Foreign-Key Join views, both incremental maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. 
+\item Delta View. For aggregation views, incremental maintenance has the processing cost of $n$ and in addition an aggregation cost of $\delta_v$ where aggregates for each of the groups have to be maintained. In contrast, for aggregation views, our approach has a cost of $p\delta_v$ as we sample the group by keys and an expected processing cost of $np$. 
+For aggregation views, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group by key.
+
+\item Refresh. For aggregation views, the cost is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
+Incremental maintenance has to refresh $\delta_v$ rows while we have to refresh $p\delta_v$ rows. 
+If there is a join index, in constant time, we can determine which rows are new insertions and which correspond to rows already in the view.
+
+The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
+For aggregation views, we want to partition the data by the group by key.
+This allows a partitioned join which only requires communication (a shuffle operation) of the delta table.
+Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $p\delta_v$ rows.
+\end{itemize}
 
 
 
-\subsection{Cost Analysis}\label{subsec:sample-pattern-cost}
+
+
+
+
 
 
 
