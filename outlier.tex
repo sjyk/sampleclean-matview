@@ -1,7 +1,9 @@
 \section{Outlier Indexing}
-One feature of many large datasets is long-tailed distributions[?].
-Such distributions pose a challenge to sample-based approaches as the
-distributions often have variances that are orders of magnitude larger
+Sampling has been shown to be sensitive to outliers [?].
+Since oultiers may occur very rarely, they are unlikely to be represented in a sample.
+Thus, even though these elements can greatly affect a query result, they may be absent from our approximation.
+Power-law and long-tailed distributions are a common feature in large datasets[?].
+Such distributions often have variances that are orders of magnitude larger
 than the mean.
 As a result, answering queries such as SUM, COUNT, AVG may require a large 
 sample size for sufficient accuracy.
@@ -14,11 +16,21 @@ logs, we may want to know which records correspond to abnormal activity.
 
 The key question is how can we incorporate guarantees about outliers
 and efficiency guarantees on long tails in our estimation framework.
-The approach is to build an outlier index similar to that proposed in prior work [?].
-The user specifies an attribute in the base table and a percentage $o\%$, and we 
-identify the records whose attribute value is in the top $o$ percentile.
-We then construct an index to ensure that rows in the materialized view
-that are derived from the top-o percentile records are guaranteed to be in the sample.
+The approach is to build an outlier index on the base relation similar to that proposed in prior work [?].
+We extend this work to the context of materialized views where the outlier index guarantees
+that rows in the view derived from the outlier base record are in the sample.
+However, the materialized view setting poses a few new challenges: (1) we can take only
+a single pass of the updates, (2) outliers must be indexed from the base relations, and
+(3) the approach should scale with the update rate.
+
+Our solution is a set of user specified thresholds on attributes in the base table, and possibly a storage size constraint.
+Any record whose attribute value exceeds the threshold is added to the index until such time the index hits the size constraint.
+Then only the largest values are retained in the index.
+
+The same approach can be extended to attributes that have tails in both directions by making the threshold a range, which takes the highest and the lowest
+values.
+In our experiments, we work with datasets with Zipfian distributed attributes and thus a single threshold indexing the largest records are enough.
+Therefore, we present the indexing rule as a threshold, but it can easily be extended to a range.
 
 Recall, our example base table:
 \begin{lstlisting}
@@ -30,32 +42,41 @@ View1 := SELECT * FROM Log
 WHERE userAgent 
 LIKE '%Mozilla%'
 \end{lstlisting}
-If the user creates an outlier index on ``responseTime" with $o=1\%$, then
-the records containing the top 1\% of response times are guaranteed to be 
+If the user creates an outlier index on ``responseTime" with a threshold $t=100ms$, then
+the records containing with values of greater than 100ms of response time are guaranteed to be 
 in the sample of the delta view regardless of the sample size.
 
-\subsection{A Framework For Outlier Indexing}
+\subsection{Building The Outlier Index}
 A key aspect of our outlier index is that it is derived on the base table, yet 
 can still give benefits to queries on the view.
 This has a few advantages: (1) the outlier index does not require materialization of the full delta table,
 (2) the cost of building the index amortizes over all the materialized views, and (3) it can be built with a 
 single pass of the updates.
-In principle, other outlier detection schemes [?] can be applied to build the index, but in this work, we 
-implement and analyze an index of top o\%. 
-In attributes with both positive and negative values, this can also be the records with top o\% in absolute value terms.
+The index also can be used by all views derived on the base table.
 
-\subsection{Building The Outlier Index}
-The first step is that the user selects an attribute to index and specifies the parameter $o\%$.
-In a single pass of only the inserted records, the index is built storing references to the records in the top o\%.
+The first step is that the user selects an attribute to index and specifies a threshold $t$ and a storage constraint $k$.
+In a single pass of only the inserted records, the index is built storing references to the records with attributes greater than $t$.
+If the storage size limit is reached, the incoming record is compared to the smallest indexed record and if it is greater then we evict the smallest record.
 For Select-Project and Foreign-Key Join views, this is sufficient as we can additionally iterate through the index when sampling and mark 
 which records satisfy the view definition and perform any neccessary joins. 
-This adds an additional scanning cost of $o\%$ to the creation of each view, but we envision that in most datasets the outlier index will be
+This adds an additional scanning cost to the creation of each view, but we envision that in most datasets the outlier index will be
 very small.
 In our experiments, we show that even a very small outlier index (less than .01\% of records) is sufficent to greatly improve the accuracy of
 correction estimates.
 
 For aggregation views, at sample creation time, we must ensure that all rows in the materialized view that are derived from a record in the outlier index are added to the view. 
-This means that we have to run a COUNT(DISTINCT) for the group by key of the view on the outlier index and then ensure that all of those keys are added to the view (that is ensure they are sampled).
+This means that we have to additionally select all distinct group by keys in outlier index and ensure that they are sampled.
+
+\subsection{Selecting the Threshold}
+To select the threshold, we can use information from the base table.
+If our storage constraint is $k$, we can find the records with the top $k$ attributes in the base table. 
+Then, the attribute value of the lowest record becomes the threshold $t$.
+
+This approach is, of course, a heuristic which assumes that the updates are distributionally similar to the 
+base relation. 
+However, the storage constraint $k$ prevents a loss in performance of our approach due to unexpectedly large updates.
+Furthermore, calculating this heuristic requires a scan of the base table.
+This can be done in the background during the periodic maintenance cycles.
 
 \subsection{Query Processing with the Outlier Index}
 The outlier index has two uses: (1) we can answer SELECTION queries on the outliers, 
@@ -80,7 +101,6 @@ with the outlier information by:
 
 
 \subsection{Increased Accuracy For Long-Tailed Distributions}
-
 This outlier indexing procedure can greatly increase the accuracy
 of estimates where the set of difference is heavy tailed. This approach
 has been well studied in AQP {[}?{]} and is called truncation in Statistics
