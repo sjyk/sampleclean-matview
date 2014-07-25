@@ -1,12 +1,56 @@
 \documentclass{sig-alternate}
 
+\usepackage{enumitem}
 \usepackage{listings}
 \usepackage{amstext}
+\usepackage{amstext}
+\usepackage{pdfpages}
+\usepackage{alltt}
+\usepackage{epstopdf}
+\usepackage{xspace,colortbl}
+\usepackage[USenglish]{babel}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{subfigure}
 \usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{fmtcount}
+\usepackage{amsfonts}
+\usepackage{xspace}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage[mathscr]{eucal}
+%\usepackage{psfrag}
+\usepackage{colortbl}
+\usepackage{bm}
+\usepackage[nospace]{cite}
+
+
 
 \lstset{basicstyle=\scriptsize}
 
+
+
 \begin{document}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{example}{Example}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+
+\newcommand{\dataset}{data set\xspace}
+\newcommand{\datasets}{data sets\xspace}
+\newcommand{\spview}{\textsf{SPView}\xspace}
+\newcommand{\fjview}{\textsf{FJView}\xspace}
+\newcommand{\aggview}{\textsf{AggView}\xspace}
+
+\newcommand{\reminder}[1]{{{\textcolor{red}{\bf #1}}\xspace}}
+
+%\newcommand{\reminder}[1] {}
+\pagestyle{plain}
 
 \title{A Data Cleaning Approach for Approximately Up-To-Date Results on Stale Materialized Views}
 
