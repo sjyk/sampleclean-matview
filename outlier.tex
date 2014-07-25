@@ -25,7 +25,12 @@ a single pass of the updates, (2) outliers must be indexed from the base relatio
 
 Our solution is a set of user specified thresholds on attributes in the base table, and possibly a storage size constraint.
 Any record whose attribute value exceeds the threshold is added to the index until such time the index hits the size constraint.
-Then only the largest values are retained.
+Then only the largest values are retained in the index.
+
+The same approach can be extended to attributes that have tails in both directions by making the threshold a range, which takes the highest and the lowest
+values.
+In our experiments, we work with datasets with Zipfian distributed attributes and thus a single threshold indexing the largest records are enough.
+Therefore, we present the indexing rule as a threshold, but it can easily be extended to a range.
 
 Recall, our example base table:
 \begin{lstlisting}
@@ -61,6 +66,17 @@ correction estimates.
 
 For aggregation views, at sample creation time, we must ensure that all rows in the materialized view that are derived from a record in the outlier index are added to the view. 
 This means that we have to additionally select all distinct group by keys in outlier index and ensure that they are sampled.
+
+\subsection{Selecting the Threshold}
+To select the threshold, we can use information from the base table.
+If our storage constraint is $k$, we can find the records with the top $k$ attributes in the base table. 
+Then, the attribute value of the lowest record becomes the threshold $t$.
+
+This approach is, of course, a heuristic which assumes that the updates are distributionally similar to the 
+base relation. 
+However, the storage constraint $k$ prevents a loss in performance of our approach due to unexpectedly large updates.
+Furthermore, calculating this heuristic requires a scan of the base table.
+This can be done in the background during the periodic maintenance cycles.
 
 \subsection{Query Processing with the Outlier Index}
 The outlier index has two uses: (1) we can answer SELECTION queries on the outliers, 
