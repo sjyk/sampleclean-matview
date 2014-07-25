@@ -73,7 +73,7 @@ For 10,000 randomly generated aggregation queries on each view, we compare the s
 For SAQP and our approach, we keep the same sampling ratio.
 This does, however, mean that SAQP uses significantly more storage than our approach Select-Project and Foreign-Key Join Views.
 
-\begin{figure*}[h]
+\begin{figure*}[ht!]
 \label{exp1sample}
 \centering
  \includegraphics[width=\textwidth]{exp/exp1-samplesize-accuracy.eps}
@@ -91,7 +91,7 @@ We set the sample size to $5\%$ and then vary the number of inserted records by 
 Like before, we evalute SAQP and our approach against a baseline stale result.
 In Figure \ref{exp2udpate}, we show the results of the experiment. 
 
-\begin{figure*}[h]
+\begin{figure*}[ht!]
 \label{exp2update}
 \centering
  \includegraphics[width=\textwidth]{exp/exp2-updatesize-accuracy.eps}
@@ -113,7 +113,7 @@ For each of the three views, we derive the views from a 10GB dataset.
 Then, as before, we simulate 5000000 inserted records and a 5\% sample.
 We evaluated the relative error for each query.
 
-\begin{figure*}[h]
+\begin{figure*}[ht!]
 \label{exp3dist}
 \centering
  \includegraphics[width=\textwidth]{exp/exp3-query-error-dist.eps}
@@ -136,7 +136,7 @@ For a batch of updates, we evaluate how long it takes to incrementally maintain 
 For, the join view, we build an index on the foreign key of the view.
 As before, we derived the views from a 10GB base dataset, and inserted records in increments of 500000.
 
-\begin{figure*}[h]
+\begin{figure*}[ht!]
 \label{exp3dist}
 \centering
 \includegraphics[width=\textwidth]{exp/exp4-efficiency-tpcd-skew.eps}
@@ -147,7 +147,44 @@ We find that maintaining a sample is far cheaper than the entire view. In this e
 However, we found that with a small sample we could acheive this in a few seconds and still acheive accurate results.
 
 \subsection{Outlier Indexing}
-TODO
+We ran experiments on the TPCD-skew dataset to evaluate how outlier indexing can improve the accuracy of our approach without adding much overhead.
+In the first experiment, we evaluate the accuracy for each of the views as a function of the size of the outlier index. 
+We use a 5\% sample size and 5000000 records inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
+In the Select-Project view, we index the attributes l\_extendedprice and l\_quantity.
+For the Join view, we index the attributes customer.c\_acctbal and supplier.s\_acctbal.
+Finally, in the Aggregation view, we index the attribute l\_extendedprice.
+
+In the first experiment, we varied the total number of indexed records and plot accuracy as a function of index size.
+As a baseline, we compare if the same number of records were randomly sampled.
+In Figure \ref{exp7outlier}, we find that outlier indexing can improve accuracy by a factor of three for the join view. 
+In the same figure, we break down for which queries these gains are made. 
+We find that outlier indexing addresses the most inaccurate queries as these are often due to outliers. 
+\begin{figure*}[ht!]
+\label{exp7outlier}
+\centering
+\includegraphics[width=\textwidth]{exp/exp6-outlier.eps}
+\includegraphics[width=\textwidth]{exp/exp7-outlier.eps}
+ \caption{(placeholder) TODO}
+\end{figure*}
+
+Next, we evaluated how the approach works under different levels of skew in the dataset. We varied the Zipfian parameter from (0,1,2,3,4) and measured the average improvement in accuracy. 
+We found that as the dataset become more skewed, outlier indexing is increasingly important.
+\begin{figure*}[ht!]
+\label{exp8outlier}
+\centering
+\includegraphics[width=\textwidth]{exp/exp8-outlier.eps}
+ \caption{(placeholder) TODO}
+\end{figure*}
+
+Finally, we evaluated the overhead for the approach. 
+We found that small indicies were sufficient for good accuracy and thus the additional overhead was marginal and orders of magnitude smaller than sample maintenance time.
+
+\begin{figure*}[ht!]
+\label{exp9outlier}
+\centering
+\includegraphics[width=\textwidth]{exp/exp9-outlier.eps}
+ \caption{(placeholder) TODO}
+\end{figure*}
 
 \subsection{Application: Conviva Dataset}
 Conviva is a video streaming company that logs activity for each of their videos such as who is watching the video, who owns the video, browser, and network latency etc. 
@@ -227,10 +264,10 @@ Figure \ref{exp5conviva}, compares this accuracy to the staleness of the query.
 We find that even a $0.1\%$ sample gives significantly more accurate results for View 1 and View 2.
 Even in the situation where the view is small, sampling can still have benefits as seen in View 3.
 
-\begin{figure*}[h]
+\begin{figure*}[ht!]
 \label{exp5conviva}
 \centering
-\includegraphics[width=\textwidth]{exp/exp5-coniva-accuracy.eps}
+\includegraphics[width=\textwidth]{exp/exp5-coniva-accuracy-woutlier.eps}
  \caption{TODO}
 \end{figure*}
 
@@ -244,7 +281,7 @@ We derived the views from a 120GB base relation and inserted records in 10GB inc
 As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
 Each view is partitioned by the group by key, and thus only the sampled delta view has to be shuffled. 
 
-\begin{figure*}[h]
+\begin{figure*}[ht!]
 \label{exp6conviva}
 \centering
 \includegraphics[width=\textwidth]{exp/exp5-efficiency-conviva.eps}

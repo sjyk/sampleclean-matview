@@ -60,7 +60,7 @@ In our experiments, we show that even a very small outlier index (less than .01\
 correction estimates.
 
 For aggregation views, at sample creation time, we must ensure that all rows in the materialized view that are derived from a record in the outlier index are added to the view. 
-This means that we have to run a COUNT(DISTINCT) for the group by key of the view on the outlier index and then ensure that all of those keys are added to the view (that is ensure they are sampled).
+This means that we have to additionally select all distinct group by keys in outlier index and ensure that they are sampled.
 
 \subsection{Query Processing with the Outlier Index}
 The outlier index has two uses: (1) we can answer SELECTION queries on the outliers, 
