@@ -1,6 +1,7 @@
 \documentclass{sig-alternate}
 
 \usepackage{enumitem}
+\usepackage{framed}
 \usepackage{listings}
 \usepackage{amstext}
 \usepackage{amstext}
@@ -46,8 +47,11 @@
 \newcommand{\spview}{\textsf{SPView}\xspace}
 \newcommand{\fjview}{\textsf{FJView}\xspace}
 \newcommand{\aggview}{\textsf{AggView}\xspace}
+\newcommand{\hashfunc}[1]{\textsf{hashfunc}(#1)\xspace}
 
 \newcommand{\reminder}[1]{{{\textcolor{red}{\{\{\bf #1\}\}}}\xspace}}
+\newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
 
 %\newcommand{\reminder}[1] {}
 \pagestyle{plain}
