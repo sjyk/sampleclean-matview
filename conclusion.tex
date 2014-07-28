@@ -1,0 +1,20 @@
+\section{Conclusion}
+In this paper, we proposed a new approach to the staleness problem in materialized views.
+We demonstrated how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
+allow for accurate query processing on stale views for a fraction of the cost of incremental maintenace.
+We evaluated this approach on a single node and in a distributed environment and found that sampling can provide a flexible tradeoff 
+between accuracy and performance.
+In one of our end-to-end experiments with a 1TB log dataset from Conviva, we found that...\reminder{Find way to summarize these experiments}
+
+Our results are promising and suggest many avenues for future work.
+``Serving" machine learning models has been a recent hot topic of database research [?].
+We believe there is a strong link between machine learning models and materialized views, and the principles of our approach could be applied
+to streaming machine learning applications.
+For example, we can sample a data stream and update a model (eg. via Stochastic Gradient Descent).
+
+Another promising direction is to extend this approach to support a more general class of queries.
+To support general selection queries, we will have to extend our query correction to predict and attribute value via a regression.
+This is an ideal application for non-parametric regression techniques such as Gaussian Process Regression which do
+not make strong assumptions about the distribution of the data.
+
+
