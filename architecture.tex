@@ -1,25 +1,21 @@
 \section{System Overview}
-In this work, we address the following problem of stale materialized views.
-Suppose we have an out-of-date view, and we want to answer and aggregation 
-query (SUM, COUNT, AVG, and VAR) on the view.
-Given the three categories of views and the 
-Let $\textbf{V}_{T}$ be the old view, and $\textbf{V}_{T}^{'}$ be
-the up-to-date view. If $f$ is an aggregation function, then we call
-the staleness error of the query $\epsilon$ if :
-\[
-f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
-\]
-Since we already have the out-of-date view, we can easily compute
-$f(\textbf{V}_{T})$. 
-In this work, we look at correcting staleness by estimating $\epsilon$ 
-from the sample.
-In other words, we use sampling to learn how updates affect the aggregation query on the view
-and then correct the query results.
-We extend the NormalizedSC algorithm from SampleClean to estimate $\epsilon$.
-One challenge is that sampling can be sensitive to outliers and may hide mask in the dataset.
-Therefore, we couple sampling with outlier indexing to show that we can not guarantee that outliers 
-are samples (and can be queried) but also give valuable information about the data distribution
-which can be used to improve estimates.
+Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints. 
+We propose approximate query correction to address this problem, and to give a flexible tradeoff between query accuracy and system performance.
+The key idea is that given a stale aggregation query (SUM, COUNT, AVG, VAR) on a materialized view, we use a sample of up-to-date data to estimate how much that data changes the stale aggregation query.
+From the sample, we can derive a correction to the stale query result, which in expectation is accuracte, but has variance inherrent to sampling.
+
+Our proposed system will work in conjunction with existing maintenance or re-calculation approaches.
+We envision the scenario where materialized views are being refreshed periodically eg. nightly.
+While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale maintenance with the performance and resource constraints during the day.
+Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
+
+However, a challenge is that supporting only aggregation queries has the potential mask outliers in the updates.
+Since, we can answer selection queries on the view, we may miss outlier rows either because they were not sampled or because
+they are averaged into an aggregation query.
+We define an ``outlier index" on the base table which indexes records with abnormal attribute values, where abnormality is defined by user specified rules.
+Therefore, we couple our sampling with outlier indexing to guarantee that rows in the materialized views derived outlier base table records are in the sample.
+The result is that we can answer selection queries exactly on these outlier rows which are often the most queried rows in the materialized view.
+What is particularly surprising is that outliers can give valuable information about the data distribution and these can be used to improve the accuracy of our aggregation queries as well.
 
 To illustrate our approach, we use the following running example which is a 
 simplified schema of one of our experimental datasets (Figure \ref{example}).
@@ -44,7 +40,7 @@ record must link to one video in the video table.
 \subsection{System Architecture}
 The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
 The left side of the diagram resembles a tradition view maintenance architecture.
-However, there are a couple of key additions: (1) instead of correcting the view,
+However, there are a couple of key additions: (1) instead of maintaining the view,
 we issue corrections to query results on the view, (2) to acheive this we maintain
 an up-to-date sample, and (3) we have an outlier index.
 In this section, we will overview these three components and contrast our approach 

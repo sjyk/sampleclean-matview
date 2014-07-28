@@ -6,12 +6,12 @@ has had much interest in recent research [?] and materialization
 research has expanded beyond the SQL setting [?].
 
 However, pre-computed query results face the obvious challenge of \emph{staleness} when applied
-in a setting where the underlying tables are updating.
-One commonly applied solution is to recompute the materialized views when the table has been updated.
-This can be very expensive in the presence of small updates that hardly change the derived views.
+where the underlying tables are updating.
+One solution is to recompute the materialized views when the table has been updated.
+This can be very inefficient in the presence of small updates that hardly change the derived views.
 Consequently, incremental maintenance of materialized views is well studied see [?]
 for a survey of the approaches. 
-A simple model of incremental maintenance consists of two steps: calculating a ``delta" view,
+Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
 More formally, given a base relation $T$, a set of updates $U$,
 and a view $\textbf{V}_{T}$:
@@ -35,17 +35,19 @@ view:
 The details of the refresh operation depend on the view definition.
 Refer to [?] for details.
 
-In this work, we address three types of materialized views: Select-Project, Aggregation, and
-Foreign-Key Join views; and four common aggregation queries on these
-views: SUM, COUNT, AVG, and VAR. We further analyze 
-only insertions into the database and defer analysis of updates
-and deletions for future work.
+%In this work, we address three types of materialized views: Select-Project, Aggregation, and
+%Foreign-Key Join views; and four common aggregation queries on these
+%views: SUM, COUNT, AVG, and VAR. We further analyze 
+%only insertions into the database and defer analysis of updates
+%and deletions for future work.
 
 \subsection{Scheduling Maintenance}
 While often less expensive than recomputing a materialized view,
 incremental maintenance can still be computationally expensive.
 Materialized views are growing larger and are more frequently 
 implemented in distributed systems.
+Furthermore, database systems face an increased velocity of incoming data which
+can make infeasible to keep the views up-to-date.
 Due to this cost, which we will refer to as the ``maintenance" cost, 
 scheduling the refresh operation has been an important topic of research.
 

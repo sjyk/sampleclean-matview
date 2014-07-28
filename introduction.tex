@@ -8,7 +8,10 @@ including a variety of techniques such as batch maintenance {[}?{]}
 and lazy maintenance {[}?{]}. 
 
 Unfortunately, in many desired applications, incremental view maintenance
-can be very costly. This cost breaks down into two components: applying
+can be very costly. 
+When the base tables change rapidly, the database has to propagate these rapid changes to
+all of the materialized views.  
+This cost breaks down into two components: applying
 the view definition to the updates, and then writing the ``delta''
 view to the out-of-date view. These two pieces can be costly in different
 applications. (1) In distributed environments where the view is partitioned
@@ -20,8 +23,9 @@ This can lead to high maintenance costs in applications where the
 views are derived from joins that are not aligned with the partitioning
 of the base tables. (3) Base data is often raw requiring pre-processing
 such as string processing, deserialization, and formatting; all of
-which can can be expensive to run on a large number of updates. Consequently,
-a commonly applied approach is to extend the maintenance period and
+which can can be expensive to run on a large number of updates. 
+
+Consequently, a commonly applied approach is to maintain the views peridoically and
 schedule maintenance at less active times eg. nightly; while accepting
 that in the interim results will be stale. This approach avoids placing
 an undue bottleneck on updates to the base tables and reduces contention
@@ -58,14 +62,17 @@ Coupling outlier detection with sampled views has an interesting implication;
 not only are the outliers themselves interesting for analysis, but
 the information from the outliers can potentially improve query accuracy
 or likewise reduce the number of needed samples.
+In this work, we propose an outlier indexing framework that guarantees that
+rows in the materialized view derived from an ``outlier" record, one with
+an abnormal attribute value, are included in the sample.
 
 In summary, our contributions are as follows:
 \begin{itemize}
-\item We present a query processing framework that gives bounded error for
-aggregation queries on stale views, while providing a tradeoff between
-error and performance.
-\item We show how coupling concepts from data cleaning such as correction
-estimates and outlier detection can give increased accuracy (and performance).
+\item We present a query processing framework that corrects aggregation queries on stale
+views using a sample of up-to-date data.
+\item We couple this approach with an oultier indexing framework that allows
+for selection queries on outliers and we show both analytically and empirically that 
+this can improve query accuracy.
 \item We evaluate our approach on two systems, Apache SparkSQL and MySQL,
 and discuss how the different systems affect performance performance
 parameters.
