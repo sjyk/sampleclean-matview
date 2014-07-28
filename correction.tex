@@ -29,7 +29,7 @@ Consider a base table $T$ and the corresponding insertion table $\triangle T$. G
 
 \sloppy
 
-For a given \fjview, suppose $T$ is a fact table, and $T_1, T_2, \cdots, T_k$ are dimension tables. Its full update patterns involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\alpha= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with new dimension tables (i.e., $\triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the view's predicate. 
+For a given \fjview, suppose $T$ is a fact table, and $T_1, T_2, \cdots, T_k$ are dimension tables. Its full update patterns involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\alpha= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with new dimension tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the view's predicate. 
 
 \fussy
 
