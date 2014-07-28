@@ -1,10 +1,54 @@
-\section{Extensions}
+\section{Extensions and Discussion}
+In this section, we discuss some additional properties of our framework which
+we excluded from the previous sections for clarity of presentation.
+
+\subsection{Class of Aggregation Views}
+There is a taxonomy of aggregation queries: distributive, holistic, and algebraic; refer to [?] for details.
+Likewise, the same taxonomy can be extended to materialized views.
+Distributive queries require only a single parameter during the incremental refresh step, for example SUM and COUNT queries only need to
+add the SUM from the delta view and the stale view.
+Algebraic queries require a constant number of parameters, for example the AVG query requires the group count of the updates and the stale view before updating the aggregate.
+We presented an approach geared towards aggregation views defined by distributive and algebraic queries (SUM,COUNT, AVG, MAX, MIN).
+However, in the case of holisitc aggregates (eg. Median), we can still acheive performance gains.
+For these functions, the refresh step of incremental maintenance may require the entire distribution and not just merging two aggregates.
+For example, if we have a stale view defined by the Median, we have to know the entire distribution to keep it incrementally maintained.
+One way to do this is to maintain a histogram for each group on the relevant attribute on the stale view, and do the same on the delta view.
+Then, during the refresh we can merge the two histograms to update the median.
+Even in this setting, Sampling can help reduce processing (less histograms to compare) and communication (less histograms to communicate). 
 
 \subsection{Proof of Optimality of Correction}
+We propose a technique based on the concept of query correction.
+We can actually prove that for the SUM, COUNT, and AVG queries this technique is optimal with respect to the variance of the estimate.
+We use the following statistical property of random sampling which holds for i.i.d and exchangable sequences of random variables (ie. sampling with and without replacement respectively) [?].
+\begin{proposition}
+The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown.
+\end{proposition}
+The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory.
+Unbiased estimators are ones that, in expectation, give correct estimates.
+However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
+For example, if we simply pick a random element from a set it is still an unbiased estimate of the mean of the set.
+Variance is used to compare different unbiased estimates, and the MVUE is the unbiased estimate which has the least variance.
+Under random sampling, the sample mean is the MVUE over the class of linear estimators.
+
+As shown in Section ?, we can formulate our correction estimates as sample means thus proving optimality. 
+\begin{theorem}
+For SUM, COUNT, and AVG queries, our estimate of the correction is optimal over the class of linear estimators when no other information is known about the distribution. 
+\end{theorem}
+\begin{proof}
+Using the proposition above, reformulating our correction estimates as sample means and the true query results as population means, we can prove that our approach gives the lowest variance estimate over the class of linear estimators.
+\end{proof}
 
 \subsection{Selection Queries}
-
-\subsection{Different Types of Aggregation Views}
-
-
-\section{Related Work}
+While our approach is optimal for SUM, COUNT, and AVG queries, and is exact for Selection queries on the outlier index, there is a question about processing general selection queries.
+For a Selection query, there are two possibilities: (1) the row is in the sample, and (2) the row in not in the sample.
+For rows in the sample, we can get an exact result.
+For rows not in the sample, we can bound the selection query using the Chebyshev inequality [?].
+\begin{equation}
+Pr(|X-\mu|\ge z\sigma)\le \frac{1}{z^2}
+\end{equation}
+Using the sample, we can estimate the average value and the standard deviation over all rows.
+This, gives us a bound on the distribution of unsampled rows.
+The value will not deviate from the mean by more than $\approx 4.5$ standard deviations with 95\% probability.
+This bound is very loose and is not practical for many applications, however, this result is promising as it does indicate 
+we can still acheive guarantees on general selection queries.
+We defer caclulating a correction for selection queries to future work.
