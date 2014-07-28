@@ -27,10 +27,9 @@ which can can be expensive to run on a large number of updates.
 
 Consequently, a commonly applied approach is to maintain the views peridoically and
 schedule maintenance at less active times eg. nightly; while accepting
-that in the interim results will be stale. This approach avoids placing
-an undue bottleneck on updates to the base tables and reduces contention
-on hot data; however a user querying the system can get results that
-are arbitrarily stale.
+that in the interim results will be stale. This approach avoids creating
+an undue bottleneck of maintanance for each udpate and reduces resource contention during high traffic times; 
+however a user querying the system can get results that are arbitrarily stale.
 
 Querying a stale view is similar to problems studied in data cleaning{[}?{]}.
 SampleClean is a query processing framework that answers aggregate
