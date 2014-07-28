@@ -74,7 +74,7 @@ To implement this idea, we incorporate hashing into our sampling techniques. The
 \end{equation}
 Obviously, the maintained group-by keys are a random sample of all the group-by keys with the sampling ratio of~$\alpha$.
 
-With this hash-based sampling technique, we can easily devise an efficient method to sample the update patterns for an \aggview. Let $S_{V}$ denote a sample of a stale \aggview, V, where $S_{V}$ is sampled from $V$ using the hash-based sampling technique. Given an insertion table $\triangle T$, to obtain $S_{V}$'s update patterns w.r.t $\triangle T$, we first compute a \emph{sample delta \aggview} by executing the view definition on the records in $\triangle T$ that satisfy the Equation~\ref{eq:hash}, and then obtain $S_{V}$'s update patterns by applying the sample delta \aggview to~$S_{V}$. 
+With this hash-based sampling technique, we can easily devise an efficient method to sample the update patterns for an \aggview. Let $S_{V}$ denote a sample of a stale \aggview, V, where $S_{V}$ is sampled from $V$ using the hash-based sampling technique. Given an insertion table $\triangle T$, to obtain $S_{V}$'s update patterns w.r.t $\triangle T$, we first compute a \emph{delta sample \aggview} by executing the view definition on the records in $\triangle T$ that satisfy the Equation~\ref{eq:hash}, and then obtain $S_{V}$'s update patterns by applying the delta sample \aggview to~$S_{V}$. 
 
 \vspace{.5em}
 {\noindent \bf Cost Analysis: }
