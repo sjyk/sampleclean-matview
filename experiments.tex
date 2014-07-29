@@ -2,6 +2,21 @@
 
 \subsection{Experimental Setting}
 We evaluated our approach on two datasets: (1) TPCD-Skew and (2) Conviva.
+The first one is a synthetic dataset designed to simulate power law data distribution and the second is 
+a real dataset from a video streaming company.
+Detailed descriptions of these datasets can be found in the following subsections.
+For both of these datasets, we evaluate our approach on two principal criteria: accuracy and maintenance time.
+
+For accuracy, we measure the relative error between estimated query result and the true query result.
+A relative error of 5\% means that the difference between the estimated query result and the true result is 5\% of the true result.
+As baselines, we compare against two alternative approaches, no maintenance where the materialized view is left to be stale and SAQP where instead 
+of calculating an approximate query correction we estimate directly from the up-to-date view.
+We fix the sampling ratio of SAQP and our approach to be the same so they will have the same maintenance time.
+Even so, SAQP as defined, requires more storage than our approach.
+
+We measure the maintenance time as the time required to calculate the delta view and then refresh the materialized view for a batch of updates.
+As a baseline, we compare the performance to full incremental maintenance.
+The measured time is the ``wall clock" time and this is measured with no other load on the server.
 
 \subsubsection{TPCD-Skew}
 The first dataset, TPCD-Skew dataset, is based on the Transaction Processing Council's benchmark
@@ -74,7 +89,7 @@ We experimented with a 1TB dataset of these logs and the corresponding queries o
 We used this dataset to evaluate the end-to-end accuracy and performance of the system on a real dataset and query workload.
 We evaluated performance on Apache Spark with a 20 node r3.large Amazon EC2 cluster. 
 
-\subsection{Query Correction}
+\subsection{Approximate Query Correction}
 
 \subsubsection{Sample Size and Accuracy}
 In this experiment, we illustrate the tradeoff between sample size and accuracy in the TPCD Skew dataset with $z = 2$.
