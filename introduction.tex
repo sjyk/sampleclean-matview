@@ -1,7 +1,7 @@
 \section{Introduction}
 Database systems increasingly use materialization, caching a computed
-query result, to speed up queries on large datasets {[}?{]}. However,
-as the base tables update, materialized views derived from these tables
+query result, to speed up queries on large datasets {[}?{]}. 
+However, as the base tables update, materialized views derived from these tables
 become increasingly stale. Incrementally keeping the views up-to-date,
 also called incremental maintenance, has been well studied {[}?{]}
 including a variety of techniques such as batch maintenance {[}?{]}
@@ -25,13 +25,17 @@ of the base tables. (3) Base data is often raw requiring pre-processing
 such as string processing, deserialization, and formatting; all of
 which can can be expensive to run on a large number of updates. 
 
-Consequently, a commonly applied approach is to maintain the views peridoically and
+Consequently, a commonly applied approach is to maintain the views periodically and
 schedule maintenance at less active times eg. nightly; while accepting
 that in the interim results will be stale. This approach avoids creating
 an undue bottleneck of maintanance for each udpate and reduces resource contention during high traffic times; 
-however a user querying the system can get results that are arbitrarily stale.
+however a user querying the system can get results that are stale.
+Furthermore, in general, the staleness is unbounded and user does not know how the staleness affects their query results.
 
 Querying a stale view is similar to problems studied in data cleaning{[}?{]}.
+When databases are dirty, query results can be arbitrarily wrong.
+Data cleaning is used to remove data errors but this can be very costly either 
+requiring machine learning to classify errors or even human intervention.
 SampleClean is a query processing framework that answers aggregate
 queries on dirty datasets by applying potentially expensive cleaning
 techniques to just a sample. The results, while approximate, are bounded
@@ -46,8 +50,9 @@ the entire view, we maintain only a small sample of the view. Then
 given an aggregation query on this view, from this small sample, we
 can estimate how the updates affect the query result. We apply this
 estimate to correct the dirty aggregation query result on the stale
-data. Our results are provably bounded, as opposed to unbounded stalness,
-and the sampling gives a flexible tradeoff to meet performance constraints.
+data. We call this approach \emph{approximate query correction}. 
+These corrections are provably bounded, in contrast to the unbounded stalness,
+and the sampling gives a flexible tradeoff to meet performance constraints such as throughput.
 Sampling helps reduces both bottlenecks in view maintenance, delta
 view calculation and view updating, as it reduces the number of updates
 that need to processed and then written.

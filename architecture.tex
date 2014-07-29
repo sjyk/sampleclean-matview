@@ -1,7 +1,7 @@
 \section{System Overview}
-Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints. 
+Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints such as throughput. 
 We propose approximate query correction to address this problem, and to give a flexible tradeoff between query accuracy and system performance.
-The key idea is that given a stale aggregation query (SUM, COUNT, AVG, VAR) on a materialized view, we use a sample of up-to-date data to estimate how much that data changes the stale aggregation query.
+The key idea is that given a stale aggregation query (SUM, COUNT, AVG, VAR) on a materialized view, we use a sample of up-to-date data to estimate how much that data changes the stale aggregation query result.
 From the sample, we can derive a correction to the stale query result, which in expectation is accuracte, but has variance inherrent to sampling.
 
 Our proposed system will work in conjunction with existing maintenance or re-calculation approaches.

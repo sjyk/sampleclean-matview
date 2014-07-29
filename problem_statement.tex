@@ -82,11 +82,21 @@ In the SampleClean project [?], the authors suggested that to process aggregate 
 one need not clean the entire dataset but rather a random sample to get an approximate answer.
 Rather than an uncleaned result that can be arbitrarily dirty, you acheive an approximate result with bounded sampling error. 
 
+\subsection{Approximate Query Correction}
 One of key algorithms in SampleClean, NormalizedSC, takes a dirty dataset and query and using a sample of clean data learns how
-to correct the query so the result is ``clean".
-This approach gives highly accurate answers in datasets where errors are sparse since the correction will be small.
-In context of materialized views, we explore whether we can apply a similar algorithm to acheive approximately up-to-date results;
+to correct a query so the result is ``clean".
+This use of sampling is fundementally different from sampling as used in Sample-based Approximate Query Processing (SAQP).
+In SAQP, the sample becomes the dataset and queries are applied directly to the sample.
+However, in NormalizedSC, queries are still applied to the original unsampled and dirty base data.
+The algorithm cleans a sample of data and then uses this information to correct the query result on the dirty data.
+Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for SUM, COUNT, and AVG queries.
+
+In comparision to SAQP, this approach gives more accurate results in datasets where errors are sparse since the correction will be small.
+Thus, query correction is suited for the materialized view setting where if the views are very large updates may affect only a small fraction of rows in the view.
+We explore whether we can apply a similar algorithm to NormalizedSC to acheive approximately up-to-date results;
 where we take a sample of up-to-date data and estimate how much we have to correct a stale query result.
+We can apply queries to existing stale views to get a stale (``dirty") result, and then use a sample of up-to-date data to estimate a correction for the result.
+The same way that SampleClean saves on data cleaning costs by cleaning a sample, we save on incremental maintenance costs by only requiring a sample of up-to-date data.
 
 However, NormalizedSC alone is not suited for ``staleness" data errors.
 First, the algorithm is designed for sampling base relations and not views.
@@ -99,11 +109,5 @@ In this work, we show how ideas from NormalizedSC can be extended to the setting
 And the implication is that we can use sampling to infer up-to-date results for aggregation queries on stale materialized views. 
 We can apply incremental maintenance to just a sample of the view, thus greatly reducing the cost needed to maintain the view (Figure ?). 
 With the sampling ratio, the user has a knob to tradeoff performance (in terms of throughput and refresh latency) and accuracy.
-
-We envision that this work is complementary to incremental maintenance.
-In the periods between full materialized view refreshes, the user maintains a sample of the view. 
-The user specifies a sampling ratio that meets the systems performance constraints.
-With this, the user gets guarantees that for the aggregate queries the results have bounded error and 
-the queries return with error bars.
 
 
