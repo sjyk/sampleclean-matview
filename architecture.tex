@@ -1,7 +1,8 @@
 \section{System Overview}
 Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints such as throughput.
-The key idea is that given a stale aggregation query (SUM, COUNT, AVG, VAR) on a materialized view, we use a sample of up-to-date data to estimate how much that data changes the stale aggregation query result.
-From the sample, we can derive an approximate correction to the stale query result, which in expectation is accuracte.
+Our key idea is to model this problem as a data cleaning problem.
+Given an aggregation query (SUM, COUNT, AVG, VAR) on a stale materialized view, we use a sample of up-to-date (clean) data to estimate how much that data changes the stale aggregation query result.
+The result is a correction term which adjusts or cleans the query result.
 
 Our proposed system will work in conjunction with existing maintenance or re-calculation approaches.
 We envision the scenario where materialized views are being refreshed periodically eg. nightly.
@@ -21,10 +22,9 @@ What is particularly surprising is that outliers can give valuable information a
 The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
 The left side of the diagram resembles a typical materialized 
 view maintenance architecture.
-However, there are a couple of key additions: (1) instead of maintaining the view,
-we issue corrections to query results on the view, (2) to acheive this we maintain
-an up-to-date sample, and (3) we have an outlier index.
-In this section, we will overview these three components.
+However, on the right side, there are a couple of key additions: (1) as updates arrive we sample the ``update pattern". 
+(2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
+In this section, we will introduce these three components, which are also explained in much more detail in the following sections.
 
 \begin{figure}[h]
 \label{sys-arch}

@@ -71,15 +71,15 @@ to query execution time.
 
 Immediate maintenance introduces a bottlneck on updates and lazy maintenance introduces a bottleneck during query exection,
 and rapid collection of data can make these approches impractical.
-Periodic maintainence allows for flexibility in scheduling to meet the resource constraints of the system and workload.
-The problem is that between maintenance periods queries on the view are stale.
-While, the user can set the maintenance period to control the expected staleness of the data.
-In fact, in general, the relative error between the stale result and the up-to-date result is unbounded.
+As a consequence, periodic maintenance or recalculation is often the most feasible solution.
+Periodic maintainence allows for coarse flexibility in scheduling to meet the resource constraints of the system and workload.
+The problem is that between maintenance periods, which can be very long, queries on the view are stale.
+While the user can set the maintenance period to control the expected staleness of the data, in general, the relative error between a stale query result and the up-to-date result is unbounded.
 
 \subsection{Data Cleaning}
-In the past, data cleaning research largely focused on improving query accuracy on dirty datasets.
-This research focused on using rules or algorithms to remove or correct erroneous records [?].
-However, recent work has considered the costs of data cleaning and how to budget effort.
+Much of data cleaning research focuses on improving query accuracy on dirty datasets.
+For example, designing rules or algorithms to remove or correct erroneous records [?].
+However, recent work has considered the costs of data cleaning and how to budget this effort.
 The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples [?].
 Similarly, the SampleClean project presents a query processing framework that cleans on a sample of data, and then bounds the results of aggregate queries on dirty datasets.
 

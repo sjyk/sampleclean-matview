@@ -174,6 +174,11 @@ As before, we derived the views from a 10GB base dataset, and inserted records i
 We find that maintaining a sample is far cheaper than the entire view. In this experiment, keeping a view exactly up-to date required computation on the order of minutes.
 However, we found that with a small sample we could acheive this in a few seconds and still acheive accurate results.
 
+\subsection{Overhead of Query Correction}
+In Section \ref{sampling}, we ran cost analyses to argue that sampling can greatly reduce delta view and refresh costs.
+In practice, these gains will only be realized if the overheads of sampling and the query correction are small.
+The first question we address
+
 \subsection{Outlier Indexing}
 We ran experiments on the TPCD-skew dataset to evaluate how outlier indexing can improve the accuracy of our approach without adding much overhead.
 In the first experiment, we evaluate the accuracy for each of the views as a function of the size of the outlier index. 
@@ -320,4 +325,6 @@ In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of
 We find that we acheive good scalability on view 1 and view 2, and still have some performance gains on view 3.
 In view 1 and view 2, our gains are more pronounced due to the savings on communication in a distributed environment.
 As view 3 is smaller, the communcation gains are less and the only savings are in computation.
+
+
 
