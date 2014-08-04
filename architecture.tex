@@ -1,6 +1,6 @@
 \section{System Overview}
 Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints such as throughput.
-Our key idea is to model this problem as a data cleaning problem.
+In our approach, we model this problem as a data cleaning problem.
 Given an aggregation query (SUM, COUNT, AVG, VAR) on a stale materialized view, we use a sample of up-to-date (clean) data to estimate how much that data changes the stale aggregation query result.
 The result is a correction term which adjusts or cleans the query result.
 
