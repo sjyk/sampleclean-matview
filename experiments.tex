@@ -98,9 +98,9 @@ In Figure \ref{exp2udpate}, we show the results of the experiment.
 
 \begin{figure*}[ht!]
 \label{exp2update}
-\centering
- \includegraphics[width=\textwidth]{exp/exp2-updatesize-accuracy.eps}
- \caption{TODO}
+\hspace{-3em}
+ \includegraphics[scale=0.18]{exp/exp2-full.png}
+ \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparision to full incremental maintenance for a 1\%, 5\% and 10\% sample. }
 \end{figure*}
 
 The results highlight an important point comparing the accuracy of SAQP to our approach. 
@@ -113,18 +113,10 @@ Compensating for a correction to an existing row is often much smaller than doin
 
 
 \subsection{Computational Efficiency}
-In the next experiment, we evaluate how sampling can reduce maintenance time.
+In the next experiment (Figure \ref{exp2udpate}), we evaluate how sampling can reduce maintenance time.
 For a batch of updates, we evaluate how long it takes to incrementally maintain a view compared to maintaing a sample.
 For, the join view, we build an index on the foreign key of the view.
 As before, we derived the views from a 10GB base dataset, and inserted records in increments of 500000.
-
-\begin{figure*}[ht!]
-\label{exp3dist}
-\centering
-\includegraphics[width=\textwidth]{exp/exp4-efficiency-tpcd-skew.eps}
- \caption{(placeholder) TODO}
-\end{figure*}
-
 We find that maintaining a sample is far cheaper than the entire view. In this experiment, keeping a view exactly up-to date required computation on the order of minutes.
 However, we found that with a small sample we could acheive this in a few seconds and still acheive accurate results.
 
@@ -143,8 +135,8 @@ the time to calcuate a correction is a just fraction of the query time.
 \begin{figure}[h]
 \label{exp10overheads}
 \centering
- \includegraphics[width=\columnwidth]{exp/total_time_agg_view.pdf}
- \caption{TODO}
+ \includegraphics[width=\columnwidth]{exp/total_time_agg_view.png}
+ \caption{The overhead introduced by correcting a query is small compared to the overall maintenace time.}
 \end{figure}
 
 \subsection{View Complexity}
@@ -170,7 +162,7 @@ However, when the view was small the cost savings were smaller.
 \label{exp11overheads}
 \centering
  \includegraphics[width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}
- \caption{TODO}
+ \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%). }
 \end{figure}
 This experiment emphasizes that our approach rareley makes performance worse and at worst the improvements are not linear with the sampling ratio.
 Furthermore, we emphasize that when views are large and complex, as often the case, we can have significant improvements.
@@ -179,41 +171,25 @@ Furthermore, we emphasize that when views are large and complex, as often the ca
 We ran experiments on the TPCD-skew dataset to evaluate how outlier indexing can improve the accuracy of our approach without adding much overhead.
 In the first experiment, we evaluate the accuracy for each of the views as a function of the size of the outlier index. 
 We use a 5\% sample size and 5000000 records inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
-In the Select-Project view, we index the attributes l\_extendedprice and l\_quantity.
-For the Join view, we index the attributes customer.c\_acctbal and supplier.s\_acctbal.
-Finally, in the Aggregation view, we index the attribute l\_extendedprice.
+We apply the index to the Select-Project view, where we index the attributes l\_extendedprice and l\_quantity.
+The results for the other two views were similar and in this paper, we only present results for the Select-Project views.
 
 In the first experiment, we varied the total number of indexed records and plot accuracy as a function of index size.
 As a baseline, we compare if the same number of records were randomly sampled.
 In Figure \ref{exp7outlier}, we find that outlier indexing can improve accuracy by a factor of three for the join view. 
 In the same figure, we break down for which queries these gains are made. 
 We find that outlier indexing addresses the most inaccurate queries as these are often due to outliers. 
-\begin{figure*}[ht!]
-\label{exp7outlier}
-\centering
-\includegraphics[width=\textwidth]{exp/exp6-outlier.eps}
-\includegraphics[width=\textwidth]{exp/exp7-outlier.eps}
- \caption{(placeholder) TODO}
-\end{figure*}
-
 Next, we evaluated how the approach works under different levels of skew in the dataset. We varied the Zipfian parameter from (0,1,2,3,4) and measured the average improvement in accuracy. 
 We found that as the dataset become more skewed, outlier indexing is increasingly important.
-\begin{figure*}[ht!]
-\label{exp8outlier}
-\centering
-\includegraphics[width=\textwidth]{exp/exp8-outlier.eps}
- \caption{(placeholder) TODO}
-\end{figure*}
-
 Finally, we evaluated the overhead for the approach. 
 We found that small indicies were sufficient for good accuracy and thus the additional overhead was marginal and orders of magnitude smaller than sample maintenance time.
 
-\begin{figure*}[ht!]
-\label{exp9outlier}
-\centering
-\includegraphics[width=\textwidth]{exp/exp9-outlier.eps}
- \caption{(placeholder) TODO}
-\end{figure*}
+\begin{figure}[ht!]
+\label{exp7outlier}
+\hspace{-4em}
+\includegraphics[scale=0.21]{exp/exp6-outlier-full.eps}
+ \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.}
+\end{figure}
 
 \subsubsection{Distribution of Query Error}
 In our earlier experiments, we presented the average error for the queries on the views.
@@ -222,12 +198,12 @@ For each of the three views, we derive the views from a 10GB dataset.
 Then, as before, we simulate 5000000 inserted records and a 5\% sample.
 We evaluated the relative error for each query.
 
-\begin{figure*}[ht!]
+\begin{figure}[ht!]
 \label{exp3dist}
-\centering
- \includegraphics[width=\textwidth]{exp/exp3-query-error-dist.eps}
- \caption{TODO}
-\end{figure*}
+\hspace{-3.5em}
+ \includegraphics[scale=0.21]{exp/exp3-query-error-dist.eps}
+ \caption{On the x-axis is the accuracy of our approach and on the y-axis is the error if the query was not maintained. We find that there are many outlier queries results--motivating the need for outlier indexing.}
+\end{figure}
 
 In Figure \ref{exp3dist}, we present staleness vs. estimation accuracy as a scatter plot.
 For all three of the views, the median error is greater than 10 times less than the staleness. 
@@ -247,12 +223,12 @@ For 10,000 randomly generated aggregation queries on each view, we compare the s
 For SAQP and our approach, we keep the same sampling ratio.
 This does, however, mean that SAQP uses significantly more storage than our approach Select-Project and Foreign-Key Join Views.
 
-\begin{figure*}[ht!]
+\begin{figure}[ht!]
 \label{exp1sample}
-\centering
- \includegraphics[width=\textwidth]{exp/exp1-samplesize-accuracy.eps}
- \caption{TODO}
-\end{figure*}
+\hspace{-3.5em}
+ \includegraphics[scale=0.21]{exp/exp1-samplesize-accuracy.eps}
+ \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{k}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size.}
+\end{figure}
 
 In Figure \ref{exp1sample}, we show the accuracy as a function of sampling ratio for each of the views.
 For both SAQP and our approach, there is a break-even point at which the approximation error is less than the staleness error.
@@ -338,7 +314,7 @@ are from different parts of the distribution.
 \label{exp12conviva}
 \centering
 \includegraphics[width=\columnwidth]{exp/conviva_efficiency_accuracy.eps}
- \caption{TODO}
+ \caption{We chose three views that represented the distribution of all views well in terms of both accuracy and maintenance time.}
 \end{figure}
 
 \subsubsection{Accuracy in Conviva}
@@ -349,12 +325,12 @@ Figure \ref{exp5conviva}, compares the accuracy to the staleness of the query.
 We find that even a $0.1\%$ sample gives significantly more accurate results for View 1 and View 2.
 Even in the situation where the view is small, sampling can still have benefits as seen in View 3.
 
-\begin{figure*}[ht!]
+\begin{figure}[ht!]
 \label{exp5conviva}
-\centering
-\includegraphics[width=\textwidth]{exp/exp5-coniva-accuracy-woutlier.eps}
- \caption{TODO}
-\end{figure*}
+\hspace{-4em}
+\includegraphics[scale=0.22]{exp/exp5-coniva-accuracy-woutlier.eps}
+ \caption{We compare average query staleness to our approach for a variety of sample sizes. For View 1 and View 2, we find that small sample sizes can give accurate results. Even in the extreme case of View 3, we find that sampling can still provide reasonably accurate results.}
+\end{figure}
 
 \subsubsection{Performance in Conviva}
 We evaluated performance on Apache Spark, on a 20 node r3.large Amazon EC2 cluster. 
@@ -368,9 +344,9 @@ Each view is partitioned by the group by key, and thus only the sampled delta vi
 
 \begin{figure*}[ht!]
 \label{exp6conviva}
-\centering
-\includegraphics[width=\textwidth]{exp/exp5-efficiency-conviva.eps}
- \caption{(placeholder) TODO}
+\hspace{-2em}
+\includegraphics[scale=0.23]{exp/exp5-efficiency-conviva.eps}
+ \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenace. We further include a comparision with view recalculation as our experimental platform, Spark, does not supprot indices or selective writes.}
 \end{figure*}
 
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
