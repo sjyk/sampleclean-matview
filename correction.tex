@@ -3,7 +3,7 @@
 In this section, we discuss how to efficiently sample update patterns for different types of views.
 We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present fast sampling techniques for them in Section~\ref{subsec:sample-pattern}. Furthermore, we also analyze the cost of our methods, and show the significant cost savings over incremental view maintenance.
 
-\begin{figure}[t]
+\begin{figure}[tup]
 \centering
  \hspace*{-2em}\includegraphics[scale=0.38]{figs/update-pattern-new.pdf}\vspace{-1em}
  \caption{Illustration of the update patterns for \spview and \fjview and \aggview.}\label{fig:update-pattern}\vspace{-1em}
@@ -69,7 +69,7 @@ For a given \fjview, let $T$ be the fact table w.r.t the \fjview, and $T_1, T_2,
 \vspace{-.5em}
 
 \begin{itemize} %[leftmargin=5.5mm]
-\item \underline{Delta View.} For \spview and \fjview, incremental view maintenance has processing cost of $\cost_{pred}(n)$ and $\cost_{join}(n)$, respectively, since they have to evaluate the predicate or the join for all $n$ inserted records. Our sampling approach can reduce this number to $\alpha \cdot n$ as we only need to evaluate this on our sample. The additional overhead of sampling is to generate $n$ random numbers, i.e., $\cost_{rand}(n)$. \vspace{-0.5em}
+\item \underline{Delta View.} For \spview and \fjview, incremental view maintenance has the processing cost of $\cost_{pred}(n)$ and $\cost_{join}(n)$, respectively, since they have to evaluate the predicate or the join for all $n$ inserted records. Our sampling approach can reduce this number to $\alpha \cdot n$ as we only need to evaluate this on our sample. The additional overhead of sampling is to generate $n$ random numbers, i.e., $\cost_{rand}(n)$. \vspace{-0.5em}
 \item \underline{Refresh.} For \spview and \fjview, incremental view maintenance has to insert $\delta_v$ rows into the original view while we have to insert only $\alpha \cdot \delta_v$ records into the sample of update patterns. %\reminder{Move this to ourlier indexing section? ``If there is an outlier index, this cost increases to $\alpha\delta_v + l$"} 
 \end{itemize}
 \vspace{-.5em}
@@ -88,10 +88,7 @@ Obviously, the maintained group keys are a random sample of all the group keys w
 With this hash-based sampling technique, we can easily devise an efficient update-pattern sampling approach for an \aggview. 
 
 
-To better understand the approach, we first introduce how to obtain the full update patterns of an \aggview. The idea is the same as incremental view maintenance, which first computes a delta \aggview by executing the \aggview definition on an insertion table and then obtains the full update patterns by refreshing the \aggview with the delta \aggview. Similarly, to sample the update patterns, we first compute a delta \emph{sample} \aggview by executing the \aggview definition on the  records of an insertion table that satisfy $\hashfunc{\textrm{``group key"}}~\leq~\alpha$, and then obtains the \emph{sample} update patterns by refreshing the \emph{sample} \aggview with the delta \emph{sample} \aggview. Note that the \emph{sample} \aggview is created using the same hash-based sampling technique.
-
-
-
+To better understand the approach, we first introduce how to obtain the full update patterns of an \aggview. The idea is the same as incremental view maintenance, which first computes a delta \aggview by executing the \aggview definition on an insertion table and then obtains the full update patterns by refreshing the \aggview with the delta \aggview. Similarly, to sample the update patterns, we first compute a delta \emph{sample} \aggview by executing the \aggview definition on the  records of an insertion table that satisfy $\hashfunc{\textrm{``group key"}}~\leq~\alpha$, and then obtains the \emph{sample} update patterns by refreshing the \emph{sample} \aggview with the delta \emph{sample} \aggview. 
 
 %Given an insertion table $\triangle T$, since we are only interested in the update patterns for a sample of group keys, we execute the view definition on the records in $\triangle T$ that satisfy the Equation~\ref{eq:hash}
 
@@ -100,26 +97,27 @@ To better understand the approach, we first introduce how to obtain the full upd
 
 \vspace{.5em}
 {\noindent \bf Cost Analysis: }
- Table~\ref{tbl:cost-analysis} analyzes the cost of our sampling techniques for \aggview.
+ Table~\ref{tbl:cost-analysis} shows the cost comparison between our update-pattern sampling and incremental view maintenance.
 \vspace{-0.5em}
 \begin{itemize}
-\item Scan of Updates.
-As in \spview and \fjview, both incremental view maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. \vspace{-0.5em}
-\item Delta View. For \aggview, incremental view maintenance has the processing cost of $n$ and in addition an aggregation cost of $\delta_v$ where aggregates for each of the groups have to be maintained. In contrast, for \aggview, our approach has a cost of $\alpha \cdot \delta_v$ as we sample the group-by keys and an expected processing cost of $\alpha n$. \reminder{Should we consider the hash cost as shown in Table 1?} 
-Furthermore, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group-by key. \vspace{-0.5em}
-\item Refresh. For \aggview, the cost is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
-Incremental maintenance has to apply $\delta_v$ rows to the entire view while we have to apply $\alpha \cdot \delta_v$ rows to the sample view. 
-If there is a join index in the view, in constant time, we can determine which rows are new insertions and which correspond to rows already in the view.
+%\item Scan of Updates.
+%As in \spview and \fjview, both incremental view maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. \vspace{-0.5em}
+\item \underline{Delta View.} For \aggview, incremental view maintenance has a grouping cost of $\cost_{group}(n)$ as well as an aggregation cost of $\cost_{agg}(\delta_v)$ where aggregates for each of the groups have to be maintained. In contrast, since we only maintain the update patterns for a sample of groups, we can reduce the grouping cost to $\cost_{group}(\alpha \cdot n)$ and the aggregation cost to $\cost_{group}(\alpha \cdot \delta_v)$. The additional overhead of sampling is to evaluate $\hashfunc{\cdot}$ for each inserted record, i.e., $\cost_{hash}(n)$.  \vspace{-0.5em}
+%Furthermore, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group-by key. \vspace{-0.5em}
+\item \underline{Refresh.} Compared to \spview and \fjview, the refresh cost of \aggview is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
+Incremental view maintenance has to apply $\delta_v$ records to the entire view while our sampling approach only needs to apply $\alpha \cdot \delta_v$ records to the sample view. 
+If there is an index in the view, we can 
+determine which records are new insertions and which correspond to existing records in constant time. Therefore, our sampling technique can reduce the refresh cost from $\cost_{apply}(\delta_v)$ to $\cost_{apply}(\alpha\cdot \delta_v)$.
 
 \vspace{-0.25em}
 
-The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
-For aggregation views, we want to partition the data by the group-by key.
-This allows a partitioned join which only requires communication (a shuffle operation) of the delta table.
-Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $\alpha \cdot \delta_v$ rows. \reminder{A little hard to understand what's going on in a distributed environment. } 
+%The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
+%For aggregation views, we want to partition the data by the group-by key.
+%This allows a partitioned join which only requires communication (a shuffle operation) of the delta table.
+%Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $\alpha \cdot \delta_v$ rows. 
 \end{itemize}
 
-Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\alpha$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $n\cdot \textrm{cost}_{hash}$). However, as shown in our experiments (Section~??), even with the additional overhead, our sampling techniques can still run orders of magnitude faster than incremental view maintenance.
+Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\alpha$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $\cost_{hash}(n)$). However, as shown in our experiments (Section~??), even with the additional overhead, our sampling techniques can still run orders of magnitude faster than incremental view maintenance. \reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
 
 \iffalse
 We enforce the hash function to each group-by key of the \aggview and return those groups, as $S_{V}$, such that $\hashfunc{\textrm{``group-by key"}} \leq \alpha$. Obviously, $S_{V}$ is a random sample of the \aggview with the sampling ratio of $\alpha$. 
