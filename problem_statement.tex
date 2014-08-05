@@ -1,12 +1,5 @@
 \section{Background}
-Materialized views are stored query results that are used 
-to optimize query processing [?].
-However, pre-computed query results face the challenge of \emph{staleness} when applied
-where the underlying tables are updating.
-One solution is to recompute the materialized views when the table has been updated.
-This can be very inefficient in the presence of small updates that hardly change the derived views.
-Consequently, incremental maintenance of materialized views is well studied see [?]
-for a survey of the approaches. 
+Incremental maintenance of materialized views is well studied see \cite{chirkova2011materialized} for a survey of the approaches. 
 Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
 More formally, given a base relation $T$, a set of updates $U$,
@@ -39,11 +32,11 @@ Refer to [?] for details.
 
 \subsection{Scheduling Maintenance}
 While often less expensive than recomputing a materialized view,
-incremental maintenance can still be computationally expensive.
+incremental maintenance can still be costly.
 Materialized views are growing larger and are more frequently 
 implemented in distributed systems.
-Furthermore, database systems face an increased velocity of incoming data which
-can make infeasible to keep the views up-to-date.
+%Furthermore, database systems face an increased velocity of incoming data which
+%can make infeasible to keep the views up-to-date.
 Due to this cost, which we will refer to as the ``maintenance" cost, 
 scheduling the refresh operation has been an important topic of research.
 
@@ -62,10 +55,10 @@ the materialized view for additional flexibility for scheduling refresh operatio
 For example, a user can update the materialized view 
 nightly during times of low-activity in the system.
 
-More sophisticated deferred scheduling schemes are also possible, refer to [?] for a full survey.
+More sophisticated deferred scheduling schemes are also possible.
 In particular, we highlight a technique called lazy maintenance which defers maintenance until such time
 a query on the view requires a row to be up-to-date.
-This technique is not exclusive and lazy maintenance can work in conjunction with immediate maintenance on a subset of rows [?].
+This technique is not exclusive and lazy maintenance can work in conjunction with immediate maintenance on a subset of rows \cite{zhou2007lazy}.
 While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost
 to query execution time.
 
@@ -78,10 +71,10 @@ While the user can set the maintenance period to control the expected staleness 
 
 \subsection{Data Cleaning}
 Much of data cleaning research focuses on improving query accuracy on dirty datasets.
-For example, designing rules or algorithms to remove or correct erroneous records [?].
+For example, designing rules or algorithms to remove or correct erroneous records \cite{rahm2000data}.
 However, recent work has considered the costs of data cleaning and how to budget this effort.
-The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples [?].
-Similarly, the SampleClean project presents a query processing framework that cleans on a sample of data, and then bounds the results of aggregate queries on dirty datasets.
+The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples \cite{kandel2011wrangler}.
+Similarly, the SampleClean project presents a query processing framework that cleans on a sample of data, and then bounds the results of aggregate queries on dirty datasets \cite{wang1999sample}.
 
 One key aspect of SampleClean is the tradeoff between data error and sampling error.
 Cleaning a sample mitigates some of the error in the dataset, but sampling introduces uncertainty into the result.

@@ -1,6 +1,6 @@
 \section{System Overview}
 Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints such as throughput.
-Our key idea is to model this problem as a data cleaning problem.
+In our approach, we model this problem as a data cleaning problem.
 Given an aggregation query (SUM, COUNT, AVG, VAR) on a stale materialized view, we use a sample of up-to-date (clean) data to estimate how much that data changes the stale aggregation query result.
 The result is a correction term which adjusts or cleans the query result.
 
@@ -20,17 +20,17 @@ What is particularly surprising is that outliers can give valuable information a
 
 \subsection{System Architecture}
 The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
-The left side of the diagram resembles a typical materialized 
+The top of the diagram resembles a typical materialized 
 view maintenance architecture.
-However, on the right side, there are a couple of key additions: (1) as updates arrive we sample the ``update pattern". 
+However, there are a couple of key additions: (1) as updates arrive we sample the ``update pattern". 
 (2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
 In this section, we will introduce these three components, which are also explained in much more detail in the following sections.
 
 \begin{figure}[h]
 \label{sys-arch}
 \centering
- \includegraphics[width=\columnwidth]{figs/sys-arch.png}
- \caption{TODO}
+ \includegraphics[width=\columnwidth]{figs/sys-arch.pdf}
+ \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded.}
 \end{figure}
 
 \subsubsection{Supported Materialized Views}\label{subsubsec:supported-view}
@@ -98,7 +98,7 @@ record must link to one video in the video table.
 \label{example}
 \centering
  \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}
- \caption{TODO}
+ \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.}
 \end{figure}
 
 Consider the following example materialized view \textbf{AggView}, which stores a result for each video and the maximum time it took for the server to load that video:

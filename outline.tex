@@ -28,8 +28,7 @@
 
 
 
-\lstset{basicstyle=\scriptsize}
-
+\lstset{basicstyle=\small,breaklines=true}
 
 
 \begin{document}
@@ -65,7 +64,16 @@
 \maketitle
 
 \begin{abstract}
-TODO
+To speed up query processing the use of materialized views, pre-computing results, is becoming increasingly popular.
+Incrementally maintaining these results when the base tables update has been well studied but this process can be very costly.
+To defer these costs, materialized views are often updated periodically leading to periods where queries issued to the views return stale results.
+In this work, we model this problem as a data cleaning problem.
+We use a sample of data to estimate how updates affect query results and then use the estimate to clean a stale result on the materialized view; compensating for the effect of the updates.
+We couple this approach with outlier indexing to give query results that are robust to skewed distributions. 
+We bound estimates for common aggregate queries (SUM, COUNT, AVG) in analytic confidence intervals.
+We evaluate this approach on real and synthetic datasets and in both a single node (MySQL) and distributed environment (Apache Spark).
+Our results suggest that using sampling dramatically reduces maintenance costs while not sacrificing much accuracy.
+In a large scale experiment using 20-node Apache Spark cluster, we derived views from a 1TB activity log dataset and found that maintaining a 1\% sample was 87x faster yet only with mean query error of 4\%.
 \end{abstract}
 
 \input{introduction.tex}
