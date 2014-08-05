@@ -47,20 +47,25 @@ Immediate maintenance has an advantage that materialized view is always up-to-da
 however it can be very expensive.
 This scheduling strategy places a bottleneck when records are written reducing 
 the available write-throughput for the database.
+Such an approach lacks flexibility since system resources need to be provisioned 
+for the worst-case influx of updates.
 Furthermore, especially in a distributed setting, record-by-record 
-maintenance cannot take advantage of the benefits of consolidating overheads by batching.
+maintenance cannot take advantage of the benefits of consolidating communication overheads by batching.
+
 To address these challenges, deferred maintenance is alternative solution.
+The main idea of deferral is to avoid maintaining the view immediately and schedule an update at a more convenient time either pre-set or adaptively.
 In deferred maintenance, the user often accepts some degree of staleness in 
 the materialized view for additional flexibility for scheduling refresh operations.
-For example, a user can update the materialized view 
-nightly during times of low-activity in the system.
+For example, a user can update the materialized view nightly during times of low-activity in the system.
+During these times, the system can take use more resources to process the updates without worrying about the affect on the throughput.
+However, this also means that during the day the materialized view becomes increasingly stale as it was computed the night before.
 
 More sophisticated deferred scheduling schemes are also possible.
 In particular, we highlight a technique called lazy maintenance which defers maintenance until such time
 a query on the view requires a row to be up-to-date.
 This technique is not exclusive and lazy maintenance can work in conjunction with immediate maintenance on a subset of rows \cite{zhou2007lazy}.
-While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost
-to query execution time.
+While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost to query execution time.
+In some queries this can defeat the purpose of caching a pre-computed result to speed up query execution time.
 
 Immediate maintenance introduces a bottlneck on updates and lazy maintenance introduces a bottleneck during query exection,
 and rapid collection of data can make these approches impractical.

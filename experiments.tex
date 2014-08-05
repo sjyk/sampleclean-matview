@@ -269,7 +269,7 @@ This cluster had enough memory to hold all of the materialized views in memory.
 Spark supports materialized views through a distributed data structure called an RDD [?].
 The RDD's are immutable, thus requiring significant overhead to maintain.
 We compare maintenance to recalculation of the view when the data is in memory and when only the updates are in memory. 
-We derived the views from a 120GB base relation and inserted records in 10GB increments. \reminder{fix for consistency 4x to all sizes due to the _text dataset}
+We derived the views from a 120GB base relation and inserted records in 10GB increments. \reminder{fix for consistency 4x to all sizes due to the text dataset}
 We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, the relative staleness between the experiments is the same.
 As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
 Each view is partitioned by the group by key, and thus only the sampled delta view has to be shuffled. 
