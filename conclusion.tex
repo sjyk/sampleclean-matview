@@ -30,7 +30,7 @@ We demonstrated how recent results from data cleaning, namely sampling, query co
 allow for accurate query processing on stale views for a fraction of the cost of incremental maintenace.
 We evaluated this approach on a single node and in a distributed environment and found that sampling can provide a flexible tradeoff 
 between accuracy and performance.
-In one of our end-to-end experiments with a 1TB log dataset from Conviva, we found that...\reminder{Find way to summarize these experiments}
+In our end-to-end experiments with a 1TB log dataset from Conviva, we found that maintaining a 1\% sample was 87x faster yet only with mean query error of 4\%
 
 Our results are promising and suggest many avenues for future work.
 ``Serving" machine learning models has been a recent hot topic of database research [?].

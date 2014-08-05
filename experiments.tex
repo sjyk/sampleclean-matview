@@ -10,6 +10,8 @@ Conviva is a video streaming company that logs activity for each of their videos
 We define the following metrics for evaluation.
 For accuracy, we measure the relative error between estimated query result and the true query result.
 A relative error of 5\% means that the difference between the estimated query result and the true result is 5\% of the true result.
+Whenever we discuss error, we discuss it in terms of average query results. 
+That is for a set of queries on the view what is the mean relative error. 
 As baselines, we compare against two alternative approaches, no maintenance where the materialized view is left to be stale and SAQP where instead 
 of calculating an approximate query correction we estimate directly from the up-to-date view.
 We fix the sampling ratio of SAQP and our approach to be the same so they will have the same maintenance time.
@@ -34,12 +36,9 @@ For this dataset, we applied our approach to three materialized views, each of a
 \textbf{Select-Project View}
 \begin{lstlisting}
 SELECT *, 
-     if(lcase(l_shipinstruct) 
-     	     LIKE '%deliver%' 
-        AND lcase(l_shipmode) 
-             LIKE '%air%',
-                  'priority',
-                  'slow') 
+     if(lcase(l_shipinstruct) LIKE '%deliver%' 
+     AND lcase(l_shipmode) 
+     LIKE '%air%', 'priority', 'slow') 
 FROM lineitem_s
 \end{lstlisting}
 
@@ -47,27 +46,19 @@ FROM lineitem_s
 
 \textbf{Aggregation View}
 \begin{lstlisting}
-SELECT l_orderkey, 
-       l_shipdate, 
-       sum(l_quantity) as quantity_sum, 
-       sum(l_extendedprice) as extendedprice_sum, 
-       max(l_receiptdate) as receiptdate_max, 
-       count(*) as group_count 
-FROM LINEITEM 
-GROUP BY l_orderkey, l_shipdate
+SELECT l_orderkey, l_shipdate, 
+sum(l_quantity) as quantity_sum, 
+sum(l_extendedprice) as extendedprice_sum, 
+max(l_receiptdate) as receiptdate_max, count(*) as group_count 
+FROM LINEITEM GROUP BY l_orderkey, l_shipdate
 \end{lstlisting}
 
 \vspace{1em}
 
 \textbf{Foreign-Key Join View}
 \begin{lstlisting}
-SELECT supplier.*, 
-	   customer.* 
-FROM   customer, 
-       orders, 
-       lineitem, 
-       supplier, 
-       partsupp 
+SELECT supplier.*, customer.* 
+FROM   customer, orders, lineitem, supplier, partsupp 
 WHERE  c_custkey = o_custkey 
    AND o_orderkey = l_orderkey 
    AND l_suppkey = ps_suppkey 
@@ -109,7 +100,7 @@ As more records are inserted the approximation error in our approache increases.
 However, we find that even for very large amounts of inserted records (>10\% of dataset size), our approach gives significantly more accurate results
 than SAQP.
 The gain is most pronounced in aggregation views where there are a mixture of updated and inserted rows into the view.
-Compensating for a correction to an existing row is often much smaller than doing so for a new inserted record.
+Correcting an update to an existing row is often much smaller than doing so for a new inserted record.
 
 
 \subsection{Computational Efficiency}
@@ -125,8 +116,7 @@ In Section \ref{sampling}, we ran cost analyses to argue that sampling can great
 Furthermore, in the previous experiment, we showed that for the three specific views sampling can greatly reduce maintenance time.
 In practice, these gains will only be meaningful if the overheads for the query correction are small.
 Since, we are correcting a stale query rather than the materialized view, we are shifting some of the computational cost from maintenance time to query execution time.
-For Select-Project and Foreign-Key join views, since we derive a correction from a sample of the updates, we are guaranteed to have 
-a reduced query time. \reminder{SK: This may not be true due to deletions}
+If our updates only contain inerstions, then for Select-Project and Foreign-Key join views, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
 However, for aggregation views, query correction requires a scan of the old view and a sample of the maintained view; potentially increasing the time to 
 answer the query.
 In our first experiment, we set the sample size to 5\% and evalute the aggregation view listed earlier for 5000000 inserted records. 
@@ -152,7 +142,7 @@ We set the sample size to 5\% and measure the maintenance time.
 For a such a view, the only cost for maintenance is a scan of the data and evaluating the predicate. 
 Sampling saves on predicate evaluation but introduces the overhead of random number generation.
 Figure \ref{exp11overheads} illustrates how as the view becomes for complex the performance improvement given
-by our approache increases.
+by our approach increases.
 Initially, the random number generation adds about 5\% overhead, but as the cost of evaluating the benefits increase.
 We repeated the same experiment for the aggregation view, but instead we added terms to the group by clause to increase the
 cardinality of the view.
@@ -236,76 +226,17 @@ At sampling ratios beyond this point, our query approximated queries are on aver
 For all three of the views, the average query error is significantly less than SAQP as the break-even point happens earlier in our approach.
 
 \subsection{Application: Log Analysis For Conviva}
-We used a dataset of queries given by Conviva to generate three materialized views:
-\vspace{1em}
-
-\textbf{View 1}
-\begin{lstlisting}
-SELECT clientId, 
-       customerId, 
-       sessionTimeMs, 
-       count(1) 
-         as group_count, 
-       max(sessionTimeMs) 
-         as sessionTimeMs_max, 
-       avg(lastBufferLengthMs) 
-         as lastBufferLengthMs_avg,
-       avg(lLifePausedTimeMs) 
-         as lLifePausedTimeMs_avg 
-FROM anon_sdm2_ss 
-GROUP BY clientId, customerId
-\end{lstlisting}
-
-\vspace{1em}
-
-\textbf{View 2}
-\begin{lstlisting}
-SELECT customerId, 
-       sessionType, 
-       count(1) as group_count, 
-       max(estBwCount) 
-           as estBwCount_max, 
-       sum(buffTimeMs) 
-           as buffTimeMs_sum, 
-       sum(estBwCount) 
-           as estBwCount_sum 
-FROM anon_sdm2_ss 
-GROUP BY 
-customerId, sessionType
-\end{lstlisting}
-
-\vspace{1em}
-
-\textbf{View 3}
-\begin{lstlisting}
-SELECT justStarted, 
-       sessionType, 
-       startResourceState, 
-       state, 
-       count(1) 
-            as group_count, 
-       max(playTimeMs) 
-            as playTimeMs_max, 
-       min(stoppedTimeAtJoinMs) 
-            as stoppedTimeAtJoinMs_min, 
-       max(lifeAverageBitrateKbps) 
-            as lifeAverageBitrateKbps_max 
-FROM anon_sdm2_ss 
-GROUP BY justStarted, 
-         sessionType, 
-         startResourceState, 
-         state
-\end{lstlisting}
-
-All three of these views are aggregation views. 
+We used a dataset of queries given by Conviva to generate three materialized views.
+All three of these views are aggregation views, and for confidentiality, we exclude the actual definitons of the views. 
 View 1 has the most selective group by clause and was chosen to a be a large view where most of the maintenance is in the form of new rows to insert.
+View 1 aggregates session times for each visitor and video pair.
 View 2 is a medium size view where maintenance is a mix of both updates and insertions.
+View 2 computes buffering time statistics for each visitor over all videos they watched.
 View 3 is a small view where most of the maintenance is updates to existing rows.
-For these views, we randomly generated aggregation queries.
+View 3 computes statistics for log events that triggered error states.
 
-\subsubsection{View Selection}
 We selected these views to be representative of the dataset and query workload. 
-We first present an experiment illustrating where these materialized views lie in the space of all the generated views.
+We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log.
 We derived each view from a 7GB base table and inserted 1.5GB of records to the table. 
 On a single node, we evaluated the average query accuracy for a 1\% sample and the runtime of our approach.
 In Figure \ref{exp12conviva}, we plot the three views on the distribution of error and runtime and we see that they 
@@ -320,7 +251,7 @@ are from different parts of the distribution.
 \subsubsection{Accuracy in Conviva}
 We evaluated the average query accuracy for different sample sizes and numbers of records inserted.
 As before, we derived each view from a 7GB base table and inserted 1.5GB of records to the table. 
-We built an outlier index on all of the attributes that represent time intervals or rates (buffTimeMs, stoppedTimeAtJoinMs, playTimeMs, lifeAverageBitrateKbps).
+We built an outlier index on all of the attributes that represent time intervals or rates.
 Figure \ref{exp5conviva}, compares the accuracy to the staleness of the query.
 We find that even a $0.1\%$ sample gives significantly more accurate results for View 1 and View 2.
 Even in the situation where the view is small, sampling can still have benefits as seen in View 3.
@@ -338,7 +269,8 @@ This cluster had enough memory to hold all of the materialized views in memory.
 Spark supports materialized views through a distributed data structure called an RDD [?].
 The RDD's are immutable, thus requiring significant overhead to maintain.
 We compare maintenance to recalculation of the view when the data is in memory and when only the updates are in memory. 
-We derived the views from a 120GB base relation and inserted records in 10GB increments.
+We derived the views from a 120GB base relation and inserted records in 10GB increments. \reminder{fix for consistency 4x to all sizes due to the _text dataset}
+We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, the relative staleness between the experiments is the same.
 As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
 Each view is partitioned by the group by key, and thus only the sampled delta view has to be shuffled. 
 
@@ -352,6 +284,8 @@ Each view is partitioned by the group by key, and thus only the sampled delta vi
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
 We find that we acheive good scalability on view 1 and view 2, and still have some performance gains on view 3.
 In view 1 and view 2, our gains are more pronounced due to the savings on communication in a distributed environment.
+Aggregation views with a larger cardinality create larger delta views.
+These delta views neccessitate a shuffle operation that communications them during the refresh step.
 As view 3 is smaller, the communcation gains are less and the only savings are in computation.
 
 

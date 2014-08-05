@@ -1,7 +1,7 @@
 \section{Introduction}
-Materialized views, storing pre-computed query results, are used to optimize complex queries on large datasets \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}. 
+Materialized views, cached pre-computed query results, are used to optimize query processing on large datasets \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
 Materialization and related concepts such as selecting which queries to materialize
-have had much interest in recent research \cite{zaharia2012resilient,lefevre2014opportunistic, bailis2014scalable, perez2014history}.
+have been well studied in recent research \cite{zaharia2012resilient,lefevre2014opportunistic, bailis2014scalable, perez2014history}.
 This research has further expanded beyond the SQL setting \cite{nikolic2014linview} and 
 has shown promising results when applied to numerical linear algebra and machine learning.
 However, when derived from frequently changing tables,
@@ -10,21 +10,21 @@ To avoid expensive recalculation, incrementally updating materialized views,
 also called incremental maintenance, has been well studied \cite{gupta1995maintenance, chirkova2011materialized}.
 
 Unfortunately, in many desired applications, even incremental view maintenance can be very costly. 
-When the base tables change rapidly, the database has to propagate updates to all of the materialized views.
-Consequently, there has been much research in techniques that defer view maintenance to a later time or only when neccessary has been studied \cite{chirkova2011materialized, zhou2007lazy}.
-Deferral allows for many advantages such as batching updates to amortize the overheads and scheduling updates at low traffic times eg. at night.
+When the base tables change rapidly, the database system has to propagate updates to all of the materialized views.
+Consequently, there are many techniques that defer view maintenance to a later time or trigger updates only when neccessary \cite{chirkova2011materialized, zhou2007lazy}.
+Deferral allows for many advantages such as batching updates to amortize overheads and scheduling updates at low traffic times eg. at night.
 These techniques provide increased flexibility to meet the resource constraints of the system, but may not guarantee that the views will always be up-to-date.
 When the materialized views are out-of-date during the maintenance gaps, queries issued to the view can have \emph{stale} results. 
 
-In this work, we address the incremental maintenance problem from a different perspective.
-We explore whether the problem of refreshing stale rows in a materialized view can be modeled as data cleaning problem and whether stale query results can be ``cleaned".
+In this work, we address the incremental maintenance problem and the problem of stale results from a different perspective.
+We explore whether refreshing stale rows in a materialized view can be modeled as data cleaning problem and whether stale query results can be ``cleaned".
 While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
 there has been an increasing trend of considering the costs of data cleaning \cite{wang1999sample}.
 In particular, these approaches clean a small, representative sample of records and then use that information to extrapolate results for an entire dataset.
-This new perspective raises an intruiging possibility, namely, that staleness can be modeled as a type of data error 
+This new perspective raises an intruiging possibility, namely, that staleness can be modeled as a type of data error, 
 and perhaps, we can correct stale query results by observing how the updates affect a small sample of records; 
 avoiding the need to maintain the entire materialized view.
-While this approach introduces approximation error inherrent to sampling, this error for aggregate queries such as SUM, COUNT, and AVG, 
+While this approach introduces approximation error inherrent to sampling, this error for aggregate queries on the materialized view such as SUM, COUNT, and AVG, 
 can be probabilistically bounded within confidence intervals.
 Existing techniques allow the user to control the freshness of queries by chosing maintenance parameters (eg. nightly maintenance vs. hourly maintenance) based on prior experience, however, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
 On the other hand, our approach gives results that are, in expectation, always fresh and the user controls the tightness of the bound with the sampling ratio.
@@ -78,7 +78,7 @@ the tradeoffs of these techniques in the following sections.
 
 \vspace{1em}
 
-Our proposed approach will work in conjunction with existing maintenance or re-calculation approaches.
+Our proposed approach will be complementary to a periodic maintenance or re-calculation approach.
 We envision the scenario where materialized views are being refreshed periodically eg. nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale maintenance with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
