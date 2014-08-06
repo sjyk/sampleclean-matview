@@ -1,10 +1,51 @@
 
-\section{Correcting Stale Query Results}\reminder{TODO}
+\section{Correcting Stale Query Results}
 \label{correction}
-In this section, we discuss how to correct stale query results using sampled update patterns. We first present the principle of this query processing in Section~\ref{subsec:correct-principle} and then describe how to implement it practically in Section~\ref{subsec:correct-practical}.
-\subsection{Correcting Query Processing}\label{subsec:correct-principle}
+In this section, we discuss how to correct stale query results using sample update patterns. We first present the principle of this query processing in Section~\ref{subsec:correct-principle} and then describe how to implement it practically in Section~\ref{subsec:correct-practical}.
 
-\subsection{Practical Consideration}\label{subsec:correct-practical}
+
+\subsection{\Cqp}\label{subsec:correct-principle}
+Given a stale view and a query on the view, let \ans denote the stale result of the query. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. To achieve this goal, our basic idea is to first obtain a \emph{delta query result} (denoted by $\dans$), by rewriting the query against the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
+
+In the following, we will discuss how to apply this idea to different types of views and analyze the cost of our correcting query processing. For ease of presentation, we assume the query does not have a group-by clause, i.e.,
+\begin{lstlisting} 
+SELECT f(a) FROM Table WHERE Predicate(A);
+\end{lstlisting}
+where \texttt{f($\cdot$)} is an aggregation function (i.e., $\avgfunc$, $\sumfunc$, $\countfunc$), \texttt{a} is an attribute, and \texttt{A} is an attribute set. 
+But note that our methods can be easily extended to a group-by query by treating each group key as a predicate.
+
+ focus on a non query without a group-by clause, i.e., 
+
+But note that 
+
+Without loss of  ease of presentation, we consider the query  focus on the query in the form of:
+
+
+
+
+
+
+
+
+formulation
+
+basic idea
+
+\subsubsection{Select-Project and Foreign-Key Join Views} \label{subsubsec:correct-spfj}
+
+SUM/ COUNT/ AVG
+
+Cost analysis
+
+\subsubsection{Aggregation View}\label{subsubsec:correct-agg}
+
+SUM/ COUNT/ AVG
+
+Cost analysis
+
+
+\input{practical-subsec.tex}
+
 
 \iffalse
 \section{Sampling for Approximate Corrections}
