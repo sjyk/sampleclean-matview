@@ -1,7 +1,10 @@
 \section{Sampling Update Patterns}
 \label{sampling}
+Updates can affect the three classes of materialized views in different ways, 
+and our sample should represent how the update will affect the materialized view.
+We describe this process as sampling the ``update pattern".
 In this section, we discuss how to efficiently sample update patterns for different types of views.
-We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present fast sampling techniques for them in Section~\ref{subsec:sample-pattern}. Furthermore, we also analyze the cost of our methods, and show the significant cost savings over incremental view maintenance.
+We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present scalable sampling techniques for them in Section~\ref{subsec:sample-pattern}. Furthermore, we also analyze the cost of our methods, and show how sampling can lead to significant costs savings in incremental view maintenance.
 
 \begin{figure}[tup]
 \centering
@@ -11,11 +14,13 @@ We first formalize the update patterns in Section~\ref{subsec:pattern}, and then
 
 
 \subsection{Update Patterns}\label{subsec:pattern}
-Intuitively, update patterns represent the update information involved in a stale view. With such information, we can easily transform the stale view to the corresponding up-to-date view. There are three possible update patterns. (1)~Insert a new record into a view;
+An \emph{update pattern} represents how an update to the base table affects a materialized view derived from that table.
+We define this information to be such that if we did not sample (ie. 100\% sample) the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
+In our model, there are three possible update patterns. (1)~Insert a new record into a view;
 (2)~Update attribute values of an existing record; (3)~Keep an existing record unchanged.
 Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
 
-For \spview, the only changes of the view are inserting some new records, thus its update patterns only involve insertion.  
+For \spview, the only possible updates to the view are inserting new records.  
 For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. When the base table \tbl{Log} is updated, there might be some new records whose \field{userAgent} field contains "Mozilla", which should be added into the \spview accordingly. Figure~\ref{fig:update-pattern}(a-2) illustrates the update patterns for the \spview. The figure means that in order to obtain the up-to-date \spview, we should insert $r_1$ and $r_2$ into the original \spview.
 
 For \fjview, similar to \spview, its update patterns only involve insertion. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new records that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
@@ -26,7 +31,10 @@ For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview 
 
 
 \subsection{Sampling Techniques for Update Patterns}\label{subsec:sample-pattern}
-It is easy to see that getting all the update patterns for a stale view can be as expensive as incremental view maintenance. Therefore, instead of maintaining the entire update patterns, our system only maintains a random sample of the update patterns. Next we describe our sampling techniques for each type of materialized views.
+Modeling updates to the base table in terms of update patterns does not change the expense of incremental view maintenance.
+It does, however, give us a logical unit to sample and in this section, we describe how 
+our system only maintains a random sample of the update patterns.
+As our earlier analysis of the update patterns suggests, our sampling techniques for each type of materialized view are slightly different.
 
 \subsubsection{Select-Project and Foreign-Key Join Views}
 Consider a base table $T$ and the corresponding insertion table $\triangle T$. Given a \spview defined on the table, its full update patterns involve the inserted records of $\triangle T$ that satisfy the predicate of the \spview. To sample the update patterns (e.g., at a sampling ratio of $\alpha = 5 \%$), we randomly select 5\% records from $\triangle T$, and then keep the records that satisfy the view's predicate as a sample. 

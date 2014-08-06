@@ -31,6 +31,7 @@
 
 \lstset{basicstyle=\small,breaklines=true}
 
+\linespread{0.94}%
 
 \begin{document}
 
@@ -74,9 +75,10 @@
 \maketitle
 
 \begin{abstract}
-To speed up query processing the use of materialized views, pre-computing results, is becoming increasingly popular.
-Incrementally maintaining these results when the base tables update has been well studied but this process can be very costly.
-To defer these costs, materialized views are often updated periodically leading to periods where queries issued to the views return stale results.
+Materialized views, caching pre-computed query results, are used to optimize queries on large datasets.
+Materialized views can become out-date when base tables change and any queries issued to these views give \emph{stale} results.
+Incrementally maintaining these results, as opposed to full recalculation, has been well studied but is often infeasible to for every incoming update.
+To defer these costs, materialized views are often updated periodically in batches leading to long periods of staleness.
 In this work, we model this problem as a data cleaning problem.
 We use a sample of data to estimate how updates affect query results and then use the estimate to clean a stale result on the materialized view; compensating for the effect of the updates.
 We couple this approach with outlier indexing to give query results that are robust to skewed distributions. 
@@ -96,7 +98,8 @@ In a large scale experiment using 20-node Apache Spark cluster, we derived views
 %\input{experiments.tex}
 \input{conclusion.tex}
 
-
+\bibliographystyle{abbrv}
+\fontsize{6.8pt}{6.7pt} \selectfont
 \bibliographystyle{abbrv}
 \bibliography{ref} 
 

@@ -3,7 +3,7 @@ In this section, we discuss some additional properties of our framework which
 we excluded from the previous sections for clarity of presentation.
 
 \subsection{Class of Aggregation Views}
-There is a taxonomy of aggregation queries: distributive, holistic, and algebraic; refer to [?] for details.
+There is a taxonomy of aggregation queries: distributive, holistic, and algebraic; refer to \cite{gray1997data} for details.
 Likewise, the same taxonomy can be extended to materialized views.
 Distributive queries require only a single parameter during the incremental refresh step, for example SUM and COUNT queries only need to
 add the SUM from the delta view and the stale view.
@@ -19,11 +19,11 @@ Even in this setting, Sampling can help reduce processing (less histograms to co
 \subsection{Proof of Optimality of Correction}
 We propose a technique based on the concept of query correction.
 We can actually prove that for the SUM, COUNT, and AVG queries this technique is optimal with respect to the variance of the estimate.
-We use the following statistical property of random sampling which holds for i.i.d and exchangable sequences of random variables (ie. sampling with and without replacement respectively) [?].
+We use the following statistical property of random sampling which holds for i.i.d and exchangable sequences of random variables (ie. sampling with and without replacement respectively).
 \begin{proposition}
 The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown.
 \end{proposition}
-The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory.
+The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
 Unbiased estimators are ones that, in expectation, give correct estimates.
 However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
 For example, if we simply pick a random element from a set it is still an unbiased estimate of the mean of the set.

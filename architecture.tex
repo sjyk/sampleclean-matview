@@ -1,10 +1,19 @@
 \section{System Overview}
-Frequent incremental maintenance of materialized views can be costly or infeasible given system constraints such as throughput.
-In this work, we model this problem as a data cleaning problem and explore whether full incremental maintenance is neccessary for up-to-date results.
-Given an aggregation query (SUM, COUNT, AVG) on a stale materialized view, we use a sample of up-to-date (clean) data to estimate how much that data changes the stale aggregation query result.
-The result is a correction term which adjusts or cleans the query result.
+We motivated how frequent incremental maintenance of materialized views can be challenging given system resource constraints.
+Materialized view maintenace techniques lie on a spectrum of freshness and performance.
+To navigate this spectrum, only option for the user is to change the maintenance period from eg. daily, hourly, or immediately.
+However, this parameter is constrained by what can be processed by the system and can be only tuned by prior experience.
+Unexpected updates can easily lead to results that are more stale than the user anticipated.
 
-Our proposed system will work in conjunction with existing maintenance or re-calculation approaches.
+Modeling this as data cleaning problem can allow us to change the spectrum from freshness vs. performance to accuracy vs. performance.
+Rather using the maintenance period to select how many updates to propagate at a time, we sample the queued up updates.
+Sampling gives us an additional degree of freedom to satisfy the system constraints for any maintenance period.
+We use a sample of up-to-date (clean) data to estimate how much that data changes the stale query result, thus deriving a correction term which can ``clean" the query.
+For aggregation queries (SUM, COUNT, AVG) on the materialized view, we can bound these estimates in confidence intervals which allow the user to understand how far they are from the exact answer even in the presence of unexpected updates.
+Thus, our results are never stale; they have some inaccuracy introduced by the sampling ratio but in expectation they are correct.
+Furthermore, we also prove that this correction term is the optimal linear unbiased estimate for SUM, COUNT, and AVG.
+
+In implementation, our proposed system will work in conjunction with existing maintenance or re-calculation approaches.
 We envision the scenario where materialized views are being refreshed periodically eg. nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale maintenance with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
@@ -51,9 +60,10 @@ We will first introduce the taxonomy of materialized views that can benefit from
 \subsubsection{Sampling the Update Pattern}
 Given these materialized views, the first challenge is sampling.
 We have to sample the updates in a particular way so the sample accurately represents how updates
-affect aggregation queries on the view. 
-The three classes of views affect how we need to sample.
-For example, insertions to the base database only result in insertions to Select-Project views but can result to updates to stale rows for Aggregation views.
+affect queries on the view. 
+The three classes of views require different sampling techniques.
+For example, insertions to the base database only result in insertions to Select-Project views.
+But, for Aggregation Views, insertions to the base table can also result to updates to existing stale rows.
 In Section \ref{sampling}, we describe the sampling algorithm and a cost anylsis of how much sampling can reduce maintenance costs.
 
 \subsubsection{Correcting a Query}
@@ -78,7 +88,6 @@ with abnormally large attribute values are included in the sample.
 What is particularly interesting is that these records give information about the distribution 
 and can be used to reduce variance in our estimates.
 See Section \label{outlier} for details on this component.
-
 
 \subsubsection{Example Application: Log Analysis}
 To illustrate our approach, we use the following running example which is a 

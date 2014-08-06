@@ -25,9 +25,9 @@ The measured time is the ``wall clock" time and this is measured with no other l
 \subsubsection{TPCD-Skew}
 The first dataset, TPCD-Skew dataset, is based on the Transaction Processing Council's benchmark
 schema but is modified so that it generates a dataset with values drawn from a Zipfian powerlaw distribution instead of uniformly.
-The Zipfian distribution [?] is a long-tailed distribution with a single parameter $z=\{0,1,2,3,4\}$ which a larger
+The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribution with a single parameter $z=\{0,1,2,3,4\}$ which a larger
 value means a more extreme tail.
-This database has been applied to benchmark other sampling based approaches and outlier performance [?].
+This database has been applied to benchmark other sampling based approaches, approximate queries, and outlier performance \cite{chaudhuri2001overcoming, agrawal2005database}.
 The dataset is provided in the form of a generation program which can generate both the base tables and a set of updates.
 
 For this dataset, we applied our approach to three materialized views, each of a different type:
@@ -69,8 +69,8 @@ WHERE  c_custkey = o_custkey
 
 \vspace{1em}
 
-The base dataset we generated is 10GB corresponding to 60,000,000 records, and the above three views are derived from this base dataset.
-For these three views, we randomly generated aggregation queries and evaluated them for different sample sizes, different update rates, and different parameter settings for the Zipfian distribution.
+The base dataset is 10GB corresponding to 60,000,000 records, and the above three views are derived from this base dataset.
+Then, we randomly generated aggregation queries and evaluated them for different sample sizes, different update rates, and different parameter settings for the Zipfian distribution.
 All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node with a MySQL database.
 
 \subsubsection{Conviva}
@@ -79,10 +79,9 @@ We experimented with a 1TB dataset of these logs and a workload corresponding an
 We used this dataset to evaluate the end-to-end accuracy and performance of the system on a real dataset and query workload.
 We evaluated performance on Apache Spark with a 20 node r3.large Amazon EC2 cluster. 
 
-
 \subsection{Update Rate and Accuracy}
 In the first experiment, for each of the three views listed above, we evaluate the accuracy of our approach.
-We measure accuracy by using the average relative query error for a set of 10000 randomly generated queries on each view.
+We measure accuracy by using the average relative query error for a set of 10000 randomly generated aggregation queries on each view.
 We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500000 records to a final count of 8000000 records (1.3GB).
 We evalute SAQP and our approach against a baseline stale result.
 In Figure \ref{exp2udpate}, we show the results of the experiment. 
@@ -150,8 +149,8 @@ We found that for a highly selective group by clause (thus a large view) the sav
 However, when the view was small the cost savings were smaller.
 \begin{figure}[h]
 \label{exp11overheads}
-\centering
- \includegraphics[width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}
+\hspace{-2.5em}
+ \includegraphics[scale=0.25]{exp/complexity_efficiency_tradeoff.eps}
  \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%). }
 \end{figure}
 This experiment emphasizes that our approach rareley makes performance worse and at worst the improvements are not linear with the sampling ratio.
@@ -190,7 +189,7 @@ We evaluated the relative error for each query.
 
 \begin{figure}[ht!]
 \label{exp3dist}
-\hspace{-3.5em}
+\hspace{-4.5em}
  \includegraphics[scale=0.21]{exp/exp3-query-error-dist.eps}
  \caption{On the x-axis is the accuracy of our approach and on the y-axis is the error if the query was not maintained. We find that there are many outlier queries results--motivating the need for outlier indexing.}
 \end{figure}
@@ -212,18 +211,17 @@ We then vary the sampling ratio for the three types of views and show how much s
 For 10,000 randomly generated aggregation queries on each view, we compare the stale query error to SAQP and our approach.
 For SAQP and our approach, we keep the same sampling ratio.
 This does, however, mean that SAQP uses significantly more storage than our approach Select-Project and Foreign-Key Join Views.
-
-\begin{figure}[ht!]
-\label{exp1sample}
-\hspace{-3.5em}
- \includegraphics[scale=0.21]{exp/exp1-samplesize-accuracy.eps}
- \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{k}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size.}
-\end{figure}
-
 In Figure \ref{exp1sample}, we show the accuracy as a function of sampling ratio for each of the views.
 For both SAQP and our approach, there is a break-even point at which the approximation error is less than the staleness error.
 At sampling ratios beyond this point, our query approximated queries are on average more accurate than queries on the stale view.
 For all three of the views, the average query error is significantly less than SAQP as the break-even point happens earlier in our approach.
+
+\begin{figure}[ht!]
+\label{exp1sample}
+\hspace{-3em}
+ \includegraphics[scale=0.20]{exp/exp1-samplesize-accuracy.eps}
+ \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{k}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size.}
+\end{figure}
 
 \subsection{Application: Log Analysis For Conviva}
 We used a dataset of queries given by Conviva to generate three materialized views.
@@ -243,8 +241,8 @@ In Figure \ref{exp12conviva}, we plot the three views on the distribution of err
 are from different parts of the distribution.
 \begin{figure}[ht!]
 \label{exp12conviva}
-\centering
-\includegraphics[width=\columnwidth]{exp/conviva_efficiency_accuracy.eps}
+\hspace{-3.5em}
+\includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}
  \caption{We chose three views that represented the distribution of all views well in terms of both accuracy and maintenance time.}
 \end{figure}
 
@@ -269,16 +267,17 @@ This cluster had enough memory to hold all of the materialized views in memory.
 Spark supports materialized views through a distributed data structure called an RDD [?].
 The RDD's are immutable, thus requiring significant overhead to maintain.
 We compare maintenance to recalculation of the view when the data is in memory and when only the updates are in memory. 
-We derived the views from a 120GB base relation and inserted records in 10GB increments. \reminder{fix for consistency 4x to all sizes due to the _text dataset}
-We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, the relative staleness between the experiments is the same.
+We derived the views from a 700GB base table and inserted records in 15GB increments. 
+We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, as insertions as a percentage of the base data are the same.
 As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
 Each view is partitioned by the group by key, and thus only the sampled delta view has to be shuffled. 
 
 \begin{figure*}[ht!]
 \label{exp6conviva}
-\hspace{-2em}
-\includegraphics[scale=0.23]{exp/exp5-efficiency-conviva.eps}
- \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenace. We further include a comparision with view recalculation as our experimental platform, Spark, does not supprot indices or selective writes.}
+\hspace{-1em}
+\vspace{-2em}
+\includegraphics[scale=0.18]{exp/exp5-efficiency-conviva-woutlier.eps}
+ \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenace. We further include a comparision with view recalculation as our experimental platform, Spark, does not support indices or selective writes.}
 \end{figure*}
 
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
