@@ -1,5 +1,5 @@
 \section{Introduction}
-Materialized views, cached pre-computed query results, are used to optimize query processing on large datasets \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
+Materialized views, stored pre-computed query results, are used to optimize query processing on large datasets \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
 Materialization and related concepts such as selecting which queries to materialize
 have been well studied in recent research \cite{zaharia2012resilient,lefevre2014opportunistic, bailis2014scalable, perez2014history}.
 This research has further expanded beyond the SQL setting \cite{nikolic2014linview} and 
@@ -9,12 +9,12 @@ materialized views face the obvious challenge of \emph{staleness} where the pre-
 To avoid expensive recalculation, incrementally updating materialized views,
 also called incremental maintenance, has been well studied \cite{gupta1995maintenance, chirkova2011materialized}.
 
-Unfortunately, in many desired applications, incremental view maintenance for every incoming update can be very costly. 
+Unfortunately, in many desired applications, incremental maintaining the view for every incoming update can be very costly. 
 When the base tables change rapidly, the database system has to propagate each update to all of the materialized views.
 Consequently, there are many techniques that defer updating the views to a later time or trigger the updates only when neccessary \cite{chirkova2011materialized, zhou2007lazy}.
 Deferral allows for many advantages such as batching updates together amortize overheads and scheduling updates at times when there are more system resources available eg. at night.
 Deferral strategies provide increased flexibility to meet the resource constraints of the system, but may not guarantee that the views will always be up-to-date.
-When the materialized views are out-of-date during the maintenance gaps, queries issued to the view can have \emph{stale} results. 
+When a materialized view is out-of-date during a maintenance gap, queries issued to the view can have \emph{stale} results. 
 
 In this work, we address the incremental maintenance problem and the problem of stale results from a different perspective.
 We explore whether refreshing stale rows in a materialized view can be modeled as data cleaning problem and whether stale query results can be ``cleaned".
@@ -22,7 +22,7 @@ While much of the data cleaning literature focuses on improving query accuracy o
 there has been an increasing trend of considering the costs of data cleaning \cite{wang1999sample}.
 In particular, these approaches clean a small, representative sample of records and then use that information to extrapolate results for an entire dataset.
 This new perspective raises an intruiging possibility, namely, that staleness can be modeled as a type of data error, 
-and perhaps, we can correct stale query results by observing how the updates affect a small sample of records; 
+and perhaps, we can correct stale query results by observing how the updates affect a small sample of rows in the materialized view; 
 avoiding the need to maintain the entire materialized view.
 While this approach introduces approximation error inherrent to sampling, this error for aggregate queries on the materialized view such as SUM, COUNT, and AVG, 
 can be probabilistically bounded within confidence intervals.
@@ -30,7 +30,7 @@ Existing techniques allow the user to control the freshness of queries by chosin
 On the other hand, our approach gives results that are, in expectation, always fresh and the user controls the tightness of the bound with the sampling ratio.
 %The SampleClean project [?] studied a related problem of bounding aggregate queries on dirty datasets but did not consider materialized views or the effect of missing records.
 
-Our approach has three components: (1) sampling, (2) outlier indexing, and (3) correction. In (1), we sample the updates to the view in a way that ensures that the sample is representative of the up-to-date data. Updates can affect different classes of views differently, and we define a logical unit called an ``update pattern" which represents how an update affects the derived view. For example, in views derived from only Select and Project operations, inserted records to the base table result in insertions to views. However, inserted records can result in both insertions and updates to views defined by aggregation operations. Our system maintains a sample of the ``update patterns". (2) Sampling has the potential to mask outliers, and in fact, it is known
+Our approach has three components: (1) sampling, (2) outlier indexing, and (3) correction. In (1), we sample the updates to the view in a way that ensures that the sample is representative of the up-to-date data. Updates can affect different classes of views differently, and we define a logical unit called an ``update pattern" which represents how an update affects the derived view. Our system maintains a sample of the ``update patterns" and uses this sample to derive a correction. (2) Sampling has the potential to mask outliers, and in fact, it is known
 heavy-tailed distributions are poorly approximated from samples \cite{chaudhuri2001overcoming}.
 In this framework, we utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample.
 Coupling outlier detection with sampling has an interesting implication; not only can we answer exact selection queries on the outliers, but
@@ -38,7 +38,7 @@ the information from the outliers can potentially improve query accuracy or like
 Finally, in (3) we use the sampled update pattern and the outlier index to derive a correct aggregate queries on stale materialized views.
 From the sample, we estimate how much the updates affect the query in question and we use this estimate to adjust the query result when applied to a stale view.
 
-What is particularly interesting is that our approach can be implemented with a relatively small overhead: at maintenance time the generation of random numbers to build the sample, and at query execution time single pass over a small sample of data to estimate a correction for the query.
+Our approach can be implemented with a relatively small overhead: at maintenance time the generation of random numbers to build the sample, and at query execution time single pass over a small sample of data to estimate a correction for the query.
 Consequently, sampling can significantly save on maintenance costs and give a flexible tradeoff between accuracy and performance.
 
 To summarize, existing literature proposes the following approaches for this problem: 
