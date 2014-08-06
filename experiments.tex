@@ -115,7 +115,7 @@ In Section \ref{sampling}, we ran cost analyses to argue that sampling can great
 Furthermore, in the previous experiment, we showed that for the three specific views sampling can greatly reduce maintenance time.
 In practice, these gains will only be meaningful if the overheads for the query correction are small.
 Since, we are correcting a stale query rather than the materialized view, we are shifting some of the computational cost from maintenance time to query execution time.
-If our updates only contain inerstions, then for Select-Project and Foreign-Key join views, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
+If our updates only contain insertions, then for Select-Project and Foreign-Key join views, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
 However, for aggregation views, query correction requires a scan of the old view and a sample of the maintained view; potentially increasing the time to 
 answer the query.
 In our first experiment, we set the sample size to 5\% and evalute the aggregation view listed earlier for 5000000 inserted records. 
