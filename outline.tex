@@ -28,6 +28,7 @@
 
 
 
+
 \lstset{basicstyle=\small,breaklines=true}
 
 \linespread{0.94}%
@@ -49,9 +50,18 @@
 \newcommand{\aggview}{\textsf{AggView}\xspace}
 \newcommand{\hashfunc}[1]{\textsf{hashfunc}(#1)\xspace}
 
+\newcommand{\avgfunc}{\ensuremath{\texttt{avg} }\xspace}
+\newcommand{\countfunc}{\ensuremath{\texttt{count}}\xspace}
+\newcommand{\sumfunc}{\ensuremath{\texttt{sum} }\xspace}
+
+
 \newcommand{\tbl}[1]{\textsf{#1}\xspace}
 \newcommand{\field}[1]{\textsf{#1}\xspace}
 \newcommand{\cost}{\textrm{cost}\xspace}
+\newcommand{\ans}{\textsf{ans}\xspace}
+\newcommand{\dans}{\Delta\textsf{ans}\xspace}
+\newcommand{\cqp}{correcting query processing\xspace}
+\newcommand{\Cqp}{Correcting query processing\xspace}
 
 \newcommand{\reminder}[1]{{{\textcolor{red}{\{\{\bf #1\}\}}}\xspace}}
 \newcommand{\specialcell}[2][c]{%
@@ -85,7 +95,7 @@ In a large scale experiment using 20-node Apache Spark cluster, we derived views
 \input{sampling.tex}
 \input{outlier.tex}
 \input{analysis.tex}
-\input{experiments.tex}
+%\input{experiments.tex}
 \input{conclusion.tex}
 
 \bibliographystyle{abbrv}

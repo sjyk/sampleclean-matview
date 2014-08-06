@@ -1,10 +1,84 @@
 
-\section{Correcting Stale Query Results}\reminder{TODO}
+\section{Correcting Stale Query Results}
 \label{correction}
-In this section, we discuss how to correct stale query results using sampled update patterns. We first present the principle of this query processing in Section~\ref{subsec:correct-principle} and then describe how to implement it practically in Section~\ref{subsec:correct-practical}.
-\subsection{Correcting Query Processing}\label{subsec:correct-principle}
+In this section, we discuss how to correct stale query results using sample update patterns. We first present the principle of this query processing in Section~\ref{subsec:correct-principle} and then describe how to implement it practically in Section~\ref{subsec:correct-practical}.
 
-\subsection{Practical Consideration}\label{subsec:correct-practical}
+
+\subsection{\Cqp}\label{subsec:correct-principle}
+Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. To achieve this goal, our basic idea is to first obtain a \emph{delta query result} (denoted by $\dans$), by rewriting the query against the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
+
+In the following, we will discuss how to apply this idea to different types of views and analyze the cost of our correcting query processing. For ease of presentation, we assume the query does not have a group-by clause, i.e.,
+\begin{lstlisting} [mathescape]
+SELECT $\countfunc(a)/\sumfunc(a)/\avgfunc(a)$ FROM View 
+WHERE Condition(A);
+\end{lstlisting}
+But note that our methods can be easily extended to a group-by query by treating each group key as an addition condition. 
+
+%where \texttt{f} is an aggregation function (i.e., $\avgfunc$, $\sumfunc$, $\countfunc$), \texttt{a} is an attribute, and \texttt{A} is a set of attributes. 
+
+
+
+
+
+%formulation
+
+%basic idea
+
+\subsubsection{Select-Project and Foreign-Key Join Views} \label{subsubsec:correct-spfj}
+Since both of the update patterns of \spview and \fjview only consist of inserted records, their correcting query processing phases can be taken as the same. Given the above query, to get its delta query result, we can simply run the query on the sample update patterns. The following shows the rewritten queries for different aggregation functions.  
+
+\begin{lstlisting}[mathescape]
+$\dans_{cnt} = $ SELECT $\countfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ $~~~~~~~~~$WHERE Condition(A).
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape]
+$\dans_{sum} = $ SELECT $\sumfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ 
+$~~~~~~~~~~~~~~~$ WHERE Condition(A).
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape]
+$\dans_{avg}, \dans_{cnt} = $ SELECT $\avgfunc(a)$, $\countfunc(a)$ 
+$~~~~~~~~~~~~~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$
+$~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A).
+\end{lstlisting}
+
+For the \countfunc and \sumfunc queries, we only need to compute $\dans_{count}$ and $\dans_{sum}$, respectively. But for the \avgfunc query, in addition to $\dans_{avg}$, we also need $\dans_{cnt}$ for query correction.
+
+
+
+\begin{table}\renewcommand{\arraystretch}{1.2}
+\caption{Correcting a stale query result}\label{tbl:query-correct} \small \centering
+%\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
+%\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
+\begin{tabular}[t]{|l||c|c|c|}
+  %\multicolumn{4}{c}{\normalsize {(a) $\ars$}} \\ \hline
+  %\multicolumn{4}{|c|}{A set $\Lambda$ of $\ar$s} \\ \hline\hline
+   \hline
+                & \specialcell{\spview \& \fjview} & \aggview \\ \hline
+   \countfunc   &  $\ans_{cnt} + \dans_{cnt}/\alpha$ &   $\ans_{cnt} + \dans_{cnt}/\alpha$       \\ \hline 
+   \sumfunc     &  $\ans_{sum} + \dans_{sum}/\alpha$ &   $\ans_{sum} + \dans_{sum}/\alpha$        \\ \hline 
+   \avgfunc     &  $\frac{\ans_{cnt} \cdot \ans_{avg} + (\dans_{cnt}/\alpha) \cdot \dans_{avg}}{\ans_{cnt} + (\dans_{cnt}/\alpha)}$                                &     $\ans_{avg} + \dans_{avg}$     \\ \hline 
+   
+    
+ 
+\end{tabular}
+\end{table}
+%\specialcell{\spview \fjview}
+
+
+SUM/ COUNT/ AVG
+
+Cost analysis
+
+\subsubsection{Aggregation View}\label{subsubsec:correct-agg}
+
+SUM/ COUNT/ AVG
+
+Cost analysis
+
+
+\input{practical-subsec.tex}
+
 
 \iffalse
 \section{Sampling for Approximate Corrections}
