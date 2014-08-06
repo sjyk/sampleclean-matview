@@ -16,28 +16,6 @@ One way to do this is to maintain a histogram for each group on the relevant att
 Then, during the refresh we can merge the two histograms to update the median.
 Even in this setting, Sampling can help reduce processing (less histograms to compare) and communication (less histograms to communicate). 
 
-\subsection{Proof of Optimality of Correction}
-We propose a technique based on the concept of query correction.
-We can actually prove that for the SUM, COUNT, and AVG queries this technique is optimal with respect to the variance of the estimate.
-We use the following statistical property of random sampling which holds for i.i.d and exchangable sequences of random variables (ie. sampling with and without replacement respectively).
-\begin{proposition}
-The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown.
-\end{proposition}
-The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
-Unbiased estimators are ones that, in expectation, give correct estimates.
-However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
-For example, if we simply pick a random element from a set it is still an unbiased estimate of the mean of the set.
-Variance is used to compare different unbiased estimates, and the MVUE is the unbiased estimate which has the least variance.
-Under random sampling, the sample mean is the MVUE over the class of linear estimators.
-
-As shown in Section ?, we can formulate our correction estimates as sample means thus proving optimality. 
-\begin{theorem}
-For SUM, COUNT, and AVG queries, our estimate of the correction is optimal over the class of linear estimators when no other information is known about the distribution. 
-\end{theorem}
-\begin{proof}
-Using the proposition above, reformulating our correction estimates as sample means and the true query results as population means, we can prove that our approach gives the lowest variance estimate over the class of linear estimators.
-\end{proof}
-
 \subsection{Selection Queries}
 While our approach is optimal for SUM, COUNT, and AVG queries, and is exact for Selection queries on the outlier index, there is a question about processing general selection queries.
 For a Selection query, there are two possibilities: (1) the row is in the sample, and (2) the row in not in the sample.

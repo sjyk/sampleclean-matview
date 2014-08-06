@@ -1,6 +1,29 @@
-\subsection{Practical Consideration}\label{subsec:correct-practical}
+\subsection{Error Bars}\label{subsec:correct-practical}
+The only term in the correction that is not deterministic is $\dans$ .
+For the SUM, COUNT, and AVG queries, we can bound this term in error bars thus giving us error bars for the entire expression.
+For these queries, we can rewrite the term $\dans$ as a mean value of uniformly randomly sampled records, refer to \cite{wang1999sample} on how to do this.
+By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
+\[
+\bar{X} \sim N(\mu,\frac{\sigma^2}{k})
+\]
+Where $\mu$ is the true mean, $\sigma^2$ is the variance of the numbers, and $k$ is the sample size.
+We can use this to bound the term with its 95\% confidence interval (or any other user specified probability) $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$.
+Since the estimate is unbiased the confidence interval tells the user that the true value lies in the confidence interval with the specified probability.
 
-\subsubsection{Error Bar}\label{subsubsec:error-bar}
-
-
-\subsubsection{...}
+We can prove that for the SUM, COUNT, and AVG queries this estimate is optimal with respect to the variance.
+We use the following statistical property of random sampling which holds for i.i.d and exchangable sequences of random variables (ie. sampling with and without replacement respectively).
+\begin{proposition}
+The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown a priori.
+\end{proposition}
+The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
+Unbiased estimators are ones that, in expectation, give correct estimates.
+However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
+For example, if we simply pick a random element from a set it is still an unbiased estimate of the mean of the set.
+Variance is used to compare different unbiased estimates, and the MVUE is the unbiased estimate which has the least variance.
+Under random sampling, the sample mean is the MVUE over the class of linear estimators when no other information about the distribution is known.
+\begin{theorem}
+For SUM, COUNT, and AVG queries, our estimate of the correction is optimal over the class of linear estimators when no other information is known about the distribution. 
+\end{theorem}
+\begin{proof}
+Using the proposition above, reformulating our correction estimates as sample means and the true query results as population means, we can prove that our approach gives the lowest variance estimate over the class of linear estimators.
+\end{proof}

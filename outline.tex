@@ -75,7 +75,7 @@
 \maketitle
 
 \begin{abstract}
-Materialized views, caching pre-computed query results, are used to optimize queries on large datasets.
+Materialized views, stored pre-computed query results, are used to optimize queries on large datasets.
 Materialized views can become out-date when base tables change and any queries issued to these views give \emph{stale} results.
 Incrementally maintaining these results, as opposed to full recalculation, has been well studied but is often infeasible to for every incoming update.
 To defer these costs, materialized views are often updated periodically in batches leading to long periods of staleness.
