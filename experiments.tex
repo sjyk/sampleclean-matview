@@ -74,12 +74,12 @@ In Figure \ref{exp2udpate}, we show the results of the experiment.
 \label{exp2update}
 \centering
  \includegraphics[scale=0.27]{exp/exp2-full.eps}
- \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparision to full incremental maintenance for a 1\%, 5\% and 10\% sample. }
+ \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. }
 \end{figure*}
 
 The results highlight an important point comparing the accuracy of SAQP to our approach. 
 The accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
-As more records are inserted the approximation error in our approache increases.
+As more records are inserted the approximation error in our approach increases.
 However, we find that even for very large amounts of inserted records (>10\% of dataset size), our approach gives significantly more accurate results
 than SAQP.
 The gain is most pronounced in aggregation views where there are a mixture of updated and inserted rows into the view.
@@ -87,7 +87,7 @@ Correcting an update to an existing row is often much smaller than doing so for 
 
 \subsection{Computational Efficiency}
 In the next experiment (Figure \ref{exp2udpate}), we evaluate how sampling can reduce maintenance time.
-For a batch of updates, we evaluate how long it takes to incrementally maintain a view compared to maintaing a sample.
+For a batch of updates, we evaluate how long it takes to incrementally maintain a view compared to maintaining a sample.
 For, the join view, we build an index on the foreign key of the view.
 As before, we inserted records in increments of 500000.
 We find that for the Aggregation and Join view, which are more expensive to maintain, sampling leads to more pronounced savings. 
@@ -100,14 +100,14 @@ Since, we are correcting a stale query rather than the materialized view, we are
 If our updates only contain insertions, then for Select-Project and Foreign-Key join views, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
 However, for aggregation views, query correction requires a scan of the old view and a sample of the maintained view; potentially increasing the time to 
 answer the query.
-In our first experiment, we set the sample size to 5\% and evalute the aggregation view listed earlier for 5000000 inserted records. 
+In our first experiment, we set the sample size to 5\% and evaluate the aggregation view listed earlier for 5000000 inserted records. 
 In (Figure \ref{exp10overheads}), we show that average query time is small compared to maintenance time, and furthermore, 
-the time to calcuate a correction is a just fraction of the query time.
+the time to calculate a correction is a just fraction of the query time.
 \begin{figure}[h]
 \label{exp10overheads}
 \centering
  \includegraphics[width=\columnwidth]{exp/total_time_agg_view.png}
- \caption{The overhead introduced by correcting a query is small compared to the overall maintenace time.}
+ \caption{The overhead introduced by correcting a query is small compared to the overall maintenance time.}
 \end{figure}
 
 \subsection{View Complexity}
@@ -135,7 +135,7 @@ However, when the view was small the cost savings were smaller.
  \includegraphics[scale=0.25]{exp/complexity_efficiency_tradeoff.eps}
  \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%). }
 \end{figure}
-This experiment emphasizes that our approach rareley makes performance worse and at worst the improvements are not linear with the sampling ratio.
+This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
 Furthermore, we emphasize that when views are large and complex, as often the case, we can have significant improvements.
 
 \subsection{Outlier Indexing}
@@ -185,7 +185,7 @@ In Section ?, we show how outlier indexing can solve the latter problem and, in 
 
 \subsection{Sample Size and Accuracy}
 In this experiment, we illustrate the tradeoff between sample size and accuracy.
-We set a fixed 5000000 inserted records, and then vary the sampling ratio for the three types of views and show how much sampling is needed to acheive a given query accuracy.
+We set a fixed 5000000 inserted records, and then vary the sampling ratio for the three types of views and show how much sampling is needed to achieve a given query accuracy.
 In Figure \ref{exp1sample}, we show the accuracy as a function of sampling ratio for each of the views.
 For both SAQP and our approach, there is a break-even point at which the approximation error is less than the staleness error.
 At sampling ratios beyond this point, our query approximated queries are on average more accurate than queries on the stale view.
@@ -200,7 +200,7 @@ For all three of the views, the average query error is significantly less than S
 
 \subsection{Application: Log Analysis For Conviva}
 We used a dataset of queries given by Conviva to generate three materialized views.
-All three of these views are aggregation views, and for confidentiality, we exclude the actual definitons of the views. 
+All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views. 
 View 1 has the most selective group by clause and was chosen to a be a large view where most of the maintenance is in the form of new rows to insert.
 View 1 aggregates session times for each visitor and video pair.
 View 2 is a medium size view where maintenance is a mix of both updates and insertions.
@@ -251,15 +251,15 @@ Each view is partitioned by the group by key, and thus only the sampled delta vi
 \label{exp6conviva}
 \hspace{-1em}
 \includegraphics[scale=0.18]{exp/exp5-efficiency-conviva-woutlier.eps}
- \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenace. We further include a comparision with view recalculation as our experimental platform, Spark, does not support indices or selective writes.}
+ \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparision with view recalculation as our experimental platform, Spark, does not support indices or selective writes.}
 \end{figure*}
 
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
-We find that we acheive good scalability on view 1 and view 2, and still have some performance gains on view 3.
+We find that we achieve good scalability on view 1 and view 2, and still have some performance gains on view 3.
 In view 1 and view 2, our gains are more pronounced due to the savings on communication in a distributed environment.
 Aggregation views with a larger cardinality create larger delta views.
-These delta views neccessitate a shuffle operation that communications them during the refresh step.
-As view 3 is smaller, the communcation gains are less and the only savings are in computation.
+These delta views necessitate a shuffle operation that communications them during the refresh step.
+As view 3 is smaller, the communication gains are less and the only savings are in computation.
 
 
 
