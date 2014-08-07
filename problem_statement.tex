@@ -1,6 +1,6 @@
 \section{Background}\label{sec-background}
 
-\subsection{Incremental Maintenace Techniques}
+\subsection{Incremental Maintenance Main Ideas}
 Incremental maintenance of materialized views is well studied, see \cite{chirkova2011materialized} for a survey of the approaches. 
 Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
@@ -33,17 +33,8 @@ Refer to [?] for details.
 %and deletions for future work.
 
 \subsection{Maintenance Strategies}
-While often less expensive than recomputing a materialized view,
-incremental maintenance can still be costly.
-Materialized views are growing larger and are more frequently 
-implemented in distributed systems.
-%Furthermore, database systems face an increased velocity of incoming data which
-%can make infeasible to keep the views up-to-date.
-Due to this cost, which we will refer to as the ``maintenance" cost, 
-scheduling the refresh operation has been an important topic of research.
-
-There are two principle types of scheduling strategies: immediate and deferred. 
-In immediate maintenance, as soon as a record is updated, 
+There are two principle types of maintenance strategies: immediate and deferred. 
+In immediate maintenance, as soon as the base table is updated, 
 the change is propagated to any derived materialized view.
 Immediate maintenance has an advantage that materialized view is always up-to-date, 
 however it can be very expensive.
@@ -64,52 +55,40 @@ However, this also means that during the day the materialized view becomes incre
 
 More sophisticated deferred scheduling schemes are also possible.
 In particular, we highlight a technique called lazy maintenance which defers maintenance until such time
-a query on the view requires a row to be up-to-date.
-This technique is not exclusive and lazy maintenance can work in conjunction with immediate maintenance on a subset of rows \cite{zhou2007lazy}.
+a query on the view requires a row to be up-to-date \cite{zhou2007lazy}.
 While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost to query execution time.
-In some queries this can defeat the purpose of caching a pre-computed result to speed up query execution time.
 
-Immediate maintenance introduces a bottlneck on updates and lazy maintenance introduces a bottleneck during query exection,
-and rapid collection of data can make these approches impractical.
+Immediate maintenance introduces a bottleneck on updates to the base table and lazy maintenance introduces a bottleneck during query execution,
+and rapid updates can make these approaches impractical.
 As a consequence, periodic maintenance or recalculation is often the most feasible solution.
-Periodic maintainence allows for coarse flexibility in scheduling to meet the resource constraints of the system and workload.
-The problem is that between maintenance periods, which can be very long, queries on the view are stale.
 While the user can set the maintenance period to control the expected staleness of the data, in general, the relative error between a stale query result and the up-to-date result is unbounded.
 
 \subsection{Data Cleaning}
 Much of data cleaning research focuses on improving query accuracy on dirty datasets.
 For example, designing rules or algorithms to remove or correct erroneous records \cite{rahm2000data}.
-However, recent work has considered the costs of data cleaning and how to budget this effort.
-The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples \cite{kandel2011wrangler}.
-Similarly, the SampleClean project presents a query processing framework that cleans on a sample of data, and then bounds the results of aggregate queries on dirty datasets \cite{wang1999sample}.
+However, recent work has considered the costs of data cleaning and how to budget effort.
+%The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples \cite{kandel2011wrangler}.
+The SampleClean project presents a query processing framework that cleans on a sample of data, and then bounds the results of aggregate queries on dirty datasets \cite{wang1999sample}.
 
-One key aspect of SampleClean is the tradeoff between data error and sampling error.
-Cleaning a sample mitigates some of the error in the dataset, but sampling introduces uncertainty into the result.
-There is a break-even point where the sample is sufficiently large that the mitigation of data error is more than the introduction
-of sampling error.
-This process allows the user to control the accuracy of the query with the sampling ratio as opposed to an unknown level of data error.
+This process allows the user to control the accuracy of the query with the sampling ratio as opposed to querying a dirty dataset with an unknown level of data error.
 One of the algorithms in SampleClean, NormalizedSC, takes a dirty dataset and query and using a sample of clean data learns how
 to correct a query so the result is ``clean".
-This use of sampling is fundementally different from sampling as used in Sample-based Approximate Query Processing (SAQP).
-In SAQP, the sample becomes the dataset and queries are applied directly to the sample.
-However, in NormalizedSC, queries are still applied to the original unsampled and dirty base data.
-The algorithm cleans a sample of data and then uses this information to correct the query result on the dirty data.
-
-Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for SUM, COUNT, and AVG queries.
-In comparision to SAQP, this approach gives more accurate results in datasets where errors are sparse since the correction will be small.
-Inspired by this solution, we apply a data cleaning cleaning approach to materialized views where for aggregate queries (SUM, COUNT, AVG), we correct their stale results from a sample of up-to-date data.
+Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for  \sumfunc, \countfunc, and \avgfunc queries.
+Inspired by this solution, we apply a data cleaning cleaning approach to materialized views where we model staleness as a type of data error and budget our cleaning effort to get an approximate correction for aggregate queries (\sumfunc, \countfunc, and \avgfunc).
 
 \subsection{SAQP}
 Estimating the results of aggregate queries from samples has been
 well studied in a field called Sample-based Approximate Query Processing
-(SAQP). On the other hand, our approach differs from SAQP as we look to
+(SAQP). 
+Our approach differs from SAQP as we look to
 approximately correct a query rather than directly estimating the query result.
 In other words, we use a sample of up-to-date data to understand how to compensate for the
-staleness. The SAQP approach to this problem, would be to
+staleness. 
+The SAQP approach to this problem, would be to
 estimate the result directly from the maintained sample; a sort of
-SAQP scheme on the sample of the view \cite{joshi2008materialized}. We found that estimating
+SAQP scheme on the sample of the view \cite{joshi2008materialized}.
+We found that estimating
 a correction and leveraging an existing deterministic result lead
-to lower variance results on real datasets (see Section \ref{exp}). We analyze
-the tradeoffs of these techniques in the following sections.
+to lower variance results on real datasets (see Section \ref{exp}). 
 
 
