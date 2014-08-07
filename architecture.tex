@@ -7,7 +7,7 @@ These two techniques sit at the extremes of the spectrum since they still requir
 Modeling this problem as a data cleaning problem gives us a new perspective for addressing staleness.
 When updates arrive, rows in the materialized view may be either out-of-date or missing altogether; making the view ``dirty".
 The challenge is to clean the materialized view by updating the out-of-date rows and inserting the missing rows, however this can be very expensive if there are a large number of updates.
-Suppose, we cleaned one dirty row at a time processing only as much of the updates as neccessary to clean the row.
+Suppose, we cleaned one dirty row at a time processing only as much of the updates as necessary to clean the row.
 Then, for queries on the view, we get progressively less stale results for a lesser cost.
 With this intuition in mind, to ensure that our result is unbiased, we clean a random sample of dirty rows.
 For aggregate queries, such as \sumfunc, \countfunc, and \avgfunc, we can then estimate from this sample how the updates change the query results.

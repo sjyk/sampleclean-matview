@@ -1,5 +1,5 @@
 \section{Outlier Indexing}\label{outlier}
-The presented approach may be senstive to long-tailed distributions and power-laws which are common in large datasets\cite{clauset2009power}.
+The presented approach may be sensitive to long-tailed distributions and power-laws which are common in large datasets\cite{clauset2009power}.
 Sampling may also hide any outliers, records with abnormally large or small attribute values.
 Since oultiers may occur very rarely, they are unlikely to be represented in a small sample.
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
@@ -31,12 +31,12 @@ If the record exists in any of the indices it is added to the sample with a flag
 
 For aggregation views, we sample the view by taking a hash of the group by keys.
 If a record is in the outlier index, we must ensure that all records with its group by key are also added to the sample.
-To acheive this, we have to select all of the distinct group by keys in the outlier index and add those aggregates to the sample.
-As before, these records are maked with a flag denoting they are outliers.
+To achieve this, we have to select all of the distinct group by keys in the outlier index and add those aggregates to the sample.
+As before, these records are marked with a flag denoting they are outliers.
 
 Outlier indexing adds additional overhead since for Select-Project and Join views it adds the overhead of a hash table lookup for each record, and for Aggregation views it further requires a scan of the entire index.
-However, we envision that in most datasets the outlier index will be very small making this overhead neglible.
-In our experiments, we show that even a very small outlier index (less than .01\% of records) is sufficent to greatly improve the accuracy of
+However, we envision that in most datasets the outlier index will be very small making this overhead negligible.
+In our experiments, we show that even a very small outlier index (less than .01\% of records) is sufficient to greatly improve the accuracy of
 correction estimates.
 
 \subsection{Query Processing with the Outlier Index} 
