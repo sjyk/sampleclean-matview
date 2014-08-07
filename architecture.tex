@@ -34,7 +34,7 @@ In this section, we will introduce these three components, which are also explai
 \begin{figure}[h]
 \label{sys-arch}
 \centering
- \includegraphics[width=\columnwidth]{figs/sys-arch.pdf}
+ \includegraphics[scale=0.35]{figs/sys-arch.pdf}
  \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded.\reminder{What's the difference between dotted lines and solid lines? Add stale result and update-to-data result into the figure?}}
 \end{figure}
 
@@ -125,7 +125,7 @@ record must link to one video in the video table.
 
 \begin{figure}[h] 
 \centering
- \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}\label{example-1}
+ \includegraphics[scale=0.40]{figs/sample-clean-example.png}\label{example-1}
  \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.}
 \end{figure}
 
@@ -153,4 +153,3 @@ That means for 5\% of the videos (distinct videoID's) we refresh stale maxRespon
 From this sample, we calculate how many new videos changed from a maxResponseTime of less than 100ms to times greater than 100ms; let us suppose this answer is $2$.
 Since our sampling ratio is 5\%, we extrapolate that $10$ new videos throughout the view should now be included in the count, resulting in the estimate of $25$.
 In contrast, if we had applied SAQP, we would have counted how many videos in the sample had a max response time of greater than 100ms.
-In our experiments (Section \ref{exp}), we show that our correction approach compared to SAQP is more accurate when number of updated rows is small compared to the total size of the materialized view.
