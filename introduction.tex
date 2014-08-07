@@ -12,87 +12,46 @@ also called incremental maintenance, has been well studied \cite{gupta1995mainte
 Unfortunately, in many desired applications, incremental maintaining the view for every incoming update can be very costly. 
 When the base tables change rapidly, the database system has to propagate each update to all of the materialized views.
 Consequently, there are many techniques that defer updating the views to a later time or trigger the updates only when neccessary \cite{chirkova2011materialized, zhou2007lazy}.
-Deferral allows for many advantages such as batching updates together amortize overheads and scheduling updates at times when there are more system resources available eg. at night.
+Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available eg. at night.
 Deferral strategies provide increased flexibility to meet the resource constraints of the system, but may not guarantee that the views will always be up-to-date.
 When a materialized view is out-of-date during a maintenance gap, queries issued to the view can have \emph{stale} results. 
 
-In this work, we address the incremental maintenance problem and the problem of stale results from a different perspective.
+In this work, we address the incremental maintenance problem from a different perspective.
 We explore whether refreshing stale rows in a materialized view can be modeled as data cleaning problem and whether stale query results can be ``cleaned".
 While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
 there has been an increasing trend of considering the costs of data cleaning \cite{wang1999sample}.
-In particular, these approaches clean a small, representative sample of records and then use that information to extrapolate results for an entire dataset.
-This new perspective raises an intruiging possibility, namely, that staleness can be modeled as a type of data error, 
-and perhaps, we can correct stale query results by observing how the updates affect a small sample of rows in the materialized view; 
-avoiding the need to maintain the entire materialized view.
-While this approach introduces approximation error inherrent to sampling, this error for aggregate queries on the materialized view such as SUM, COUNT, and AVG, 
-can be probabilistically bounded within confidence intervals.
-Existing techniques allow the user to control the freshness of queries by chosing maintenance parameters (eg. nightly maintenance vs. hourly maintenance) based on prior experience, however, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
+In particular, recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of records.
+This model raises an intruiging possibility for materialized views, namely, that a sample of up-to-date data can be used to answer aggregate queries without having the maintain the entire materialized view.
+In our proposed approach, given a stale query result, we sample updates to the materialized view, and we use the sample to estimate a correction to compensate for the effects of the new updates thus ``cleaning" the dirty result.
+While approximate, the corrected query result can be bounded withing confidence intervals.
+Existing techniques allow the user to control the freshness of queries by chosing maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience, however, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
 On the other hand, our approach gives results that are, in expectation, always fresh and the user controls the tightness of the bound with the sampling ratio.
 %The SampleClean project [?] studied a related problem of bounding aggregate queries on dirty datasets but did not consider materialized views or the effect of missing records.
 
-Our approach has three components: (1) sampling, (2) outlier indexing, and (3) correction. In (1), we sample the updates to the view in a way that ensures that the sample is representative of the up-to-date data. Updates can affect different classes of views differently, and we define a logical unit called an ``update pattern" which represents how an update affects the derived view. Our system maintains a sample of the ``update patterns" and uses this sample to derive a correction. (2) Sampling has the potential to mask outliers, and in fact, it is known
+Our approach has three components: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we sample the updates to the view in a way that ensures that the sample is representative of the up-to-date data. Updates can affect different classes of views differently, and we define a logical unit called an ``update pattern" which represents how an update affects the derived view. Our system maintains a sample of the ``update patterns" and uses this sample to derive a correction. (2) we use the sampled update pattern to derive a correct aggregate queries on stale materialized views.
+From the sample, we estimate how much the updates affect the query in question and we use this estimate to adjust the query result when applied to a stale view.
+Finally, in (3) sampling has the potential to mask outliers, and in fact, it is known
 heavy-tailed distributions are poorly approximated from samples \cite{chaudhuri2001overcoming}.
 In this framework, we utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample.
 Coupling outlier detection with sampling has an interesting implication; not only can we answer exact selection queries on the outliers, but
 the information from the outliers can potentially improve query accuracy or likewise reduce the number of needed samples.
-Finally, in (3) we use the sampled update pattern and the outlier index to derive a correct aggregate queries on stale materialized views.
-From the sample, we estimate how much the updates affect the query in question and we use this estimate to adjust the query result when applied to a stale view.
 
 Our approach can be implemented with a relatively small overhead: at maintenance time the generation of random numbers to build the sample, and at query execution time single pass over a small sample of data to estimate a correction for the query.
 Consequently, sampling can significantly save on maintenance costs and give a flexible tradeoff between accuracy and performance.
+To summarize, our contributions are as follows:
+\begin{itemize}
+  \item We model the incremental maintenance problem as a data cleaning problem and propose a technique to approximately clean stale results; providing a flexible tradeoff between accuracy and performance.
+  \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.
+  \item We analyze the costs of our approach and show analytically and empirically that it can result in dramatic reductions in view maintenance time.
+  \item We evalaute our approach on real and synthetic datasets and in both the single node and distributed environments.
+\end{itemize}
 
-To summarize, existing literature proposes the following approaches for this problem: 
-\vspace{1em}
-
-\noindent\textbf{Re-calculation: }
-The most basic solution to address out-of-date materialized views is to periodically 
-recalculate the entire view when the base tables have been updated (ie. re-execute the query on the entire dataset).
-This approach can be very inefficient especially when the updates to the base table have only a small effect on the pre-computed result.
-On the other hand, this approach requires no additional processing when records in the base table are updated.
-For example, we may have user activity logs or sensors constantly feeding data to be inserted into our base table and incremental maintenance 
-may place a bottleneck on each insertion as derived views need to be updated.
-Furthermore, this approach is very easy to implement especially in systems such as Apache Spark or Hive which do not support
-selective updates. 
-
-\vspace{1em}
-
-\noindent\textbf{Immediate Incremental Maintenance: }
-Another possible solution is maintaining the view \emph{immediately}, that is, for every incoming update
-immediately propagate the changes to the materialized view.
-This solution guarantees that the view will always be up-to-date, but this can be very costly.
-Updating the views becomes a bottleneck for each update and limits the write-throughput to the base table.
-
-\vspace{1em}
-
-\noindent\textbf{Periodic or Deferred Maintenance: }
-It may be infeasible to keep the materialized view up-to-date for every incoming update.
-One solution is to defer the maitenance to a time when more resources are avaible, eg. nightly.
-Depending on the deferral peiod, these approaches can lead to long periods of stale query results.
-Like periodic re-calculation, this removes the bottleneck for updates to the base table.
-
-\vspace{1em}
-
-\noindent\textbf{SAQP: }
-Estimating the results of aggregate queries from samples has been
-well studied in a field called Sample-based Approximate Query Processing
-(SAQP). On the other hand, our approach differs from SAQP as we look to
-approximately correct a query rather than directly estimating the query result.
-In other words, we use a sample of up-to-date data to understand how to compensate for the
-staleness. The SAQP approach to this problem, would be to
-estimate the result directly from the maintained sample; a sort of
-SAQP scheme on the sample of the view \cite{joshi2008materialized}. We found that estimating
-a correction and leveraging an existing deterministic result lead
-to lower variance results on real datasets (see Section \ref{exp}). We analyze
-the tradeoffs of these techniques in the following sections.
-
-\vspace{1em}
-
-In the space of existing approahces, our system lies in between freshness guarantees of immediate maintenance and the performance of deferred maintenance.
-The user sets the sampling ratio to meet either their desired performance and throughput level or accuracy of their query results.
-Our proposed approach will be complementary to a periodic maintenance or re-calculation approach.
-We envision the scenario where materialized views are being refreshed periodically eg. nightly.
-While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale maintenance with the performance and resource constraints during the day.
-Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
+The paper is organized in the following way. 
+In Section \ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
+Next, in Section \ref{sec-arch}, we give a brief overview of our overall system architecture.
+In Section \ref{sampling} and \ref{correction}, we describe the mathematics and query processing of our technique.
+In Section \ref{outlier}, we describe the outlier indexing framework.
+Finally in Section \ref{exp}, we evalaute our approach.
 
 \iffalse
  These two pieces can be costly in different
