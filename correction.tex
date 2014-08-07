@@ -14,8 +14,8 @@ We first formalize the update patterns in Section~\ref{subsec:pattern}, and then
 
 
 \subsection{Update Patterns}\label{subsec:pattern}
-An \emph{update pattern} represents how an update to the base table affects a materialized view derived from that table.
-We define this information to be such that if we did not sample (ie. 100\% sample) the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
+An \emph{update pattern} represents how an update to a base table affects a materialized view derived from that table.
+We define this information to be such that if we took a 100\% sample the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
 In our model, there are three possible update patterns. (1)~Insert a new record into a view;
 (2)~Update attribute values of an existing record; (3)~Keep an existing record unchanged.
 Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
