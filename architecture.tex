@@ -1,17 +1,16 @@
 \section{System Overview}\label{sec-arch}
-We motivated how frequent incremental maintenance of materialized views can be challenging given system resource constraints.
-Materialized view maintenace techniques lie on a spectrum of freshness and performance.
-To navigate this spectrum, only option for the user is to change the maintenance period from eg. daily, hourly, or immediately. \reminder{Is this the only option? Be careful of saying "only"}
-However, this parameter is constrained by what can be processed by the system and can be only tuned by prior experience. \reminder{The parameter of sampling ratio seems also have this issue. }
-Unexpected updates can easily lead to results that are more stale than the user anticipated.
+Frequent incremental maintenance of materialized views can be challenging given system resource constraints.
+Existing materialized view maintenance techniques lie on a spectrum of freshness and performance.
+Immediate maintenance guarantees that query results on the view will always be fresh, while batch maintenance allows for a higher throughput of updates to the base table.
+For existing techniques, the choice of maintenance strategy, for example the period of maintenance, is dictated by the system, throughput demands to the base table, and available resources for processing updates.
 
-Modeling this as data cleaning problem can allow us to change the spectrum from freshness vs. performance to accuracy vs. performance.
-Rather using the maintenance period to select how many updates to propagate at a time, we sample the queued up updates.
-Sampling gives us an additional degree of freedom to satisfy the system constraints for any maintenance period.
-We use a sample of up-to-date (clean) data to estimate how much that data changes the stale query result, thus deriving a correction term which can ``clean" the query.
-For aggregation queries (SUM, COUNT, AVG) \reminder{Use the commands for \sumfunc, \countfunc, and \avgfunc} on the materialized view, we can bound these estimates in confidence intervals which allow the user to understand how far they are from the exact answer even in the presence of unexpected updates.
-Thus, our results are never stale; \reminder{This claim is a little strong. Since we do batch job, is it also possible for us to give stale results?} they have some inaccuracy introduced by the sampling ratio but in expectation they are correct.
-Furthermore, we also prove that this correction term is the optimal linear unbiased estimate for SUM, COUNT, and AVG.
+Sampling, however, gives us an additional degree of freedom to satisfy the system constraints.
+Rather than just tuning the freshness (e.g. hourly vs. nightly updates), the user can additionally set the sampling ratio adjusting the accuracy of queries issued to the views.
+While query results on out-of-date views can be arbitrarily stale, the approximation error introduced by sampling is bounded for some aggregation queries ( \sumfunc, \countfunc, and \avgfunc).
+We use the sample of up-to-date (clean) data to estimate how much that data changes the stale query result, thus deriving a correction term which can ``clean" the query.
+
+%Thus, our results are never stale; \reminder{This claim is a little strong. Since we do batch job, is it also possible for us to give stale results?} they have some inaccuracy introduced by the sampling ratio but in expectation they are correct.
+%Furthermore, we also prove that this correction term is the optimal linear unbiased estimate for SUM, COUNT, and AVG.
 
 In implementation, our proposed system will work in conjunction with existing maintenance or re-calculation approaches.
 We envision the scenario where materialized views are being refreshed periodically eg. nightly.

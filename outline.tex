@@ -80,12 +80,12 @@ Materialized views can become out-date when base tables change and any queries i
 Maintaining materialized views has been well studied but is often very costly.
 In this work, we model the view maintenance problem as a data cleaning problem and treat a stale row in a materialized view as a type of data error.
 In particular, we construct a small representative sample of updates to a materialized view and infer how these updates affect a query on a the stale view.
-For common aggregate queries (SUM, COUNT, AVG), we can derive a correction from the sample to ``clean" the stale query result.
+For common aggregate queries (\sumfunc, \countfunc, and \avgfunc), we can derive a correction from the sample to ``clean" the stale query result.
 We bound our corrections in analytic confidence intervals, and in fact, we show that our technique is optimal with respect to estimate variance.
 As sampling can be senstive to long-tailed distributeions, we further consider an outlier indexing technique to give increased accuracy when the data distributions are skewed.
 We evaluate this approach on real and synthetic datasets and in both a single node (MySQL) and distributed environment (Apache Spark).
 In one large scale experiment using 20-node Apache Spark cluster, we derived a 700,000,000 row view from a 1TB activity log base dataset.
-We found that maintaining a 5\% sample was 16.3x faster than full incremental maintenance yet only with mean query error of 1.2\%.
+We found that maintaining a 5\% sample was 16.3x faster than full maintenance yet only with mean query error of 1.2\%.
 \end{abstract}
 
 \input{introduction.tex}

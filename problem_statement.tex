@@ -95,9 +95,9 @@ In SAQP, the sample becomes the dataset and queries are applied directly to the 
 However, in NormalizedSC, queries are still applied to the original unsampled and dirty base data.
 The algorithm cleans a sample of data and then uses this information to correct the query result on the dirty data.
 
-Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for SUM, COUNT, and AVG queries.
+Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for  \sumfunc, \countfunc, and \avgfunc queries.
 In comparision to SAQP, this approach gives more accurate results in datasets where errors are sparse since the correction will be small.
-Inspired by this solution, we apply a data cleaning cleaning approach to materialized views where for aggregate queries (SUM, COUNT, AVG), we correct their stale results from a sample of up-to-date data.
+Inspired by this solution, we apply a data cleaning cleaning approach to materialized views where for aggregate queries (\sumfunc, \countfunc, and \avgfunc), we correct their stale results from a sample of up-to-date data.
 
 \subsection{SAQP}
 Estimating the results of aggregate queries from samples has been
