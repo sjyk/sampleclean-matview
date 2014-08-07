@@ -94,16 +94,14 @@ For selection queries, we must simply check to see if the record satisfying the 
 While the outlier index is small, outliers (and their derived materialized view rows) are often the records that
 we want to query.
 
-\reminder{Make this consistent with JW's notation}
-We can also incorporate the outliers into our estimates of the correction
-$\epsilon$ for aggregation queries. By guaranteeing that certain rows are in the index, we
+We can also incorporate the outliers into our correction estimates. 
+By guaranteeing that certain rows are in the index, we
 have to merge a deterministic result (set of outlier rows) with the
-estimate. One way to think of this is that we have $\epsilon$ is
-calculated from the set of records that are not outliers. Let $|V_{T}^{'}|$
-be the size of the updated view, $l$ be the number of rows in the
-outlier index, and let $D_{o}$ be the set of differences (as defined
-in Section ?) for the rows in the outlier index. We can update $\epsilon$
-with the outlier information by:
+estimate. One way to think of this is that we have $\dans$ is
+calculated from the set of records that are not outliers. Let $\dans_{cnt} + \ans_{cnt}$
+be the size of the updated view, and $l$ be the number of rows in the
+outlier index. Furthermore, let $\dans(o)$ be the delta answer calculated on only the outliers.
+We can update $\dans$ with the outlier information by:
 \[
-\frac{|V_{T}^{'}|}{|V_{T}^{'}|-l}\epsilon+c\cdot f(D_{o})
+\frac{\dans_{cnt} + \ans_{cnt}-l}{\dans_{cnt} + \ans_{cnt}}\ans+\frac{l}{\dans_{cnt} + \ans_{cnt}}\dans(o)
 \]

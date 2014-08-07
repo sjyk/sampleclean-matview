@@ -1,4 +1,6 @@
-\section{Background}
+\section{Background}\label{sec-background}
+
+\subsection{Incremental Maintenace Techniques}
 Incremental maintenance of materialized views is well studied, see \cite{chirkova2011materialized} for a survey of the approaches. 
 Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
@@ -30,7 +32,7 @@ Refer to [?] for details.
 %only insertions into the database and defer analysis of updates
 %and deletions for future work.
 
-\subsection{Scheduling Maintenance}
+\subsection{Maintenance Strategies}
 While often less expensive than recomputing a materialized view,
 incremental maintenance can still be costly.
 Materialized views are growing larger and are more frequently 
@@ -95,7 +97,19 @@ The algorithm cleans a sample of data and then uses this information to correct 
 
 Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for SUM, COUNT, and AVG queries.
 In comparision to SAQP, this approach gives more accurate results in datasets where errors are sparse since the correction will be small.
-The idea of query correction is suited for the materialized view setting where if the views are very large updates may affect only a small fraction of rows in the view.
-In this work, we apply a similar idea to use sampling to learn how the updates affect a given query, then use that information to correct the query so it is up-to-date.
+Inspired by this solution, we apply a data cleaning cleaning approach to materialized views where for aggregate queries (SUM, COUNT, AVG), we correct their stale results from a sample of up-to-date data.
+
+\subsection{SAQP}
+Estimating the results of aggregate queries from samples has been
+well studied in a field called Sample-based Approximate Query Processing
+(SAQP). On the other hand, our approach differs from SAQP as we look to
+approximately correct a query rather than directly estimating the query result.
+In other words, we use a sample of up-to-date data to understand how to compensate for the
+staleness. The SAQP approach to this problem, would be to
+estimate the result directly from the maintained sample; a sort of
+SAQP scheme on the sample of the view \cite{joshi2008materialized}. We found that estimating
+a correction and leveraging an existing deterministic result lead
+to lower variance results on real datasets (see Section \ref{exp}). We analyze
+the tradeoffs of these techniques in the following sections.
 
 
