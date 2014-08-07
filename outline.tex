@@ -102,8 +102,7 @@ For common aggregate queries (\sumfunc, \countfunc, and \avgfunc), we can derive
 We bound our corrections in analytic confidence intervals, and prove that our technique is optimal with respect to estimate variance.
 As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed.
 We evaluate our method on real and synthetic datasets and in both a single node (MySQL) and distributed environment (Apache Spark).
-In one large scale experiment using 20-node Apache Spark cluster, we derived a 700 million row view from a 1TB activity log base dataset.
-We found that maintaining a 5\% sample was 16.3x faster than full maintenance yet only with mean query error of 1.2\%. 
+In one large scale experiment, using a 20-node Apache Spark cluster, we derived a 700 million row view from a 1TB activity log base dataset. We found that maintaining a 5\% sample was 16.3x faster than full maintenance yet only with mean query error of 1.2\%. 
 \end{abstract}
 
 

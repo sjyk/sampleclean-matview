@@ -17,6 +17,13 @@ We fix the sampling ratio of SAQP and our approach to be the same so they will h
 For performance, we measure the maintenance time as the time required to calculate the delta view and then refresh the materialized view for a batch of updates.
 As a baseline, we compare the performance to full incremental maintenance.
 
+\begin{figure*}[ht!]
+\label{exp2update}
+\centering
+ \includegraphics[scale=0.27]{exp/exp2-full.eps}
+ \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. }
+\end{figure*}
+
 \subsection{Experimental Setting}
 \subsubsection{TPCD-Skew}
 The first dataset, TPCD-Skew dataset, is based on the Transaction Processing Council's benchmark
@@ -69,13 +76,6 @@ In the first experiment, for each of the three views listed above, we evaluate t
 We measure accuracy by using the average relative query error for a set of 10000 randomly generated aggregation queries on each view.
 We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500000 records to a final count of 8000000 records (1.3GB).
 In Figure \ref{exp2udpate}, we show the results of the experiment. 
-
-\begin{figure*}[ht!]
-\label{exp2update}
-\centering
- \includegraphics[scale=0.27]{exp/exp2-full.eps}
- \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. }
-\end{figure*}
 
 The results highlight an important point comparing the accuracy of SAQP to our approach. 
 The accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
@@ -169,7 +169,7 @@ We evaluated the relative error for each query.
 
 \begin{figure}[ht!]
 \label{exp3dist}
-\hspace{-2em}
+\hspace{-3.7em}
  \includegraphics[scale=0.21]{exp/exp3-query-error-dist.eps}
  \caption{On the x-axis is the accuracy of our approach and on the y-axis is the error if the query was not maintained. We find that there are many outlier queries results--motivating the need for outlier indexing.}
 \end{figure}
