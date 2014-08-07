@@ -62,19 +62,19 @@ For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ a
   %\multicolumn{4}{|c|}{A set $\Lambda$ of $\ar$s} \\ \hline\hline
    \hline
                 & \bf{\specialcell{\spview \& \fjview}} & \bf{\aggview} \\ \hline \hline
-   \sumfunc     &  $\ans_{sum}+\dans_{sum}/\alpha$ &   $\ans_{sum}+\dans_{sum}/\alpha$        \\ \hline 
-   \countfunc   &  $\ans_{cnt}+\dans_{cnt}/\alpha$ &   $\ans_{cnt}+\dans_{cnt}/\alpha$       \\ \hline 
-   \avgfunc     &  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\alpha)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\alpha)}$                                &     $\ans_{avg}+\dans_{avg}$     \\ \hline 
+   \sumfunc     &  $\ans_{sum}+\dans_{sum}/\ratio$ &   $\ans_{sum}+\dans_{sum}/\ratio$        \\ \hline 
+   \countfunc   &  $\ans_{cnt}+\dans_{cnt}/\ratio$ &   $\ans_{cnt}+\dans_{cnt}/\ratio$       \\ \hline 
+   \avgfunc     &  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$                                &     $\ans_{avg}+\dans_{avg}$     \\ \hline 
 \end{tabular}
 \end{table}
 
 After obtaining delta query results, we next discuss how to use them to correct stale query results. Table~\ref{tbl:query-correct} shows the corrected results of  the \sumfunc, \countfunc, and \avgfunc queries. 
 
-To correct a \sumfunc query result, we cannot simply add it by the delta query result (i.e., $\ans_{sum}+\dans_{sum}$) since the delta query result is computed on the sample update patterns. Thus, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the rescaled value, i.e., $\ans_{sum}+\dans_{sum}/\alpha$. 
+To correct a \sumfunc query result, we cannot simply add it by the delta query result (i.e., $\ans_{sum}+\dans_{sum}$) since the delta query result is computed on the sample update patterns. Thus, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the rescaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
 
-To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\alpha$.
+To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
 
-To correct an \avgfunc query result, we can think about the process as computing a weighted average value between a stale view and update patterns. In a stale view, $\ans_{avg}$ is the average value over $\ans_{cnt}$ records\footnote{\small $\ans_{cnt}$ denotes the number of records that satisfy the \avgfunc query's condition, which can be easily obtained from computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ is the average value over $\dans_{cnt}$ records. Since the value is computed on a sample, its weight is $\dans_{cnt}/\alpha$. Therefore, the corrected \avgfunc query result is computed as  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\alpha)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\alpha)}$.
+To correct an \avgfunc query result, we can think about the process as computing a weighted average value between a stale view and update patterns. In a stale view, $\ans_{avg}$ is the average value over $\ans_{cnt}$ records\footnote{\small $\ans_{cnt}$ denotes the number of records that satisfy the \avgfunc query's condition, which can be easily obtained from computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ is the average value over $\dans_{cnt}$ records. Since the value is computed on a sample, its weight is $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
 
 
 
@@ -91,40 +91,22 @@ d
 
 %\begin{lstlisting}[mathescape,basicstyle={\scriptsize}] 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{sum} = $ SELECT $ \sumfunc\Big(a_{new}\cdot\textrm{Condition}(A_{new})-$
-$~~~~~~~~~~~~~~~$$a_{old}\cdot\textrm{Condition}(A_{old})\Big)$ FROM $\textrm{sample\_update\_patterns}$;
+$\dans_{sum} = $ SELECT $ \sumfunc\big(a_{new}*\textrm{Cond}(A_{new})-a_{old}*\textrm{Cond}(A_{old})\big)$ 
+$~~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
 \end{lstlisting}
 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{sum} = $ SELECT $ \sumfunc\Big(\textrm{Condition}(A_{new})-\textrm{Condition}(A_{old})\Big)$ FROM $\textrm{sample\_update\_patterns}$;
-\end{lstlisting}
-
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{sum} = $ SELECT 
-$~~~~~~~~~~~~~~~~$$\sumfunc\Big(a_{new}\cdot\textrm{Condition}(A_{new})-a_{old}\cdot\textrm{Condition}(A_{old})\Big)$
-$~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
+$\dans_{cnt} = $ SELECT $ \sumfunc\big(\textrm{Cond}(A_{new})-\textrm{Cond}(A_{old})\big)$ 
+$~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$;
 \end{lstlisting}
 
 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{sum} = $ SELECT 
-$~~~~~~~~~~~~~~~~$$\sumfunc\Big(\textrm{Condition}(A_{new})-a_{old}\cdot\textrm{Condition}(A_{old})\Big)$
-$~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
+$\dans_{avg} = $ SELECT $ \frac{\sumfunc\big(a_{new}*\textrm{Cond}(A_{new})-a_{old}*\textrm{Cond}(A_{old})\big)}{\sumfunc\big(\textrm{Cond}(A_{new})\big)}$ 
+$~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
 \end{lstlisting}
 
-\vspace{-.25em}
 
-\begin{lstlisting}[mathescape]
-$\dans_{cnt} = $ SELECT $\countfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ $~~~~~~~~~$WHERE Condition(A);
-\end{lstlisting}
-
-\vspace{-.25em}
-
-\begin{lstlisting}[mathescape]
-$\dans_{avg}, \dans_{cnt} = $ SELECT $\avgfunc(a)$, $\countfunc(a)$ 
-$~~~~~~~~~~~~~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$
-$~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A);
-\end{lstlisting}
 
 \vspace{-.25em}
 

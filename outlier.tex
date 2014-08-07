@@ -21,10 +21,12 @@ than the mean.
 As a result, answering queries such as SUM, COUNT, AVG may require a large 
 sample size for sufficient accuracy.
 
+
+
 Our solution is to build an outlier index on the base table similar to that proposed in prior work \cite{chaudhuri2001overcoming}.
 We extend this work to the context of materialized views where the outlier index guarantees
 that rows in the view derived from the outlier base record are included in the sample.
-However, the materialized view setting poses a few new challenges: (1) we can take only
+However, the materialized view setting poses many new challenges: (1) we can take only
 a single pass of the updates, (2) outliers must be indexed from the base relations, and
 (3) the approach should scale with the update rate.
 We address these challenges by allowing for user specified thresholds on attributes in the base table, and possibly a storage size constraint.
