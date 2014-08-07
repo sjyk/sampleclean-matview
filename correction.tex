@@ -125,7 +125,7 @@ determine which records are new insertions and which correspond to existing reco
 %Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $\ratio \cdot \delta_v$ rows. 
 \end{itemize}
 
-Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\ratio$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $\cost_{hash}(n)$). However, as shown in our experiments (Section~??), even with the additional overhead, our sampling techniques can still run orders of magnitude faster than incremental view maintenance. \reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
+Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\ratio$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $\cost_{hash}(n)$). However, as shown in our experiments (Section~??), even with the additional overhead, our sampling techniques can still run orders of magnitude faster than incremental view maintenance. %\reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
 
 \iffalse
 We enforce the hash function to each group-by key of the \aggview and return those groups, as $S_{V}$, such that $\hashfunc{\textrm{``group-by key"}} \leq \ratio$. Obviously, $S_{V}$ is a random sample of the \aggview with the sampling ratio of $\ratio$. 
