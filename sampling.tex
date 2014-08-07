@@ -29,20 +29,20 @@ Since both of the update patterns of \spview and \fjview only consist of inserte
 
 \vspace{-.25em}
 
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 $\dans_{sum} = $ SELECT $\sumfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ 
 $~~~~~~~~~~~~~~~$ WHERE Condition(A);
 \end{lstlisting}
 
 \vspace{-.25em}
 
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 $\dans_{cnt} = $ SELECT $\countfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ $~~~~~~~~~$WHERE Condition(A);
 \end{lstlisting}
 
 \vspace{-.25em}
 
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 $\dans_{avg}, \dans_{cnt} = $ SELECT $\avgfunc(a)$, $\countfunc(a)$ 
 $~~~~~~~~~~~~~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$
 $~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A);
@@ -74,19 +74,14 @@ To correct a \sumfunc query result, we cannot simply add it by the delta query r
 
 To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
 
-To correct an \avgfunc query result, we can think about the process as computing a weighted average value between a stale view and update patterns. In a stale view, $\ans_{avg}$ is the average value over $\ans_{cnt}$ records\footnote{\small $\ans_{cnt}$ denotes the number of records that satisfy the \avgfunc query's condition, which can be easily obtained from computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ is the average value over $\dans_{cnt}$ records. Since the value is computed on a sample, its weight is $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
+To correct an \avgfunc query result, we can imagine it as computing a weighted average value between a stale view and update patterns. In a stale view, $\ans_{avg}$ is the average value over $\ans_{cnt}$ records\footnote{\small $\ans_{cnt}$ denotes the number of records that satisfy the \avgfunc query's condition, which can be easily obtained from computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ is the average value over $\dans_{cnt}$ records. Since the value is computed on a sample, its weight is $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
 
 
 
 
 \subsubsection{Aggregation View}\label{subsubsec:correct-agg}
-
-
-SUM/ COUNT/ AVG
-
-Cost analysis
-d
-
+The update patterns of \aggview contain the information that how every old record should be changed to a new one. Given the query as shown in Section~\ref{subsec:correct-principle}, let $a_{old}$ ($a_{new}$) denote the old (new) attribute in the update patterns corresponding to $a$; let $A_{old}$ ($A_{new}$) denote the old (new) attribute set in the update patterns corresponding to $A$.
+For a single update pattern, we use $\cond(A_{old}) = 1$ ($\cond({A_{new}}) = 1$) to denote that the old (new) record satisfies the query condition; otherwise, $\cond({A_{old}}) = 0$ ($\cond({A_{new}}) = 0$). The following show the rewritten queries of getting the delta query result for each aggregation function. 
 
 
 %\begin{lstlisting}[mathescape,basicstyle={\scriptsize}] 
@@ -102,13 +97,12 @@ $~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$;
 
 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{avg} = $ SELECT $ \frac{\sumfunc\big(a_{new}*\textrm{Cond}(A_{new})-a_{old}*\textrm{Cond}(A_{old})\big)}{\sumfunc\big(\textrm{Cond}(A_{new})\big)}$ 
-$~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
+$\dans_{avg} = $ SELECT $
+\frac{\sumfunc\big(a_{new}*\textrm{Cond}(A_{new})\big)}{\sumfunc\big(\textrm{Cond}(A_{new})\big)}- \frac{\sumfunc\big(a_{old}*\textrm{Cond}(A_{old})\big)}{\sumfunc\big(\textrm{Cond}(A_{old})\big)}$ 
+$~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
 \end{lstlisting}
 
-
-
-\vspace{-.25em}
+Intuitively, a delta query result tells us how data updates will affect the query result on an old (i.e., a stale) sample \aggview. Thus, it is computed as the difference between the query results on a stale sample \aggview and an updated sample \aggview. To use it to correct a stale query result (Table~\ref{tbl:query-correct}), for the \sumfunc query, since the \sumfunc difference is computed on a sample, we need to scale it by the sampling ratio and add the stale query result by the scaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$; for the \countfunc query, since a \countfunc query can be taken a special case of a \sumfunc query, similar to the \sumfunc query, we have $\ans_{count}+\dans_{count}/\ratio$; for the \avgfunc query, since the \avgfunc difference on a sample is an unbiased estimation of the \avgfunc difference on the full data, we add the stale query result by the delta query result directly, i.e., $\ans_{avg}+\dans_{avg}$.
 
 
 \input{practical-subsec.tex}
