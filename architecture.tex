@@ -1,13 +1,17 @@
 \section{System Overview}\label{sec-arch}
 Frequent incremental maintenance of materialized views can be challenging given system resource constraints.
-Existing materialized view maintenance techniques lie on a spectrum of freshness and performance.
-Immediate maintenance guarantees that query results on the view will always be fresh, while batch maintenance allows for a higher throughput of updates to the base table.
-For existing techniques, the choice of maintenance strategy, for example the period of maintenance, is dictated by the system, throughput demands to the base table, and available resources for processing updates.
+Existing materialized view maintenance techniques lie on a spectrum of accuracy and performance.
+Immediate maintenance guarantees that query results on the view will always be accurate, while batch maintenance allows for a higher throughput of updates to the base table.
+These two techniques sit at the extremes of the spectrum since they still require that all updates are processed and propagated to the view.
 
-Sampling, however, gives us an additional degree of freedom to satisfy the system constraints.
-Rather than just tuning the freshness (e.g. hourly vs. nightly updates), the user can additionally set the sampling ratio adjusting the accuracy of queries issued to the views.
-While query results on out-of-date views can be arbitrarily stale, the approximation error introduced by sampling is bounded for some aggregation queries ( \sumfunc, \countfunc, and \avgfunc).
-We use the sample of up-to-date (clean) data to estimate how much that data changes the stale query result, thus deriving a correction term which can ``clean" the query.
+Modeling this problem as a data cleaning problem gives us a new perspective for addressing staleness.
+When updates arrive, rows in the materialized view may be either out-of-date or missing altogether; making the view ``dirty".
+The challenge is to clean the materialized view by updating the out-of-date rows and inserting the missing rows, however this can be very expensive if there are a large number of updates.
+Suppose, we cleaned one dirty row at a time processing only as much of the updates as neccessary to clean the row.
+Then, for queries on the view, we get progressively less stale results for a lesser cost.
+With this intuition in mind, to ensure that our result is unbiased, we clean a random sample of dirty rows.
+For aggregate queries, such as \sumfunc, \countfunc, and \avgfunc, we can then estimate from this sample how the updates change the query results.
+From this estimate, we can derive a correction to stale query results.
 
 %Thus, our results are never stale; \reminder{This claim is a little strong. Since we do batch job, is it also possible for us to give stale results?} they have some inaccuracy introduced by the sampling ratio but in expectation they are correct.
 %Furthermore, we also prove that this correction term is the optimal linear unbiased estimate for SUM, COUNT, and AVG.
@@ -17,19 +21,12 @@ We envision the scenario where materialized views are being refreshed periodical
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale maintenance with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
 
-However, an additional challenge is that sampling has the potential mask outliers in the updates.
-Since, we cannot answer selection queries on the view, we may miss outlier rows either because they were not sampled or because
-they are averaged into an aggregation query \reminder{I did not get the second reason}.
-We address this problem by using an ``outlier index" which is similar ones used in other works [?]. \reminder{When you say ``similar", it is better to give the difference. For example, you can say: We address this problem by using an ``outlier index", where the similar idea has also been applied in a SAQP setting.}
-The ``outlier index" is an index on the base table which stores records with abnormal attribute values, where abnormality is defined by user specified ranges.
-Therefore, we couple our sampling with outlier indexing to guarantee that rows in the materialized views derived outlier base table records are in the sample. \reminder{I did not get the meaning of this sentence.}
-The result is that we can answer selection queries exactly on these outlier rows which are often the most queried rows in the materialized view.
-What is particularly surprising is that outliers can give valuable information about the data distribution and these can be used to improve the accuracy of our aggregation queries as well.
+An additional challenge is that sampling has the potential mask outliers in the updates.
+We address this problem by using an ``outlier index" which has been applied in the SAQP setting \cite{chaudhuri2001overcoming}. 
 
 \subsection{System Architecture}
 The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
-The top of the diagram resembles a typical materialized 
-view maintenance architecture.
+The top of the diagram resembles a typical materialized view maintenance architecture.
 However, there are a couple of key additions: (1) as updates arrive we sample the ``update pattern". 
 (2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
 In this section, we will introduce these three components, which are also explained in much more detail in the following sections.
@@ -42,19 +39,42 @@ In this section, we will introduce these three components, which are also explai
 \end{figure}
 
 \subsubsection{Supported Materialized Views}\label{subsubsec:supported-view}
-In this work, we correct aggregate queries (SUM, COUNT, AVG) on stale materialized views.
 We will first introduce the taxonomy of materialized views that can benefit from our approach. 
+In this paper, we analyze and experiment with three classes of views: Select-Project Views, Foreign-key Join Views, and Aggregation Views.
+Our technique can be applied to a broader class of views, please refer to [?] for a full description.
 \vspace{1em}
 
-\noindent\textbf{Select-Project Views (\spview): } We can support all views that are derived from Select and Project operations. 
+\noindent\textbf{Select-Project Views (\spview): } One type of view that we consider are views generated from Select-Project
+expressions of the following form:
+
+\begin{lstlisting}
+SELECT [col1,col2,...] 
+FROM table 
+WHERE condition([col1,col2,...]) 
+\end{lstlisting}
 
 \vspace{1em}
 
-\noindent\textbf{Foreign-Key Join Views (\fjview): } As an extension to the Select-Project Views, we can support views derived from a Foreign-Key join. We can sample from the updates to any of the joined tables. Due to the Foreign-Key constraint, we ensure that sampling from the updates is sufficient to ensure the join can be executed. \reminder{I have talked about how to sample update patterns for \fjview in Sec 4. I think you can remove this part.}In this work, we do not consider all possible joins since for joins without Foreign-Keys they will, in general, have to scan the entire tables and not just the updates. Furthermore, many-to-one and one-to-many relationships change sampling statistics which complicates the query processing to calculate a correction. \reminder{Is foreing-key join a many-to-one or one-to-many relationship?}
+\noindent\textbf{Foreign-Key Join Views (\fjview): } As an extension to the Select-Project Views, we can support views derived from a Foreign-Key join:
+
+\begin{lstlisting}
+SELECT table1.[col1,col2,...], 
+table2.[col1,col2,...]
+FROM table1, table2 
+WHERE table1.fk = table2.fk 
+AND condition([col1,col2,...]) 
+\end{lstlisting}
 
 \vspace{1em}
 
-\noindent\textbf{Aggregation Views (\aggview): } We also consider views derived from aggregate queries. These queries can have \textbf{WHERE} clause but we do not yet support queries with a \textbf{HAVING} clause.
+\noindent\textbf{Aggregation Views (\aggview): } We also consider views defined by group-by aggregation queries of the following form:
+
+\begin{lstlisting}
+SELECT [f1(col1),f2(col2),...] 
+FROM table 
+WHERE condition([col1,col2,...]) 
+GROUP BY [col1,col2,...]
+\end{lstlisting}
 
 \subsubsection{Sampling the Update Pattern}
 Given these materialized views, the first challenge is sampling.
@@ -90,12 +110,10 @@ See Section \label{outlier} for details on this component.
 
 \subsubsection{Example Application: Log Analysis}
 To illustrate our approach, we use the following running example which is a 
-simplified schema of one of our experimental datasets (Figure \ref{example}). \reminder{Is  \ref{example} correct?}
+simplified schema of one of our experimental datasets (Figure ?).
 Imagine, we are querying logs from a video streaming company. 
 These logs record visits from users as they happen and grow over time.
 We have two tables: Log and Video, with the following schema:
-
-
 
 \begin{lstlisting}[mathescape]
 Log(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
@@ -105,10 +123,9 @@ These tables are related with a foreign-key relationship between
 Log and Video, and there is an integrity constraint that every log
 record must link to one video in the video table.
 
-\begin{figure}[h]
-\label{example}
+\begin{figure}[h] 
 \centering
- \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}
+ \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}\label{example-1}
  \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.}
 \end{figure}
 
@@ -128,9 +145,8 @@ FROM AggView
 WHERE maxResponseTime > 100
 \end{lstlisting}
 Let us suppose the query result is $15$.
-
 \reminder{The example made the point, but it may need to be polished.}
-Now, there have been new logs records inserted into to the Log table. 
+Since the user queried the table, there have been new logs inserted into to the Log table. 
 So materialized aggregation view and the old result of $15$ are now stale.
 For example, if our sampling ratio 5\%, our system maintains a sample of this view.
 That means for 5\% of the videos (distinct videoID's) we refresh stale maxResponseTime if necessary.

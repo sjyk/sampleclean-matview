@@ -21,7 +21,7 @@ We explore whether refreshing stale rows in a materialized view can be modeled a
 While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
 there has been an increasing trend of considering the costs of data cleaning \cite{wang1999sample}.
 In particular, recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of records.
-This model raises an intruiging possibility for materialized views, namely, that a sample of up-to-date data can be used to answer aggregate queries without having the maintain the entire materialized view.
+This model raises a new possibility for materialized views, namely, that a sample of up-to-date data can be used to answer aggregate queries without having the maintain the entire materialized view.
 In our proposed approach, given a stale query result, we sample updates to the materialized view, and we use the sample to estimate a correction to compensate for the effects of the new updates thus ``cleaning" the dirty result.
 While approximate, the corrected query result can be bounded withing confidence intervals.
 Existing techniques allow the user to control the freshness of queries by chosing maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience, however, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
