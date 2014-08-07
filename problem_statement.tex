@@ -1,6 +1,6 @@
 \section{Background}\label{sec-background}
 
-\subsection{}
+\subsection{Incremental Maintenace Techniques}
 Incremental maintenance of materialized views is well studied, see \cite{chirkova2011materialized} for a survey of the approaches. 
 Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
@@ -32,7 +32,7 @@ Refer to [?] for details.
 %only insertions into the database and defer analysis of updates
 %and deletions for future work.
 
-\subsection{Scheduling Maintenance}
+\subsection{Maintenance Strategies}
 While often less expensive than recomputing a materialized view,
 incremental maintenance can still be costly.
 Materialized views are growing larger and are more frequently 
@@ -41,69 +41,6 @@ implemented in distributed systems.
 %can make infeasible to keep the views up-to-date.
 Due to this cost, which we will refer to as the ``maintenance" cost, 
 scheduling the refresh operation has been an important topic of research.
-
-
-
-
-
-existing literature proposes the following approaches for this problem: 
-\vspace{1em}
-
-\noindent\textbf{Re-calculation: }
-The most basic solution to address out-of-date materialized views is to periodically 
-recalculate the entire view when the base tables have been updated (ie. re-execute the query on the entire dataset).
-This approach can be very inefficient especially when the updates to the base table have only a small effect on the pre-computed result.
-On the other hand, this approach requires no additional processing when records in the base table are updated.
-For example, we may have user activity logs or sensors constantly feeding data to be inserted into our base table and incremental maintenance 
-may place a bottleneck on each insertion as derived views need to be updated.
-Furthermore, this approach is very easy to implement especially in systems such as Apache Spark or Hive which do not support
-selective updates. 
-
-\vspace{1em}
-
-\noindent\textbf{Immediate Incremental Maintenance: }
-Another possible solution is maintaining the view \emph{immediately}, that is, for every incoming update
-immediately propagate the changes to the materialized view.
-This solution guarantees that the view will always be up-to-date, but this can be very costly.
-Updating the views becomes a bottleneck for each update and limits the write-throughput to the base table.
-
-\vspace{1em}
-
-\noindent\textbf{Periodic or Deferred Maintenance: }
-It may be infeasible to keep the materialized view up-to-date for every incoming update.
-One solution is to defer the maitenance to a time when more resources are avaible, eg. nightly.
-Depending on the deferral peiod, these approaches can lead to long periods of stale query results.
-Like periodic re-calculation, this removes the bottleneck for updates to the base table.
-
-\vspace{1em}
-
-\noindent\textbf{SAQP: }
-Estimating the results of aggregate queries from samples has been
-well studied in a field called Sample-based Approximate Query Processing
-(SAQP). On the other hand, our approach differs from SAQP as we look to
-approximately correct a query rather than directly estimating the query result.
-In other words, we use a sample of up-to-date data to understand how to compensate for the
-staleness. The SAQP approach to this problem, would be to
-estimate the result directly from the maintained sample; a sort of
-SAQP scheme on the sample of the view \cite{joshi2008materialized}. We found that estimating
-a correction and leveraging an existing deterministic result lead
-to lower variance results on real datasets (see Section \ref{exp}). We analyze
-the tradeoffs of these techniques in the following sections.
-
-\vspace{1em}
-
-In the space of existing approahces, our system lies in between freshness guarantees of immediate maintenance and the performance of deferred maintenance.
-The user sets the sampling ratio to meet either their desired performance and throughput level or accuracy of their query results.
-Our proposed approach will be complementary to a periodic maintenance or re-calculation approach.
-We envision the scenario where materialized views are being refreshed periodically eg. nightly.
-While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale maintenance with the performance and resource constraints during the day.
-Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
-
-
-
-
-
-
 
 There are two principle types of scheduling strategies: immediate and deferred. 
 In immediate maintenance, as soon as a record is updated, 
@@ -160,7 +97,19 @@ The algorithm cleans a sample of data and then uses this information to correct 
 
 Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for SUM, COUNT, and AVG queries.
 In comparision to SAQP, this approach gives more accurate results in datasets where errors are sparse since the correction will be small.
-The idea of query correction is suited for the materialized view setting where if the views are very large updates may affect only a small fraction of rows in the view.
-In this work, we apply a similar idea to use sampling to learn how the updates affect a given query, then use that information to correct the query so it is up-to-date.
+Inspired by this solution, we apply a data cleaning cleaning approach to materialized views where for aggregate queries (SUM, COUNT, AVG), we correct their stale results from a sample of up-to-date data.
+
+\subsection{SAQP}
+Estimating the results of aggregate queries from samples has been
+well studied in a field called Sample-based Approximate Query Processing
+(SAQP). On the other hand, our approach differs from SAQP as we look to
+approximately correct a query rather than directly estimating the query result.
+In other words, we use a sample of up-to-date data to understand how to compensate for the
+staleness. The SAQP approach to this problem, would be to
+estimate the result directly from the maintained sample; a sort of
+SAQP scheme on the sample of the view \cite{joshi2008materialized}. We found that estimating
+a correction and leveraging an existing deterministic result lead
+to lower variance results on real datasets (see Section \ref{exp}). We analyze
+the tradeoffs of these techniques in the following sections.
 
 
