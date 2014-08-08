@@ -6,6 +6,7 @@ Our first experiment will discuss the practical overheads and tradeoffs to using
 Then, for three specific materialized views, we evaluate accuracy, performance, and outlier indexing.
 After evaluation on the benchmark, we present an end-to-end application of log analysis with a dataset from a video streaming company.
 
+\reminder{I would suggest to move the content of the following paragraph to each coresponding section.}
 We define the following metrics for evaluation.
 For accuracy, we measure the relative error between estimated query result and the true query result.
 A relative error of 5\% means that the difference between the estimated query result and the true result is 5\% of the true result.
@@ -21,12 +22,12 @@ As a baseline, we compare the performance to full incremental maintenance.
 \label{exp2update}
 \centering
  \includegraphics[scale=0.27]{exp/exp2-full.eps}
- \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. }
+ \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. \reminder{The x-axis does not show the ``\% of inserted"; Should we use SVC instead of SC?; Yellow (SC 1\%) is hard to see; Make the lines look different when people print our paper in black-white.  }}
 \end{figure*}
 
 \subsection{Experimental Setting}
 \subsubsection{TPCD-Skew}
-The first dataset, TPCD-Skew dataset, is based on the Transaction Processing Council's benchmark
+The first dataset, TPCD-Skew dataset \reminder{Find the ref to the program}, is based on the Transaction Processing Council's benchmark
 schema but is modified so that it generates a dataset with values drawn from a Zipfian powerlaw distribution instead of uniformly.
 The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribution with a single parameter $z=\{0,1,2,3,4\}$ which a larger
 value means a more extreme tail.
@@ -35,6 +36,8 @@ The dataset is provided in the form of a generation program which can generate b
 
 For this dataset, we applied our approach to three materialized views, each of a different type:
 \vspace{0.5em}
+
+\reminder{format the three sqls}
 
 \textbf{Select-Project View}
 \begin{lstlisting}
@@ -62,7 +65,7 @@ WHERE  c_custkey = o_custkey  AND o_orderkey = l_orderkey  AND l_suppkey = ps_su
 \vspace{1em}
 
 The base dataset is 10GB corresponding to 60,000,000 records, and the above three views are derived from this base dataset.
-Then, we randomly generated aggregation queries and evaluated them for different sample sizes, different update rates, and different parameter settings for the Zipfian distribution.
+Then, we randomly generated aggregation queries \reminder{please give the details that how we generate the queries} and evaluated them for different sample sizes, different update rates, and different parameter settings for the Zipfian distribution.
 All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node with a MySQL database.
 
 \subsubsection{Conviva}
@@ -72,11 +75,18 @@ We used this dataset to evaluate the end-to-end accuracy and performance of the 
 We evaluated performance on Apache Spark with a 20 node r3.large Amazon EC2 cluster. 
 
 \subsection{Update Rate and Accuracy}
+\reminder{I would suggest to merge Sec 7.2 and 7.7 into the  section of ``Accuracy" and merge Sec 7.3 and 7.4 and 7.5 into the section of ``efficiency". You can use the subtitle as follows }
+
+{\noindent \bf Update Rate and Accuracy :}
+
+
 In the first experiment, for each of the three views listed above, we evaluate the accuracy of our approach.
 We measure accuracy by using the average relative query error for a set of 10000 randomly generated aggregation queries on each view.
-We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500000 records to a final count of 8000000 records (1.3GB).
+We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500000 records to a final count of 8000000 records (1.3GB). 
 In Figure \ref{exp2udpate}, we show the results of the experiment. 
 
+
+\reminder{It seems that you forgot to compare with Stale error. }
 The results highlight an important point comparing the accuracy of SAQP to our approach. 
 The accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
 As more records are inserted the approximation error in our approach increases.
@@ -87,27 +97,27 @@ Correcting an update to an existing row is often much smaller than doing so for 
 
 \subsection{Computational Efficiency}
 In the next experiment (Figure \ref{exp2udpate}), we evaluate how sampling can reduce maintenance time.
-For a batch of updates, we evaluate how long it takes to incrementally maintain a view compared to maintaining a sample.
-For, the join view, we build an index on the foreign key of the view.
+For a batch of updates, we evaluate how long it takes to incrementally maintain a view compared to maintaining a sample. \reminder{Check the whole paper and try to avoid saying that we are maintaining a sample view since this topic has been investigated since 1992 (Maintenance of materialized views of sampling queries). Unlike prior works, we are actually ``sampling update patterns". For example, \spview and \fjview only require to sample inserted records; \aggview requires to know how an old record is changed to a new one. }
+For the join view, we build an index on the foreign key of the view. \reminder{How about the index on \aggview?}
 As before, we inserted records in increments of 500000.
 We find that for the Aggregation and Join view, which are more expensive to maintain, sampling leads to more pronounced savings. 
-Furthermore, there are diminishing returns with small sample sizes as overheads start becoming significant.
+Furthermore, there are diminishing returns with small sample sizes as overheads start becoming significant. \reminder{It seems that this sentence is saying the issue of sampling? If so, is ``furthermore" an proper word used here?}
 
 \subsection{Overhead of Query Correction}
 In Section \ref{sampling}, we ran cost analyses to argue that sampling can greatly reduce delta view and refresh costs.
 In practice, these gains will only be meaningful if the overheads for the query correction are small.
 Since, we are correcting a stale query rather than the materialized view, we are shifting some of the computational cost from maintenance time to query execution time.
-If our updates only contain insertions, then for Select-Project and Foreign-Key join views, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
+If our updates only contain insertions, then for Select-Project and Foreign-Key join views \reminder{Use the command \spview etc}, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
 However, for aggregation views, query correction requires a scan of the old view and a sample of the maintained view; potentially increasing the time to 
-answer the query.
-In our first experiment, we set the sample size to 5\% and evaluate the aggregation view listed earlier for 5000000 inserted records. 
-In (Figure \ref{exp10overheads}), we show that average query time is small compared to maintenance time, and furthermore, 
+answer the query. 
+In our first experiment, \reminder{first? where is the second?}we set the sample size to 5\% and evaluate the aggregation view listed earlier for 5000000 inserted records. 
+In (Figure \ref{exp10overheads}), \reminder{double check the labels of all figure} we show that average query time is small compared to maintenance time, and furthermore, 
 the time to calculate a correction is a just fraction of the query time.
 \begin{figure}[h]
 \label{exp10overheads}
 \centering
  \includegraphics[width=\columnwidth]{exp/total_time_agg_view.png}
- \caption{The overhead introduced by correcting a query is small compared to the overall maintenance time.}
+ \caption{The overhead introduced by correcting a query is small compared to the overall maintenance time. \reminder{Why do you choose 50\%? I would only choose 1\%, 5\%, 10\% as Figure 4.}}
 \end{figure}
 
 \subsection{View Complexity}
@@ -184,6 +194,7 @@ Next, outliers can be caused by large updates to the data that are missed by our
 In Section ?, we show how outlier indexing can solve the latter problem and, in fact, after outlier indexing all of our queries on these three views are estimates more accurately than the pre-existing staleness error.
 
 \subsection{Sample Size and Accuracy}
+
 In this experiment, we illustrate the tradeoff between sample size and accuracy.
 We set a fixed 5000000 inserted records, and then vary the sampling ratio for the three types of views and show how much sampling is needed to achieve a given query accuracy.
 In Figure \ref{exp1sample}, we show the accuracy as a function of sampling ratio for each of the views.
