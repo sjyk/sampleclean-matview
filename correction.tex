@@ -1,10 +1,11 @@
 \section{Sampling Update Patterns}
 \label{sampling}
-Updates can affect the three classes of materialized views in different ways, 
-and our sample should represent how the update will affect the materialized view.
+Updates can affect the three classes of materialized views in different ways, making sampling challenging. 
+%and our sample should represent how the update will affect the materialized view.
 We describe this process as sampling the ``update pattern".
 In this section, we discuss how to efficiently sample update patterns for different types of views.
-We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present scalable sampling techniques for them in Section~\ref{subsec:sample-pattern}. Furthermore, we also analyze the cost of our methods, and show how sampling can lead to significant costs savings in incremental view maintenance.
+We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present scalable sampling techniques in Section~\ref{subsec:sample-pattern}. 
+We also analyze the costs and overheads of our methods.
 
 \begin{figure}[tup]
 \centering

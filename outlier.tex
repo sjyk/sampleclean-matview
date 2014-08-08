@@ -1,22 +1,16 @@
 \section{Outlier Indexing}\label{outlier}
-The idea of sampling update patterns may be sensitive to long-tailed distributions and power-laws which are common in large datasets\cite{clauset2009power}. \reminder{Is long-talied the same as power-laws?}
+The idea of sampling update patterns may be sensitive to power-laws and other long-tailed distributions which are common in large datasets\cite{clauset2009power}.
 Sampling may also hide any outliers, records with abnormally large or small attribute values.
 Since oultiers may occur very rarely, they are unlikely to be represented in a small sample. To address these issues, we propose an outlier indexing technique in this section. 
-
-\reminder{I would suggest to merge the following paragraph into Section 6.1.}
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
-The user specifies a threshold $t$ and an attribute on one of the base tables.
-If a record has an attribute that exceeds $t$ it is added to the index.
-We ensure that when we sample the update patterns for views that these records are represented in the sample.
-The user can additionally place a size limit on the outlier index $k$.
-The same approach can be extended to attributes that have tails in both directions by making the threshold $t$ a range, which takes the highest and the lowest values.
-However, in this section, we present the technique as a threshold for clarity.
+The basic idea is that we create an index of outlier records and ensure that these records are included in the sample.
 
 \subsection{Building The Outlier Index}
 The first step is that the user selects an attribute of the base table to index and specifies a threshold $t$ and a size limit $k$.
 In a single pass of updates, the index is built storing references to the records with attributes greater than $t$.
 If the size limit is reached, the incoming record is compared to the smallest indexed record and if it is greater then we evict the smallest record.
-
+The same approach can be extended to attributes that have tails in both directions by making the threshold $t$ a range, which takes the highest and the lowest values.
+However, in this section, we present the technique as a threshold for clarity.
 
 To select the threshold, we can use prior information from the base table.
 This approach is, of course, a heuristic which assumes that the updates are distributionally similar to the 
