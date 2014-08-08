@@ -59,7 +59,8 @@ In all, for each view we had 10,000 aggregate queries with different randomly ge
 All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node with a MySQL database.
 
 \subsubsection{Conviva}
-Conviva is a video streaming company and we evaluated our approach on user activity logs. 
+<<<<<<< HEAD
+Conviva is a video streaming company and we evaluated our approach on user activity logs. \reminder{Add an link to Conviva.}
 We experimented with a 1TB dataset of these logs and a corresponding dataset of analyst queries on the log.
 Using the query dataset, we constructed 67 views and queries to run on the views.
 We used this dataset to evaluate the end-to-end accuracy and performance of the system on a real dataset and query workload.
@@ -151,21 +152,21 @@ WHERE (condition1)
 WHERE (condition1 || condition2)
 WHERE (condition1 || condition2 || condition 3)
 \end{lstlisting}
-We set the sample size to 5\%, and insert 5000000 records (8\% base data), and measure the maintenance time.
-For a such a view, the only cost for maintenance is a scan of the data and evaluating the predicate. 
-Sampling saves on predicate evaluation but introduces the overhead of random number generation.
+We set the sample size to 5\%, insert 5000000 records (8\% of Base Data), and measure the maintenance time.
+For the selection view the only cost for maintenance is a scan of the data and evaluating the predicate. 
+Sampling saves on predicate evaluation but introduces the overhead of random number generation (see Section \ref{subsec:pattern}). 
 Figure \ref{exp11overheads} illustrates how as the view becomes for complex the performance improvement given
 by our approach increases.
-Initially, the random number generation adds about 5\% overhead, but as the cost of evaluating the benefits increase.
+Initially, there is about 5\% overhead, but as the cost of evaluating the benefits increase to a 7.9x speedup over incremental maintenance.
 We repeated the same experiment for the aggregation view, but instead we added terms to the group by clause to increase the
 cardinality of the view.
-We found that for a highly selective group by clause (thus a large view) the savings were nearly perfect (20x).
-However, when the view was small the cost savings were smaller.
+We found that for a highly selective group by clause (thus a large view) the savings were 16.9x.
+However, when the view was small with the l_shipdate key, the cost savings were smaller 5.5x.
 \begin{figure}[h]
 \label{exp11overheads}
 \hspace{-2.5em}
  \includegraphics[scale=0.25]{exp/complexity_efficiency_tradeoff.eps}
- \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%). }
+ \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).}
 \end{figure}
 This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
 Furthermore, we emphasize that when views are large and complex, as often the case, we can have significant improvements.
@@ -180,21 +181,21 @@ In the first experiment, we varied the total number of indexed records and plot 
 As a baseline, we compare if the same number of records were randomly sampled.
 In Figure \ref{exp7outlier}, we find that outlier indexing can improve accuracy by a factor of 2.5 for this view. 
 Next, we evaluated how the approach works under different levels of skew in the dataset. 
-We varied the Zipfian parameter from (0,1,2,3,4) and measured the average improvement in accuracy. 
+We varied the Zipfian parameter from (0,1,2,3,4) and measured the average improvement in accuracy. \reminder{What is the number of indexed outliers?}
 We found that as the dataset become more skewed, outlier indexing is increasingly important.
 Finally, we evaluated the overhead for the approach. 
-We found that small indicies were sufficient for good accuracy and thus the additional overhead was marginal and orders of magnitude smaller than sample maintenance time.
+We found that small indicies were sufficient for good accuracy and thus the additional overhead was marginal and orders of magnitude smaller than sample maintenance time. \reminder{Where is the maintenance time? It would be better to add into the figure. }
 
 \begin{figure}[ht!]
 \label{exp7outlier}
 \hspace{-4em}
 \includegraphics[scale=0.21]{exp/exp6-outlier-full.eps}
- \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.}
+ \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.; Why \reminder{(1) For the left most figure, I think it's better to show how the ourlier index improve those very badly results. Let's discuss it. (2) The order of the figures are inconsistent with the text. }}
 \end{figure}
 
 \subsection{Application: Log Analysis For Conviva}
 We used a dataset of queries given by Conviva to generate three materialized views.
-All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views. 
+All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views. \reminder{Use a more descriptive name for view 1, 2, 3? For example, you can use \aggview (Large, Medium, Small)}
 View 1 has the most selective group by clause and was chosen to a be a large view where most of the maintenance is in the form of new rows to insert.
 View 1 aggregates session times for each visitor and video pair.
 View 2 is a medium size view where maintenance is a mix of both updates and insertions.
@@ -212,7 +213,7 @@ are from different parts of the distribution.
 \label{exp12conviva}
 \hspace{-3.5em}
 \includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}
- \caption{We chose three views that represented the distribution of all views well in terms of both accuracy and maintenance time.}
+ \caption{We chose three views that represented the distribution of all views well in terms of both accuracy and maintenance time. \reminder{Why is the error \% so small? It is inconsistent with the result in Figure 11.}}
 \end{figure}
 
 \subsubsection{Accuracy in Conviva}
@@ -232,7 +233,7 @@ Even in the situation where the view is small, sampling can still have benefits 
 
 \subsubsection{Performance in Conviva}
 We evaluated performance on Apache Spark, on a 20 node r3.large Amazon EC2 cluster. 
-This cluster had enough memory to hold all of the materialized views in memory.
+This cluster had enough memory to hold all of the materialized views in memory. \reminder{Be careful of saying that. We can assume all the updates are loaded into memory, but we cannot assume all the MVs are in memory.}
 Spark supports materialized views through a distributed data structure called an RDD [?].
 The RDD's are immutable, thus requiring significant overhead to maintain.
 We compare maintenance to recalculation of the view when the data is in memory and when only the updates are in memory. 
