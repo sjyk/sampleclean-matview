@@ -1,22 +1,20 @@
 \subsection{Error Bars and Optimality}\label{subsec:correct-practical}
-The only term in the correction that is not deterministic is $\dans$. \reminder{Does it still hold for the average query of \spview/\fjview?}
-For the \sumfunc, \countfunc, and \avgfunc queries, we can bound this term in error bars thus giving us error bars for the entire expression.
-For these queries, we can rewrite the term $\dans$ as a mean value of uniformly randomly sampled records (refer to \cite{wang1999sample} on how to do this).
+The only terms in the correction that is not deterministic is $\dans$ and $\dans_{cnt}$.
+For the \sumfunc, \countfunc, and \avgfunc queries, we can bound these terms in error bars thus giving us error bars for the entire expression (refer to \cite{wang1999sample} on how to do this).
+The intuition is that we can rewrite the term $\dans$ as a mean value of uniformly randomly sampled records.
 By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
 \[
 \bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
 \]
-where $\mu$ is the true mean, $\sigma^2$ is the variance of the numbers, and $k$ is the sample size.
+where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$.
 Since the estimate is unbiased, the confidence interval indicates that the true value lies in the confidence interval with the specified probability.
 
 We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
 We use the following statistical property of random sampling which holds for i.i.d and exchangable sequences of random variables (i.e., sampling with and without replacement respectively).
 \begin{proposition}
-The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown a priori.
+The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown a priori. In other words, there exists no other linear function of the set $\{ X_i \}$ that gives a lower variance estimate of the population mean than the sample mean.
 \end{proposition}
-\reminder{It is unclear to me what does ``linear estimators" mean?}
-
 The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
 Unbiased estimators are ones that, in expectation, give correct estimates.
 However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
