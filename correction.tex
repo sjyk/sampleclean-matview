@@ -12,22 +12,6 @@ We first formalize the update patterns in Section~\ref{subsec:pattern}, and then
  \caption{Illustration of the update patterns for \spview and \fjview and \aggview.}\label{fig:update-pattern}\vspace{-1em}
 \end{figure}
 
-
-\subsection{Update Patterns}\label{subsec:pattern}
-An \emph{update pattern} represents how an update to a base table affects a materialized view derived from that table.
-We define this information to be such that if we took a 100\% sample the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
-In our model, there are three possible update patterns. (1)~Insert a new record into a view;
-(2)~Update attribute values of an existing record; (3)~Keep an existing record unchanged.
-Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
-
-For \spview, the only possible updates to the view are inserting new records.  
-For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. When the base table \tbl{Log} is updated, there might be some new records whose \field{userAgent} field contains "Mozilla", which should be added into the \spview accordingly. Figure~\ref{fig:update-pattern}(a-2) illustrates the update patterns for the \spview. The figure means that in order to obtain the up-to-date \spview, we should insert $r_1$ and $r_2$ into the original \spview.
-
-For \fjview, similar to \spview, its update patterns only involve insertion. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new records that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
-
-For \aggview, the changes of the view could be inserting a new group, updating the aggregation attribute values of an existing group, or keep an existing group unchanged, thus its update patterns involve insertion, updating or no changing. 
-For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview and Figure~\ref{fig:update-pattern}(c-2) illustrates the update patterns for the \aggview. In the figure, ``Insert $r_1$" indicates that the group-by key, ``videoId = 5", does not exist in the original view, and we need to insert this new group into the view; ``Update $r_2$" indicates that the group-by key, ``videoId = 1", is already in the original view, and we should update the aggregation attribute value (i.e., \field{maxResponseTime}) of the group from 1298 ms to 6298 ms; ``Keep $r_3$" indicates that the group-by key, ``videoId = 65", is already in the original  view, and we do not need to change the aggregation attribute value of the group.    
-
 \begin{table*}\renewcommand{\arraystretch}{1.2}
 
 \caption{Cost comparison between incremental view maintenance and update-pattern sampling.}\label{tbl:cost-analysis} \small \centering
@@ -47,6 +31,24 @@ For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview 
   \bf{Refresh}    & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$  & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$ &  $\textrm{cost}_{apply}(\delta_v)$ & $\textrm{cost}_{apply}(\ratio \cdot \delta_v)$\\ \hline
 \end{tabular}
 \end{table*}
+
+
+\subsection{Update Patterns}\label{subsec:pattern}
+An \emph{update pattern} represents how an update to a base table affects a materialized view derived from that table.
+We define this information to be such that if we took a 100\% sample the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
+In our model, there are three possible update patterns. (1)~Insert a new record into a view;
+(2)~Update attribute values of an existing record; (3)~Keep an existing record unchanged.
+Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
+
+For \spview, the only possible updates to the view are inserting new records.  
+For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. When the base table \tbl{Log} is updated, there might be some new records whose \field{userAgent} field contains "Mozilla", which should be added into the \spview accordingly. Figure~\ref{fig:update-pattern}(a-2) illustrates the update patterns for the \spview. The figure means that in order to obtain the up-to-date \spview, we should insert $r_1$ and $r_2$ into the original \spview.
+
+For \fjview, similar to \spview, its update patterns only involve insertion. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new records that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
+
+For \aggview, the changes of the view could be inserting a new group, updating the aggregation attribute values of an existing group, or keep an existing group unchanged, thus its update patterns involve insertion, updating or no changing. 
+For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview and Figure~\ref{fig:update-pattern}(c-2) illustrates the update patterns for the \aggview. In the figure, ``Insert $r_1$" indicates that the group-by key, ``videoId = 5", does not exist in the original view, and we need to insert this new group into the view; ``Update $r_2$" indicates that the group-by key, ``videoId = 1", is already in the original view, and we should update the aggregation attribute value (i.e., \field{maxResponseTime}) of the group from 1298 ms to 6298 ms; ``Keep $r_3$" indicates that the group-by key, ``videoId = 65", is already in the original  view, and we do not need to change the aggregation attribute value of the group.    
+
+
 
 \subsection{Sampling Techniques for Update Patterns}\label{subsec:sample-pattern}
 Modeling updates to the base table in terms of update patterns does not change the expense of incremental view maintenance.
