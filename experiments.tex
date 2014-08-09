@@ -22,6 +22,8 @@ The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribut
 value means a more extreme tail.
 This database has been applied to benchmark other sampling based approaches, approximate queries, and outlier performance \cite{chaudhuri2001overcoming, agrawal2005database}.
 The dataset is provided in the form of a generation program which can generate both the base tables and a set of updates.
+Unless otherwise noted, we experiment with $z=2$.
+
 For this dataset, we applied our approach to three materialized views, each of a different type:
 \vspace{0.5em}
 
@@ -59,7 +61,6 @@ In all, for each view we had 10,000 aggregate queries with different randomly ge
 All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node with a MySQL database.
 
 \subsubsection{Conviva}
-<<<<<<< HEAD
 Conviva is a video streaming company and we evaluated our approach on user activity logs. \reminder{Add an link to Conviva.}
 We experimented with a 1TB dataset of these logs and a corresponding dataset of analyst queries on the log.
 Using the query dataset, we constructed 67 views and queries to run on the views.
@@ -91,8 +92,8 @@ SAQP also has this break even point, but we found for this number of inserted re
 
 \begin{figure}[ht!]
 \label{exp1sample}
-\hspace{-3em}
- \includegraphics[scale=0.20]{exp/exp1-samplesize-accuracy.eps}
+\hspace{-4em}
+ \includegraphics[scale=0.22]{exp/exp1-samplesize-accuracy.eps}
  \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{samplesize}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size.}
 \end{figure}
 
@@ -104,7 +105,7 @@ In this experiment, we looked at the distribution of staleness for the aggregati
 \begin{figure}[ht!]
 \label{exp3dist}
 \centering
- \includegraphics[scale=0.22]{exp/query_error_dist.eps}
+ \includegraphics[scale=0.25]{exp/query_error_dist.eps}
  \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error.}
 \end{figure}
 
@@ -161,11 +162,11 @@ Initially, there is about 5\% overhead, but as the cost of evaluating the benefi
 We repeated the same experiment for the aggregation view, but instead we added terms to the group by clause to increase the
 cardinality of the view.
 We found that for a highly selective group by clause (thus a large view) the savings were 16.9x.
-However, when the view was small with the l_shipdate key, the cost savings were smaller 5.5x.
+However, when the view was small with the l\_shipdate key, the cost savings were smaller 5.5x.
 \begin{figure}[h]
 \label{exp11overheads}
-\hspace{-2.5em}
- \includegraphics[scale=0.25]{exp/complexity_efficiency_tradeoff.eps}
+\hspace{-3.5em}
+ \includegraphics[scale=0.24]{exp/complexity_efficiency_tradeoff.eps}
  \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).}
 \end{figure}
 This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
@@ -173,47 +174,42 @@ Furthermore, we emphasize that when views are large and complex, as often the ca
 
 \subsection{Outlier Indexing}
 We evaluated the accuracy for each of the views as a function of the size of the outlier index. 
-We use a 5\% sample size and 5000000 records inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
+We use a 5\% sample size and 5000000 records (8\% of Base Data) inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
 We apply the index to the Select-Project view, where we index the attributes l\_extendedprice and l\_quantity.
 The results for the other two views were similar, and in this paper, we only present results for the Select-Project views.
-
-In the first experiment, we varied the total number of indexed records and plot accuracy as a function of index size.
-As a baseline, we compare if the same number of records were randomly sampled.
-In Figure \ref{exp7outlier}, we find that outlier indexing can improve accuracy by a factor of 2.5 for this view. 
-Next, we evaluated how the approach works under different levels of skew in the dataset. 
-We varied the Zipfian parameter from (0,1,2,3,4) and measured the average improvement in accuracy. \reminder{What is the number of indexed outliers?}
-We found that as the dataset become more skewed, outlier indexing is increasingly important.
-Finally, we evaluated the overhead for the approach. 
-We found that small indicies were sufficient for good accuracy and thus the additional overhead was marginal and orders of magnitude smaller than sample maintenance time. \reminder{Where is the maintenance time? It would be better to add into the figure. }
+In the first experiment, we set the outlier index size to the top 500 records in the base table, and looked at the change in accuracy of the top 10 most in accurate query corrections with SVC 5\%.
+We find that for these queries, we can improve the accuracy by a factor of  8.2.
+We further evaluated the overhead of the approach compared to the base SVC time of 1.44s. 
+We found that the overhead was only 1\% for an outlier index of size 1000.
+We varied the Zipfian parameter from (0,1,2,3,4), which makes the distribution more skewed, and measured the average improvement in accuracy over all queries.
+We found that as the dataset become more skewed, outlier indexing is increasingly important leading to almost a 6x more accurate estimate for $z=4$.
 
 \begin{figure}[ht!]
 \label{exp7outlier}
-\hspace{-4em}
-\includegraphics[scale=0.21]{exp/exp6-outlier-full.eps}
- \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.; Why \reminder{(1) For the left most figure, I think it's better to show how the ourlier index improve those very badly results. Let's discuss it. (2) The order of the figures are inconsistent with the text. }}
+\hspace{-2.8em}
+\includegraphics[scale=0.22]{exp/exp6-outlier-full.eps}
+ \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.}
 \end{figure}
 
 \subsection{Application: Log Analysis For Conviva}
 We used a dataset of queries given by Conviva to generate three materialized views.
-All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views. \reminder{Use a more descriptive name for view 1, 2, 3? For example, you can use \aggview (Large, Medium, Small)}
-View 1 has the most selective group by clause and was chosen to a be a large view where most of the maintenance is in the form of new rows to insert.
-View 1 aggregates session times for each visitor and video pair.
-View 2 is a medium size view where maintenance is a mix of both updates and insertions.
-View 2 computes buffering time statistics for each visitor over all videos they watched.
-View 3 is a small view where most of the maintenance is updates to existing rows.
-View 3 computes statistics for log events that triggered error states.
+All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views.
+LargeView has the most selective group by clause and was chosen to a be a large view where most of the maintenance is in the form of new rows to insert.
+LargeView aggregates session times for each visitor and video pair.
+MediumView is a medium size view where maintenance is a mix of both updates and insertions.
+MediumView computes buffering time statistics for each visitor over all videos they watched.
+SmallView is a small view where most of the maintenance is updates to existing rows.
+SmallView computes statistics for log events that triggered error states.
 
 We selected these views to be representative of the dataset and query workload. 
 We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log.
 We derived each view from a 7GB base table and inserted 1.5GB of records to the table. 
-On a single node, we evaluated the average query accuracy for a 1\% sample and the runtime of our approach.
-In Figure \ref{exp12conviva}, we plot the three views on the distribution of error and runtime and we see that they 
-are from different parts of the distribution.
+In Figure \ref{exp12conviva}, we plot the average staleness of each of the views and mark the three views.
 \begin{figure}[ht!]
 \label{exp12conviva}
-\hspace{-3.5em}
-\includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}
- \caption{We chose three views that represented the distribution of all views well in terms of both accuracy and maintenance time. \reminder{Why is the error \% so small? It is inconsistent with the result in Figure 11.}}
+\centering
+\includegraphics[scale=0.25]{exp/conviva_efficiency_accuracy.eps}
+ \caption{We chose three views that represented the distribution of all views well in terms of both accuracy. We plot the staleness of each of the 67 views and mark the three views in our experiment.}
 \end{figure}
 
 \subsubsection{Accuracy in Conviva}
@@ -221,23 +217,22 @@ We evaluated the average query accuracy for different sample sizes and numbers o
 As before, we derived each view from a 7GB base table and inserted 1.5GB of records to the table. 
 We built an outlier index on all of the attributes that represent time intervals or rates.
 Figure \ref{exp5conviva}, compares the accuracy to the staleness of the query.
-We find that even a $0.1\%$ sample gives significantly more accurate results for View 1 and View 2.
-Even in the situation where the view is small, sampling can still have benefits as seen in View 3.
+We find that even a $0.1\%$ sample gives significantly more accurate results for LargeView and MediumView.
+Even in the situation where the view is small, sampling can still have benefits as seen in SmallView.
 
 \begin{figure}[ht!]
 \label{exp5conviva}
 \hspace{-3.5em}
-\includegraphics[scale=0.22]{exp/exp5-coniva-accuracy-woutlier.eps}
- \caption{We compare average query staleness to our approach for a variety of sample sizes. For View 1 and View 2, we find that small sample sizes can give accurate results. Even in the extreme case of View 3, we find that sampling can still provide reasonably accurate results.}
+\includegraphics[scale=0.22]{exp/exp5-coniva-accuracy.eps}
+ \caption{We compare average query staleness to our approach for a variety of sample sizes. For the larger views, we find that small sample sizes can give accurate results. Larger sample sizes are needed for accurate estimates in SmallView.}
 \end{figure}
 
 \subsubsection{Performance in Conviva}
 We evaluated performance on Apache Spark, on a 20 node r3.large Amazon EC2 cluster. 
-This cluster had enough memory to hold all of the materialized views in memory. \reminder{Be careful of saying that. We can assume all the updates are loaded into memory, but we cannot assume all the MVs are in memory.}
-Spark supports materialized views through a distributed data structure called an RDD [?].
+Spark supports materialized views through a distributed data structure called an RDD.
 The RDD's are immutable, thus requiring significant overhead to maintain.
 We compare maintenance to recalculation of the view when the data is in memory and when only the updates are in memory. 
-We derived the views from a 700GB base table and inserted records in 15GB increments. 
+We derived the views from a 700GB base table and inserted records in approximately 14GB increments. 
 We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, as insertions as a percentage of the base data are the same.
 As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
 Each view is partitioned by the group by key, and thus only the sampled delta view has to be shuffled. 
@@ -245,16 +240,18 @@ Each view is partitioned by the group by key, and thus only the sampled delta vi
 \begin{figure*}[ht!]
 \label{exp6conviva}
 \hspace{-1em}
-\includegraphics[scale=0.18]{exp/exp5-efficiency-conviva-woutlier.eps}
+\includegraphics[scale=0.21]{exp/exp5-efficiency-conviva.eps}
  \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparision with view recalculation as our experimental platform, Spark, does not support indices or selective writes.}
 \end{figure*}
 
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
-We find that we achieve good scalability on view 1 and view 2, and still have some performance gains on view 3.
-In view 1 and view 2, our gains are more pronounced due to the savings on communication in a distributed environment.
+As Spark does not support selective writes, we include view recalculation as a baseline for comparision.
+In many Spark applications, recalculation is often faster than incremental maintenance.
+For LargeView a 10\% sample with 105GB of inserted records (15\%) acheives a  7.5x speedup over full incremental maintenance and a 5.6x speedup over recalculation.
+On the other hand, for SmallView, there is a 5.1x speedup over full incremental maintenance and a 1.7x improvement over recalcuation.
 Aggregation views with a larger cardinality create larger delta views.
 These delta views necessitate a shuffle operation that communications them during the refresh step.
-As view 3 is smaller, the communication gains are less and the only savings are in computation.
+As SmallView is smaller, the communication gains are less and the only savings are in computation.
 
 
 
