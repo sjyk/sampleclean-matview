@@ -39,10 +39,10 @@ Consequently, sampling can significantly save on maintenance costs and give a fl
 To summarize, our contributions are as follows:
 \begin{itemize}
   \item We model the incremental maintenance problem as a data cleaning problem with staleness as a type of data error.
-  \item We define the concept of ``update patterns", a logical unit of how an update affects a materialized view, and show how to sample the update patterns.
-  \item Using a sample of update patterns, we can correct stale aggregation queries on materialized views.
-  \item We show analytically and empirically that sampling update patterns can be far more efficient than full incremental maintenance; providing a flexible tradeoff between accuracy and performance.
+  \item We define the concept of ``update patterns", a logical unit of up-to-date data that of how an update affects a materialized view, and show how to sample the update patterns. We show analytically and empirically that sampling update patterns can be far more efficient than full incremental maintenance.
+  \item Using a sample of update patterns, we can correct stale aggregation queries on materialized views. We bound these corrections in confidence intervals and prove optimality of our approach.
   \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.
+  \item We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.
 \end{itemize}
 
 The paper is organized in the following way. 
@@ -50,7 +50,8 @@ In Section \ref{sec-background}, we introduce materialized views and discuss the
 Next, in Section \ref{sec-arch}, we give a brief overview of our overall system architecture.
 In Section \ref{sampling} and \ref{correction}, we describe the mathematics and query processing of our technique.
 In Section \ref{outlier}, we describe the outlier indexing framework.
-Finally in Section \ref{exp}, we evaluate our approach.
+Then, in Section \ref{exp}, we evaluate our approach.
+Finally, we end with our Related Work in Section \ref{related} and our Conclusions and Future Work in Section \ref{conclusion}.
 
 \iffalse
  These two pieces can be costly in different

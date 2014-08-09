@@ -10,7 +10,7 @@ After evaluation on the benchmark, we present an end-to-end application of log a
 \begin{figure*}[ht!]
 \hspace{-5.5em}
  \includegraphics[scale=0.19]{exp/exp2-full.eps}
- \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample.}\label{exp2update}
+ \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. \label{exp2update} }
 \end{figure*}
 
 \subsection{Experimental Setting}
@@ -60,7 +60,7 @@ In all, for each view, we had 10,000 aggregate queries with different randomly g
 All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node with a MySQL database.
 
 \subsubsection{Conviva}
-Conviva is a video streaming company and we evaluated our approach on user activity logs. \reminder{Add an link to Conviva.}
+Conviva is a video streaming company and we evaluated our approach on user activity logs.
 We experimented with a 1TB dataset of these logs and a corresponding dataset of analyst queries on the log.
 Using the query dataset, we constructed 67 views and queries to run on the views.
 We used this dataset to evaluate the end-to-end accuracy and performance of the system on a real dataset and query workload.
@@ -73,7 +73,7 @@ In the first experiment, for each of the three views listed above, we evaluate t
 We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500000 (0.8\% base data) records to a final count of 8000000 records (13.3\% base data).
 For the 10,000 generated queries on the view, we calculate the mean error as a relative percentage of the true value.
 As a baseline, we compare against SAQP and no maintenance (ie. the stale error).
-In Figure \ref{exp2udpate}, we show the results of the experiment. 
+In Figure \ref{exp2update}, we show the results of the experiment. 
 
 For all three views a 5\% sample sufficed to acheive a mean relative error of less than 1\%, even though when 8000000 records were inserted the staleness was 7\%.
 Furthermore, in comparision to SAQP, the accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
@@ -92,7 +92,7 @@ SAQP also has this break even point, but we found for this number of inserted re
 \begin{figure}[ht!]
 \hspace{-4em}
  \includegraphics[scale=0.22]{exp/exp1-samplesize-accuracy.eps}
- \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{samplesize}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size.\label{exp1sample}}
+ \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{samplesize}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size. \label{exp1sample} }
 \end{figure}
 
 {\noindent \bf Distribution of Query Error :} In our earlier experiments, we presented the average error for the queries on the views.
@@ -116,7 +116,7 @@ Next, outliers can be caused by large updates to the data that are missed by our
 \subsection{Efficiency}
 
 {\noindent \bf Sampling Efficiency: }
-In Figure \ref{exp2udpate}, we evaluate how sampling can reduce maintenance time.
+In Figure \ref{exp2update}, we evaluate how sampling can reduce maintenance time.
 For a batch of updates, we evaluate how long it takes to sample the update patterns as opposed to maintaining the view.
 As a baseline, we compare to full incremental maintenance.
 For the join view, we build an index on the foreign key of the view.

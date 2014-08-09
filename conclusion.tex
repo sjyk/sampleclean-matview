@@ -1,4 +1,4 @@
-\section{Related Work}
+\section{Related Work}\label{related}
 
 Addressing the cost of materialized view maintenance is the subject of many recent works with
 focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transaction~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
@@ -25,7 +25,7 @@ Our experiments suggest that prior approaches (SAQP) are inefficient when update
 
 There are a variety of other works proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which are similar to materialized views. Furthermore, there is a close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases has also been studied \cite{re2007materialized}.
 
-\section{Conclusion and Future Works}
+\section{Conclusion and Future Work}\label{conclusion}
 In this paper, we proposed a new approach to the staleness problem in materialized views.
 We demonstrated how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
 allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. 

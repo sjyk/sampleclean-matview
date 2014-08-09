@@ -88,18 +88,27 @@ For a given \fjview, let $T$ be the fact table, and $T_1, T_2, \cdots, T_k$ be t
 From the above analysis, we can see that for \spview and \fjview, when the predicate or the join is expensive to evaluate, our sampling techniques require much less cost than incremental view maintenance. For example, if the time of generating $n$ random numbers is negligible, we can save the cost of incremental view maintenance by 20 times for the sampling ratio of $\ratio = 5 \%$.
 
 \subsubsection{Aggregation View}
-The update patterns for an \aggview contains the update information for each existing group in the view as well as newly inserted groups. 
-To sample the update patterns, we seek to maintain the update patterns for a sample of groups. That is, for the existing group keys in the \aggview, we keep track of the update patterns for a sample of them; for the newly inserted group keys, we choose a sample of them to maintain. 
-
-To implement this idea, we incorporate hashing into our sampling techniques. The basic idea is similar to hash partitioning, where a sample can be thought as a data partition. Specifically, we define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a uniform random number in the range of [0, 1]. We only maintain the update patterns for the group keys such that
+The update patterns for an \aggview contains the update information for existing groups in the view as well as groups to be inserted. 
+Since, we may have to update existing groups, unlike \spview and \fjview, the first step is to construct a sample of all of the existing group keys in the \aggview.
+To sample the group keys, we apply a hash function to the key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and filter
 \begin{equation}\label{eq:hash}
 \hashfunc{\textrm{``group key"}} \leq \ratio.
 \end{equation}
-Obviously, the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$.
-With this hash-based sampling technique, we can easily devise an efficient update-pattern sampling approach for an \aggview. 
+Thus, if the hash function is uniform the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$
+
+Once, we have a random sample of the existing keys, we can use this sample to construct a sample of the update patterns.
+When a records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those group by keys that satisfy the condition on the hash above (i.e $le \ratio$). This ensures that if a key is already in the sample, our delta \emph{sample} \aggview contains this key.
+For keys that are not already in the sample, the hash condition filters them to select a random sample of them with sampling ratio of~$\ratio$.
+This process ensures that a group is either fully represented in the sample or not at all, thus its aggregate is an exact result.
 
 
-To better understand the approach, we first introduce how to obtain the full update patterns of an \aggview. The idea is the same as incremental view maintenance, which first computes a delta \aggview by executing the \aggview definition on an insertion table and then obtains the full update patterns by refreshing the \aggview with the delta \aggview. Similarly, to sample the update patterns, we first compute a delta \emph{sample} \aggview by executing the \aggview definition on the  records of an insertion table that satisfy $\hashfunc{\textrm{``group key"}}~\leq~\ratio$, and then obtains the \emph{sample} update patterns by refreshing the \emph{sample} \aggview with the delta \emph{sample} \aggview. 
+%To implement this idea, we incorporate hashing into our sampling techniques. The basic idea is similar to hash partitioning, where a sample can be thought as a data partition. Specifically,  We only maintain the update patterns for the group keys such that
+
+%Obviously, the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$.
+%With this hash-based sampling technique, we can easily devise an efficient update-pattern sampling approach for an \aggview. 
+
+
+%To better understand the approach, we first introduce how to obtain the full update patterns of an \aggview. The idea is the same as incremental view maintenance, which first computes a delta \aggview by executing the \aggview definition on an insertion table and then obtains the full update patterns by refreshing the \aggview with the delta \aggview. Similarly, to sample the update patterns, we first compute a delta \emph{sample} \aggview by executing the \aggview definition on the  records of an insertion table that satisfy $\hashfunc{\textrm{``group key"}}~\leq~\ratio$, and then obtains the \emph{sample} update patterns by refreshing the \emph{sample} \aggview with the delta \emph{sample} \aggview. 
 
 %Given an insertion table $\triangle T$, since we are only interested in the update patterns for a sample of group keys, we execute the view definition on the records in $\triangle T$ that satisfy the Equation~\ref{eq:hash}
 
@@ -128,7 +137,7 @@ determine which records are new insertions and which correspond to existing reco
 %Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $\ratio \cdot \delta_v$ rows. 
 \end{itemize}
 
-Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\ratio$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $\cost_{hash}(n)$). However, as shown in our experiments (Section~??), even with the additional overhead, our sampling techniques can still run orders of magnitude faster than incremental view maintenance. %\reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
+Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\ratio$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $\cost_{hash}(n)$). However, as shown in our experiments (Section \ref{exp}), even with the additional overhead, our sampling techniques can save maintenance cost compared to full incremental maintenance. %\reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
 
 \iffalse
 We enforce the hash function to each group-by key of the \aggview and return those groups, as $S_{V}$, such that $\hashfunc{\textrm{``group-by key"}} \leq \ratio$. Obviously, $S_{V}$ is a random sample of the \aggview with the sampling ratio of $\ratio$. 
