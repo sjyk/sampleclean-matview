@@ -29,10 +29,9 @@ However, there are a couple of key additions: (1) as updates arrive we sample th
 In this section, we will introduce these three components, which are also explained in much more detail in the following sections.
 
 \begin{figure}[h]
-\label{sys-arch}
 \centering
  \includegraphics[scale=0.35]{figs/sys-arch.pdf}
- \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded.\reminder{What's the difference between dotted lines and solid lines? Add stale result and update-to-data result into the figure?}}
+ \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded.\reminder{What's the difference between dotted lines and solid lines? Add stale result and update-to-data result into the figure?} \label{sys-arch}}
 \end{figure}
 
 \subsubsection{Supported Materialized Views}\label{subsubsec:supported-view}

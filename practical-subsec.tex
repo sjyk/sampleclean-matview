@@ -1,5 +1,5 @@
 \subsection{Error Bars and Optimality}\label{subsec:correct-practical}
-The only terms in the correction that is not deterministic is $\dans$ and $\dans_{cnt}$.
+The only terms in the correction that are not deterministic is $\dans$ and $\dans_{cnt}$.
 For the \sumfunc, \countfunc, and \avgfunc queries, we can bound these terms in error bars thus giving us error bars for the entire expression (refer to \cite{wang1999sample} on how to do this).
 The intuition is that we can rewrite the term $\dans$ as a mean value of uniformly randomly sampled records.
 By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
@@ -16,7 +16,7 @@ We use the following statistical property of random sampling which holds for i.i
 The sample mean $\bar{X} = \frac{1}{K}\sum_i X_i$ is the Minimum Variance Unbiased Estimator of the population mean $\mathbb{E}(X)$ over the class of linear estimators when the distribution of $X$ is unknown a priori. In other words, there exists no other linear function of the set $\{ X_i \}$ that gives a lower variance estimate of the population mean than the sample mean.
 \end{proposition}
 The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
-Unbiased estimators are ones that, in expectation, give correct estimates.
+Unbiased estimators are ones that, in expectation, are correct.
 However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
 For example, if we simply pick a random element from a set, it is still an unbiased estimate of the mean of the set.
 Variance is used to compare different unbiased estimates, and the MVUE is the unbiased estimate which has the least variance.

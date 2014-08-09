@@ -1,7 +1,7 @@
 \section{Outlier Indexing}\label{outlier}
 Sampling update patterns may be sensitive to power-laws and other long-tailed distributions which are common in large datasets\cite{clauset2009power}.
 Sampling may also hide any outliers, records with abnormally large or small attribute values.
-Since oultiers may occur very rarely, they are unlikely to be represented in a small sample. To address these issues, we propose an outlier indexing technique in this section. 
+Since oultiers may occur very rarely, they are unlikely to be represented in a small sample. 
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records and ensure that these records are included in the sample.
 
@@ -13,13 +13,13 @@ The same approach can be extended to attributes that have tails in both directio
 However, in this section, we present the technique as a threshold for clarity.
 
 To select the threshold, there are many heuristics that we can use.
-For example, we can use our knowledge about the dataset to set a threshold beyond which records are consider outliers.
+For example, we can use our knowledge about the dataset to set a threshold.
 Or we can use prior information from the base table, a calculation which can be done in the background during the periodic maintenance cycles.
 If our size limit is $k$, we can find the records with the top $k$ attributes in the base table as to set a threshold to maximally fill up our index. 
 Then, the attribute value of the lowest record becomes the threshold $t$.
 
 \subsection{Adding Outliers to the Sample}
-Since the outlier indices index the base table, all of the materialized views in the system share a common set of these indices.
+Since we index the base table, all of the materialized views in the system share a common set of these outlier indices.
 We discuss how to ensure that these records are added to the sample and what overhead this introduces.
 For \spview and \fjview, we sample the records that are inserted into the view.
 In the same pass as the sample, we can test each record against the outlier indices. 
@@ -36,21 +36,19 @@ In our experiments, we show that even a very small outlier index (less than .01\
 correction estimates.
 
 \subsection{Query Processing with the Outlier Index} 
-The outlier index has two uses: (1) we can answer \emph{selection} queries on the outliers, 
+The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
 and (2) we can improve the accuracy of our \emph{aggregation} queries.
-For selection queries, we must simply check to see if the record satisfying the query is in the outlier index.
-While the outlier index is small, outliers (and their derived materialized view rows) are often the records that
-we want to query.
+To query the outlier rows, we can select all of the rows in the materialized view that are flagged as outliers, and these rows are guaranteed to be up-to-date.
 
 We can also incorporate the outliers into our correction estimates. 
-We flag outliers to ensure that we do not double count them in our results, thus avoiding bias.
+We can use our outlier flag to ensure that we do not double count them in our results, thus avoiding bias.
 By guaranteeing that certain rows are in the index, we
 have to merge a deterministic result (set of outlier rows) with the
 estimate.
 This process truncates the distribution and it can be modeled as computing a query
 result on regular records and on the outliers separately; and then combining them together with
 a weighted average. 
-If our population is of size $N$, and we have $l$ outliers.
+If our dataset size is $N$, and we have $l$ outliers.
 Let $v_{reg}$ be the query result for the regular records, and $v_{out}$ is the query result for outliers, then:
 \[
  v = \frac{N-l}{N}v_{reg} + \frac{l}{N}v_{out}

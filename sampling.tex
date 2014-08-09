@@ -1,18 +1,19 @@
 
 \section{Correcting Stale Query Results}
 \label{correction}
-In this section, we discuss how to correct stale query results using sample update patterns. We first present our correcting query processing in Section~\ref{subsec:correct-principle} and then discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
+In this section, we discuss how to correct stale query results using sample update patterns. We first present our correction query processing in Section~\ref{subsec:correct-principle} and then discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
 
 
 \subsection{\Cqp}\label{subsec:correct-principle}
-Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. To achieve this goal, our basic idea is to first obtain a \emph{delta query result} (denoted by $\dans$), by rewriting the query against the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
+Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
 
-In the following, we will discuss how to apply this idea to different types of views and analyze the cost of our correcting query processing. For ease of presentation, we assume the query does not have a group-by clause, i.e.,
+We proccess aggregation queries of the following form, 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-But note that our methods can be easily extended to a group-by query by treating each group key as an addition condition of the query. 
+For ease of presentation, we assume the query does not have a group-by clause.
+But our methods can be easily extended to a group-by query by treating each group key as an additional condition of the query. 
 
 %where \texttt{f} is an aggregation function (i.e., $\avgfunc$, $\sumfunc$, $\countfunc$), \texttt{a} is an attribute, and \texttt{A} is a set of attributes. 
 
@@ -25,7 +26,7 @@ But note that our methods can be easily extended to a group-by query by treating
 %basic idea
 
 \subsubsection{Select-Project and Foreign-Key Join Views} \label{subsubsec:correct-spfj}
-Since both of the update patterns of \spview and \fjview only consist of inserted records, the phases of getting their query corrections are the same. Given the above query, to obtain its delta query result, we rewrite the query and run it on the sample update patterns as follows.  
+Since both of the update patterns of \spview and \fjview only consist of inserted records we can obtain corrections in the same way. Given the above query, to obtain its delta query result, we rewrite the query and run it on the sample update patterns as follows.  
 
 \vspace{-.25em}
 
@@ -51,6 +52,7 @@ $~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A);
 \vspace{-.25em}
 
 For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ and $\dans_{count}$, respectively. But for the \avgfunc query, in addition to $\dans_{avg}$, we also need to compute $\dans_{cnt}$ for query correction.
+In Table~\ref{tbl:query-correct}, we show how to use the delta query result to correct a stale query result. 
 
 
 \begin{table}[tup]\renewcommand{\arraystretch}{1.5}
@@ -68,13 +70,11 @@ For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ a
 \end{tabular}
 \end{table}
 
-After obtaining delta query results, we next discuss how to use them to correct stale query results (Table~\ref{tbl:query-correct}).
-
-To correct a \sumfunc query result, we cannot simply add it by the delta query result (i.e., $\ans_{sum}+\dans_{sum}$) since the delta query result is computed on a sample. Thus, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the rescaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
+To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the rescaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
 
 To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
 
-To correct an \avgfunc query result, we can imagine it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ records\footnote{\small $\ans_{cnt}$ denotes the number of records that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ represents the average value of $\dans_{cnt}$ records. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
+To correct an \avgfunc query result, we can treat it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ rows\footnote{\small $\ans_{cnt}$ denotes the number of rows that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ represents the average value of $\dans_{cnt}$ rows. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
 
 
 
@@ -85,7 +85,7 @@ To correct an \avgfunc query result, we can imagine it as computing a weighted a
 
 The update patterns of \aggview contain the information that how every old record in the view should be changed to a new one. Given the query as shown in Section~\ref{subsec:correct-principle}, let $a_{old}$ ($a_{new}$) denote the old (new) attribute in the update patterns corresponding to $a$; let $A_{old}$ ($A_{new}$) denote the set of old (new) attributes in the update patterns corresponding to $A$.
 In an update pattern, we use $\cond(A_{old})=1$ ($\cond(A_{new})=1$) to denote that its old (new) record satisfies the query condition; otherwise, $\cond({A_{old}})=0$ ($\cond({A_{new}})=0$). 
-To obtain the delta query result, we rewrite the given query against the sample update patterns as follows:
+To obtain the delta query result, we apply the query to the sample update patterns as follows:
 
 \fussy
 
@@ -107,7 +107,7 @@ $\dans_{avg} = $ SELECT $
 $~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
 \end{lstlisting}
 
-Intuitively, a delta query result tells us how data updates will affect the query result on an old (i.e., a stale) sample \aggview. Thus, it is computed as the difference between the query results on a stale sample \aggview and an updated sample \aggview. To use it to correct a stale query result (as shown in Table~\ref{tbl:query-correct}), for the \sumfunc query, since the \sumfunc difference is computed on a sample, we need to scale it to the full data, and add the rescaled value to the old query result, i.e., $\ans_{sum}+\dans_{sum}/\ratio$; for the \countfunc query, since a \countfunc query can be taken a special case of a \sumfunc query, similar to the \sumfunc query, we have $\ans_{count}+\dans_{count}/\ratio$; for the \avgfunc query, since the \avgfunc difference on a sample is an unbiased estimation of the \avgfunc difference on the full data, we add the delta query result to the old query result directly, i.e., $\ans_{avg}+\dans_{avg}$.
+A delta query result tells us how data updates will affect the query result on an old (i.e., a stale) sample \aggview. Thus, it is computed as the difference between the query results on a stale sample \aggview and an updated sample \aggview. To use it to correct a stale query result (as shown in Table~\ref{tbl:query-correct}), for the \sumfunc query, since the \sumfunc difference is computed on a sample, we need to scale it to the full data, and add the rescaled value to the old query result, i.e., $\ans_{sum}+\dans_{sum}/\ratio$; for the \countfunc query, since a \countfunc query can be taken a special case of a \sumfunc query, similar to the \sumfunc query, we have $\ans_{count}+\dans_{count}/\ratio$; for the \avgfunc query, since the \avgfunc difference on a sample is an unbiased estimation of the \avgfunc difference on the full data, we add the delta query result to the old query result directly, i.e., $\ans_{avg}+\dans_{avg}$.
 
 
 \input{practical-subsec.tex}
