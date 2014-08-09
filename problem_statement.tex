@@ -4,7 +4,7 @@
 Incremental maintenance of materialized views is well studied, see \cite{chirkova2011materialized} for a survey of the approaches. 
 Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
-More formally, given a base relation $T$, a set of updates $U$,
+More formally, given a base table $T$, a set of updates $U$,
 and a view $\textbf{V}_{T}$:
 
 \textbf{Calculate the Delta View- }
@@ -24,7 +24,7 @@ view:
 \textbf{V}_{T}^{'}=refresh(\textbf{V}_{T},\Delta\textbf{V})
 \] 
 The details of the refresh operation depend on the view definition.
-Refer to [?] for details.
+Refer to \cite{chirkova2011materialized} for details.
 
 %In this work, we address three types of materialized views: Select-Project, Aggregation, and
 %Foreign-Key Join views; and four common aggregation queries on these

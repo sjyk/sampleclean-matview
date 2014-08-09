@@ -11,7 +11,7 @@ also called incremental maintenance, has been well studied \cite{gupta1995mainte
 
 Unfortunately, in many desired applications, incremental maintaining the view for every incoming update can be very costly. 
 When the base tables change rapidly, the database system has to propagate each update to all of the materialized views.
-Consequently, there are many techniques that defer updating the views to a later time or trigger the updates only when necessary \cite{chirkova2011materialized, zhou2007lazy}.
+Consequently, there are many techniques that defer updating the views to a later time \cite{chirkova2011materialized, zhou2007lazy}.
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available eg. at night.
 Deferral strategies provide increased flexibility to meet the resource constraints of the system, but may not guarantee that the views will always be up-to-date.
 When a materialized view is out-of-date during a maintenance gap, queries issued to the view can have \emph{stale} results. 
@@ -19,8 +19,8 @@ When a materialized view is out-of-date during a maintenance gap, queries issued
 In this work, we address the incremental maintenance problem from a different perspective.
 We explore whether refreshing stale rows in a materialized view can be modeled as data cleaning problem and whether stale query results can be ``cleaned".
 While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
-there has been an increasing trend of considering the costs of data cleaning \cite{wang1999sample}.
-In particular, recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of records.
+recent work has considered the costs of data cleaning \cite{wang1999sample}.
+In particular, recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of dirty records.
 This model raises a new possibility for materialized views, namely, that a sample of up-to-date rows can be used to answer aggregate queries without having the maintain the entire materialized view.
 In our proposed approach, given a stale query result, we sample updates to the materialized view, and we use the sample to estimate a correction to stale query results thus ``cleaning" the result.
 While approximate, the corrected query result can be bounded within confidence intervals.
