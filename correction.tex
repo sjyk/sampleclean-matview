@@ -37,16 +37,16 @@ We also analyze the costs and overheads of our methods.
 \subsection{Update Patterns}\label{subsec:pattern}
 An \emph{update pattern} represents how an update to a base table affects a materialized view derived from that table.
 We define this information to be such that if we took a 100\% sample the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
-In our model, there are three possible update patterns. (1)~Insert a new record into a view;
-(2)~Update attribute values of an existing record; (3)~Keep an existing record unchanged.
+In our model, there are three possible update patterns. (1)~Insert a new row into a view;
+(2)~Update attribute values of an existing row in the view; (3)~Keep the view unchanged.
 Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
 
-For \spview, the only possible updates to the view are inserting new records.  
-For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. When the base table \tbl{Log} is updated, there might be some new records whose \field{userAgent} field contains "Mozilla", which should be added into the \spview accordingly. Figure~\ref{fig:update-pattern}(a-2) illustrates the update patterns for the \spview. The figure means that in order to obtain the up-to-date \spview, we should insert $r_1$ and $r_2$ into the original \spview.
+For \spview, the only possible updates to the view are inserting new rows.  
+For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. When the base table \tbl{Log} is updated, there might be some new rows whose \field{userAgent} field contains "Mozilla", which should be added into the \spview accordingly. Figure~\ref{fig:update-pattern}(a-2) illustrates the update patterns for the \spview. The figure means that in order to obtain the up-to-date \spview, we should insert $r_1$ and $r_2$ into the original \spview.
 
-For \fjview, similar to \spview, its update patterns only involve insertion. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new records that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
+For \fjview, similar to \spview, its update patterns only involve insertion. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new rows that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
 
-For \aggview, the changes of the view could be inserting a new group, updating the aggregation attribute values of an existing group, or keep an existing group unchanged, thus its update patterns involve insertion, updating or no changing. 
+For \aggview, the updates could be inserting a new group, updating the aggregation attribute values of an existing group, or keep the view unchanged. 
 For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview and Figure~\ref{fig:update-pattern}(c-2) illustrates the update patterns for the \aggview. In the figure, ``Insert $r_1$" indicates that the group-by key, ``videoId = 5", does not exist in the original view, and we need to insert this new group into the view; ``Update $r_2$" indicates that the group-by key, ``videoId = 1", is already in the original view, and we should update the aggregation attribute value (i.e., \field{maxResponseTime}) of the group from 1298 ms to 6298 ms; ``Keep $r_3$" indicates that the group-by key, ``videoId = 65", is already in the original  view, and we do not need to change the aggregation attribute value of the group.    
 
 
@@ -62,7 +62,7 @@ Consider a base table $T$ and the corresponding insertion table $\triangle T$. G
 
 \sloppy
 
-For a given \fjview, let $T$ be the fact table w.r.t the \fjview, and $T_1, T_2, \cdots, T_k$ be the dimension tables w.r.t the \fjview. The full update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date dimension tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
+For a given \fjview, let $T$ be the fact table, and $T_1, T_2, \cdots, T_k$ be the dimension tables. The update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date dimension tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
 
 \fussy
 

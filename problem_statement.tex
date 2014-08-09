@@ -8,7 +8,7 @@ More formally, given a base table $T$, a set of updates $U$,
 and a view $\textbf{V}_{T}$:
 
 \textbf{Calculate the Delta View- }
-In this step, we apply the view definition to the updates and we call
+In this step, we apply the view definition to the updates $U$ and we call
 the intermediate result a ``delta'' view:
 \[
 \Delta\textbf{V}
@@ -35,20 +35,17 @@ Refer to \cite{chirkova2011materialized} for details.
 \subsection{Maintenance Strategies}
 There are two principle types of maintenance strategies: immediate and deferred. 
 In immediate maintenance, as soon as the base table is updated, 
-the change is propagated to any derived materialized view.
-Immediate maintenance has an advantage that materialized view is always up-to-date, 
+any derived materialized view is also updated.
+Immediate maintenance has an advantage that queries on the materialized view are always up-to-date, 
 however it can be very expensive.
 This scheduling strategy places a bottleneck when records are written reducing 
 the available write-throughput for the database.
-Such an approach lacks flexibility since system resources need to be provisioned 
-for the worst-case influx of updates.
 Furthermore, especially in a distributed setting, record-by-record 
 maintenance cannot take advantage of the benefits of consolidating communication overheads by batching.
 
 To address these challenges, deferred maintenance is alternative solution.
-The main idea of deferral is to avoid maintaining the view immediately and schedule an update at a more convenient time either pre-set or adaptively.
-In deferred maintenance, the user often accepts some degree of staleness in 
-the materialized view for additional flexibility for scheduling refresh operations.
+The main idea of deferral is to avoid maintaining the view immediately and schedule an update at a more convenient time either in a pre-set way or adaptively.
+In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility for in scheduling.
 For example, a user can update the materialized view nightly during times of low-activity in the system.
 During these times, the system can take use more resources to process the updates without worrying about the affect on the throughput.
 However, this also means that during the day the materialized view becomes increasingly stale as it was computed the night before.
@@ -61,14 +58,13 @@ While it ensures that query results are never stale, lazy maintenance potentiall
 Immediate maintenance introduces a bottleneck on updates to the base table and lazy maintenance introduces a bottleneck during query execution,
 and rapid updates can make these approaches impractical.
 As a consequence, periodic maintenance or recalculation is often the most feasible solution.
-While the user can set the maintenance period to control the expected staleness of the data, in general, the relative error between a stale query result and the up-to-date result is unbounded.
 
 \subsection{Data Cleaning}
 Much of data cleaning research focuses on improving query accuracy on dirty datasets.
 For example, designing rules or algorithms to remove or correct erroneous records \cite{rahm2000data}.
 However, recent work has considered the costs of data cleaning and how to budget effort.
 %The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples \cite{kandel2011wrangler}.
-The SampleClean project presents a query processing framework that cleans on a sample of data, and then bounds the results of aggregate queries on dirty datasets \cite{wang1999sample}.
+The SampleClean project presents a query processing framework that cleans a sample of data, and then bounds the results of aggregate queries on dirty datasets \cite{wang1999sample} with respect to the clean data.
 
 This process allows the user to control the accuracy of the query with the sampling ratio as opposed to querying a dirty dataset with an unknown level of data error.
 One of the algorithms in SampleClean, NormalizedSC, takes a dirty dataset and query and using a sample of clean data learns how
@@ -82,13 +78,12 @@ well studied in a field called Sample-based Approximate Query Processing
 (SAQP). 
 Our approach differs from SAQP as we look to
 approximately correct a query rather than directly estimating the query result.
-In other words, we use a sample of up-to-date data to understand how to compensate for the
+In other words, we use a sample of up-to-date data to understand how to correct for the
 staleness. 
 The SAQP approach to this problem, would be to
-estimate the result directly from the maintained sample; a sort of
-SAQP scheme on the sample of the view \cite{joshi2008materialized}.
+estimate the result directly from the maintained sample \cite{joshi2008materialized}.
 We found that estimating
-a correction and leveraging an existing deterministic result lead
+a correction and leveraging an existing deterministic result led
 to lower variance results on real datasets (see Section \ref{exp}). 
 
 
