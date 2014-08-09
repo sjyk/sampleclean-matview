@@ -24,7 +24,7 @@ We use the sample to learn how the updates affect the query results and then com
 Our experiments suggest that prior approaches (SAQP) are inefficient when updates are sparse and the maintenance batch is small compared to the base data.
 
 There are a variety of other works proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which are similar to materialized views. Furthermore, there is a close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases has also been studied \cite{re2007materialized}.
-
+Srinivasan and Carey studied compensation for concurrency errors that happen during query processing \cite{srinivasanC92}\reminder{Differentiate with our work}.
 \section{Conclusion and Future Work}\label{conclusion}
 In this paper, we proposed a new approach to the staleness problem in materialized views.
 We demonstrated how recent results from data cleaning, namely sampling, query correction, and outlier detection, can

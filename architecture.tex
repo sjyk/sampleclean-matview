@@ -12,7 +12,7 @@ Then, for queries on the view, we get progressively less stale results for the m
 With this intuition in mind, to ensure that our result is unbiased, we clean a random sample of dirty rows.
 For aggregate queries, such as \sumfunc, \countfunc, and \avgfunc, we can then estimate from this sample how the updates change the query results.
 From this estimate, we can derive a correction to stale query results.
-In this paper, we present our approach with modeling only insertions to the base tables, refer to the extended version of the paper [?] for details on how to model deletions and updates.
+In this paper, we present our approach with modeling only insertions to the base tables, refer to the extended version of the paper \reminder{Extended Paper} for details on how to model deletions and updates.
 
 %Thus, our results are never stale; \reminder{This claim is a little strong. Since we do batch job, is it also possible for us to give stale results?} they have some inaccuracy introduced by the sampling ratio but in expectation they are correct.
 %Furthermore, we also prove that this correction term is the optimal linear unbiased estimate for SUM, COUNT, and AVG.
@@ -72,6 +72,8 @@ FROM table
 WHERE condition([col1,col2,...]) 
 GROUP BY [col1,col2,...]
 \end{lstlisting}
+
+There is a taxonomy of aggregation views and we discuss different types of aggregate functions (distributive, algebraic, holistic) can be applied in our framework \reminder{Extended Paper}.
 
 \subsubsection{Sampling the Update Pattern}
 %Given these materialized views, the first challenge is sampling.
