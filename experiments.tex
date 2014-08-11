@@ -53,7 +53,8 @@ WHERE  c_custkey = o_custkey  AND o_orderkey = l_orderkey  AND l_suppkey = ps_su
 
 \vspace{1em}
 
-The base dataset is 10GB corresponding to 60,000,000 records, and the above three views are derived from this base dataset.
+The base dataset is 10GB corresponding to 60M records, and the above three views are derived from this base dataset.
+\reminder{Include view sizes in the description}
 Along with the TPCD specification are templates to generate a query workload to benchmark database systems.
 We used these templates to generate queries and filtered the query workload to the aggregation queries and the ones whose predicates could be applied on our views.
 In all, for each view, we had 10,000 aggregate queries with different randomly generated predicates from the template.
@@ -70,12 +71,12 @@ We evaluated performance on Apache Spark with a 20 node r3.large Amazon EC2 clus
 
 {\noindent \bf Update Rate and Accuracy :}
 In the first experiment, for each of the three views listed above, we evaluate the accuracy of our approach.
-We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500000 (0.8\% base data) records to a final count of 8000000 records (13.3\% base data).
+We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500K (0.8\% base data) records to a final count of 8M records (13.3\% base data).
 For the 10,000 generated queries on the view, we calculate the mean error as a relative percentage of the true value.
 As a baseline, we compare against SAQP and no maintenance (ie. the stale error).
 In Figure \ref{exp2update}, we show the results of the experiment. 
 
-For all three views a 5\% sample sufficed to acheive a mean relative error of less than 1\%, even though when 8000000 records were inserted the staleness was 7\%.
+For all three views a 5\% sample sufficed to acheive a mean relative error of less than 1\%, even though when 8M records were inserted the staleness was 7\%.
 Furthermore, in comparision to SAQP, the accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
 As more records are inserted the approximation error in our approach increases.
 However, we find that even for very large amounts of inserted records (>10\% of dataset size), our approach gives significantly more accurate results
@@ -84,7 +85,7 @@ The gain is most pronounced in aggregation views where there are a mixture of up
 Correcting an update to an existing row is often much smaller than doing so for a new inserted record.
 
 {\noindent \bf Sample Size and Accuracy :} The next question is how much sampling is neccessary to acheive accurate results.
-We inserted 5000000 (8\% base data) records, and then vary the sampling ratio for the three types of views and show how much sampling is needed to achieve a given query accuracy.
+We inserted 5M (8\% base data) records, and then vary the sampling ratio for the three types of views and show how much sampling is needed to achieve a given query accuracy.
 In Figure \ref{exp1sample}, we show the accuracy as a function of sampling ratio for each of the views.
 In our experiment, we found that a 0.1\% sample was sufficient to ensure the approximation error due to sampling was less than the baseline staleness.
 SAQP also has this break even point, but we found for this number of inserted records the point SAQP required a much larger sample size.
@@ -96,7 +97,7 @@ SAQP also has this break even point, but we found for this number of inserted re
 \end{figure}
 
 {\noindent \bf Distribution of Query Error :} In our earlier experiments, we presented the average error for the queries on the views.
-We found that for inserted 5000000 records (8\% base data) on average querys on the views were 7-9\% stale. 
+We found that for inserted 5M records (8\% base data) on average querys on the views were 7-9\% stale. 
 However, that some queries were much more stale than others.
 In this experiment, we looked at the distribution of staleness for the aggregation view.
 We used a sampling ratio of 5\% and evaluate the accuracy of our approach. 
@@ -134,7 +135,7 @@ Since, we are correcting a stale query rather than the materialized view, we are
 If our updates only contain insertions, then for \spview and \fjview, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
 However, for aggregation views, query correction requires a scan of the old view and a sample of the maintained view; potentially increasing the time to 
 answer the query. 
-In our first experiment, we set the sample size to 5\% and evaluate the aggregation view listed earlier for 5000000 inserted records. 
+In our first experiment, we set the sample size to 5\% and evaluate the aggregation view listed earlier for 5M inserted records. 
 In Figure \ref{exp10overheads}, we show that average query time is small compared to maintenance time, and furthermore, 
 the time to calculate a correction is a just fraction of the query time.
 \begin{figure}[h]
@@ -152,7 +153,7 @@ WHERE (condition1)
 WHERE (condition1 || condition2)
 WHERE (condition1 || condition2 || condition 3)
 \end{lstlisting}
-We set the sample size to 5\%, insert 5000000 records (8\% of Base Data), and measure the maintenance time.
+We set the sample size to 5\%, insert 5M records (8\% of Base Data), and measure the maintenance time.
 For the selection view the only cost for maintenance is a scan of the data and evaluating the predicate. 
 Sampling saves on predicate evaluation but introduces the overhead of random number generation (see Section \ref{subsec:pattern}). 
 Figure \ref{exp11overheads} illustrates how as the view becomes for complex the performance improvement given
@@ -172,7 +173,7 @@ Furthermore, we emphasize that when views are large and complex, as often the ca
 
 \subsection{Outlier Indexing}
 We evaluated the accuracy for each of the views as a function of the size of the outlier index. 
-We use a 5\% sample size and 5000000 records (8\% of Base Data) inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
+We use a 5\% sample size and 5M records (8\% of Base Data) inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
 We apply the index to the Select-Project view, where we index the attributes l\_extendedprice and l\_quantity.
 The results for the other two views were similar, and in this paper, we only present results for the Select-Project views.
 In the first experiment, we set the outlier index size to the top 500 records in the base table, and looked at the change in accuracy of the top 10 most in accurate query corrections with SVC 5\%.
@@ -191,6 +192,7 @@ We found that as the dataset become more skewed, outlier indexing is increasingl
 \subsection{Application: Log Analysis For Conviva}
 We used a dataset of queries given by Conviva to generate three materialized views.
 All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views.
+\reminder{Include view sizes in the description}
 LargeView has the most selective group by clause and was chosen to a be a large view where most of the maintenance is in the form of new rows to insert.
 LargeView aggregates session times for each visitor and video pair.
 MediumView is a medium size view where maintenance is a mix of both updates and insertions.
