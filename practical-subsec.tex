@@ -38,7 +38,7 @@ The full proof can be found in \reminder{Extended Paper}
 \end{proof}
 
 \subsection{Extension to Select Queries}
-Sample-based approaches are inherently focus on aggregate queries.
+Sample-based approaches inherently focus on aggregate queries.
 For general Select queries, both SAQP and SVC have limitations.
 However, we find that SVC can provide more support for Select queries in comparison to SAQP and no maintenance.
 Suppose, we have a Select query of the following form:
@@ -55,5 +55,6 @@ We can rewrite the Select query as \countfunc to get an estimate of the up-to-da
 the number of missing rows.
 
 In comparison to no maintenance, this approach always gives a less stale result.
-In comparison to SAQP, since we leverage the existing stale view to use the exact selection up-to the last maintenance time, we often give a less stale result.
+In comparison to SAQP, we leverage the existing stale view to use the exact selection up-to the last maintenance time.
+Thus, we can often return more of the rows in the query result compared to SAQP.
 Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
