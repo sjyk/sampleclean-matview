@@ -46,12 +46,14 @@ Suppose, we have a Select query of the following form:
 SELECT * FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-In SVC, we first apply the query to the old view getting a stale result.
-Then, we apply the query to the update pattern sample, getting a sample of records that satisfy the condition.
-If we take a union of the two results there are some rows that are missing from Select due to the sampling.
-We can then rewrite this query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on 
+In SVC, we correct stale query results.
+For Select query, this means that we need to missing rows to the stale result.
+If we apply the query to the update pattern sample, we get a sample of records that satisfy the condition.
+Then, we can take a union of the sampled selection and the stale selection.
+As before, this approach is approximate, however, since the results are not numeric, we have to quantify the approximation error in a different way.
+We can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on 
 the number of missing rows.
 
-In comparison to no maintenance, since we are only adding rows that from our sample is always more accurate.
-In comparison to SAQP, we leverage the existing stale view to use the exact selection up-to the last maintenance time avoiding estimating the entire result from the sample.
+In comparison to no maintenance, this approach always gives a less stale result.
+In comparison to SAQP, since we leverage the existing stale view to use the exact selection up-to the last maintenance time, we often give a less stale result.
 Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
