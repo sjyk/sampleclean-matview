@@ -20,4 +20,13 @@ For example, if we had a 1\% sample, we could only get 1\% of the rows in the re
 In comparison, for a 1\% sample, we take advantage of the existing stale result allowing us to combine to old result with 1\% of the newly inserted records; thus including a much greater portion of the result rows.
 
 \subsection{Deletions}\label{sec:del}
-\reminder{TODO}
+In the previous sections, we presented SVC focusing on \insertion operations to the base table.
+These insertions defined ``update pattern" which we sampled to calculate an approximate correction.
+To model \delete operations, we can extend our approach to also maintain a ``deletion" table, a table of records from the base table to be deleted. 
+%With respect to the deletion table, we can define similar update patterns.
+For \fjview and \spview, deletions only result in rows to remove an analog to before when we have rows to insert.
+We can define the update pattern in the same way but modify our correction technique to subtract rather than add.
+Thus, we replace all of the additions in first column of Table \ref{tbl:query-correct} with subtractions.
+For \aggview, the formulas presented in Table \ref{tbl:query-correct} apply without modifications.
+By supporting \delete, we can support \update operations to the base table.
+We can model an \update as an \insertion and then a \delete.

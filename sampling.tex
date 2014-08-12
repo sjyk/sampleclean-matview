@@ -108,6 +108,16 @@ $~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
 A delta query result tells us how data updates will affect the query result on an old (i.e., a stale) sample \aggview. Thus, it is computed as the difference between the query results on a stale sample \aggview and an updated sample \aggview. To use it to correct a stale query result (as shown in Table~\ref{tbl:query-correct}), for the \sumfunc query, since the \sumfunc difference is computed on a sample, we need to scale it to the full data, and add the rescaled value to the old query result, i.e., $\ans_{sum}+\dans_{sum}/\ratio$; for the \countfunc query, since a \countfunc query can be taken a special case of a \sumfunc query, similar to the \sumfunc query, we have $\ans_{count}+\dans_{count}/\ratio$; for the \avgfunc query, since the \avgfunc difference on a sample is an unbiased estimation of the \avgfunc difference on the full data, we add the delta query result to the old query result directly, i.e., $\ans_{avg}+\dans_{avg}$.
 
 
+\subsection{Cost Analysis}
+While it is true that SVC shifts some of the costs of maintenance to query execution through the correction, we can show that these overheads are small.
+Let us consider the case where there is no index on the materialized view.
+For \fjview and \spview, our correction is calculated from applying the query to the sampled update pattern and the stale view.
+If we only consider insertions to the base table, the combined size of these two tables are guaranteed to be less than the size
+of the fully maintained view; thus actually leading to a reduced query time.
+For \aggview, since there are both updates and insertions, we do introduce an overhead.
+In this case, our query has to scan both the stale view and the update pattern sample.
+If the sampling ratio is small, then this overhead will be small as well. 
+
 \input{practical-subsec.tex}
 
 
