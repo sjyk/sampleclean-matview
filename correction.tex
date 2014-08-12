@@ -9,7 +9,7 @@ We also analyze the costs and overheads of our methods.
 
 \begin{figure}[tup]
 \centering
- \hspace*{-2em}\includegraphics[scale=0.38]{figs/update-pattern-new.pdf}\vspace{-1em}
+ \hspace*{-2em}\includegraphics[scale=0.32]{figs/update-pattern-new.pdf}\vspace{-1em}
  \caption{Illustration of the update patterns for \spview and \fjview and \aggview.}\label{fig:update-pattern}\vspace{-1em}
 \end{figure}
 
@@ -52,17 +52,17 @@ For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview 
 
 
 \subsection{Sampling Techniques for Update Patterns}\label{subsec:sample-pattern}
-Modeling updates to the base table in terms of update patterns does not change the expense of incremental view maintenance.
-It does, however, give us a logical unit to sample and in this section, we describe how 
-our system only maintains a random sample of the update patterns.
-As our earlier analysis of the update patterns suggests, our sampling techniques for each type of materialized view are slightly different.
+The update pattern model gives us a logical unit to sample the updates to a materialized view.
+In this section, we show how to construct these samples and show how the cost of sampling is less than full incremental maintenance.
+The cost is further parameterized by the sampling ratio allowing the user to tradeoff accuracy or performance.
+Potentially far cheaper than full incremental maintenance, update pattern sampling can be applied in situations where incremental maintenance was deemed infeasible such as between periodic maintenance cycles.
 
 \subsubsection{Select-Project and Foreign-Key Join Views}
 Consider a base table $T$ and the corresponding insertion table $\triangle T$. Given a \spview defined on the table, its full update patterns involve the inserted records of $\triangle T$ that satisfy the predicate of the \spview. To sample the update patterns (e.g., at a sampling ratio of $\ratio = 5 \%$), we randomly select 5\% records from $\triangle T$, and then keep the records that satisfy the view's predicate as a sample. 
 
 \sloppy
 
-For a given \fjview, let $T$ be the fact table, and $T_1, T_2, \cdots, T_k$ be the dimension tables. The update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date dimension tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
+For a given \fjview, let $T$ be the base table, and $T_1, T_2, \cdots, T_k$ also base tables with which are linked to $T$ with foreign-key relationships. The update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
 
 \fussy
 
@@ -71,7 +71,9 @@ For a given \fjview, let $T$ be the fact table, and $T_1, T_2, \cdots, T_k$ be t
 \vspace{.5em}
 
 
-{\noindent \bf Cost Analysis.} Let $n = |\triangle T|$ be the number of inserted records, $v$ be the cardinality of the stale view, $\delta_v$ be the cardinality of the delta view, and $\ratio$ be the sampling ratio. Table~\ref{tbl:cost-analysis} compares the cost of our update-pattern sampling techniques (denoted by Sampling) with the corresponding cost of incremental view maintenance (denoted by Maintenance). The table does not include the I/O cost of loading the updates into memory since in both Sampling and Maintenance we only need to load the updates once and amortize that I/O cost over all views.
+{\noindent \bf Cost Analysis.} Let $n = |\triangle T|$ be the number of inserted records, $v$ be the cardinality of the stale view, $\delta_v$ be the cardinality of the delta view, and $\ratio$ be the sampling ratio. Table~\ref{tbl:cost-analysis} compares the cost of our update-pattern sampling techniques (denoted by Sampling) with the corresponding cost of incremental view maintenance (denoted by Maintenance). As both techniques require a single scan of the updates, we exclude the cost of scanning the newly inserted records.
+
+%The table does not include the I/O cost of loading the updates into memory since in both Sampling and Maintenance we only need to load the updates once and amortize that I/O cost over all views.
 
 %Both incremental view maintenance and our proposed solution require at least one scan of the inserted records. But note that in both solutions we can load the updates into memory once and amortize that I/O cost over all views.
 
@@ -85,11 +87,14 @@ For a given \fjview, let $T$ be the fact table, and $T_1, T_2, \cdots, T_k$ be t
 \end{itemize}
 \vspace{-.5em}
 
-From the above analysis, we can see that for \spview and \fjview, when the predicate or the join is expensive to evaluate, our sampling techniques require much less cost than incremental view maintenance. For example, if the time of generating $n$ random numbers is negligible, we can save the cost of incremental view maintenance by 20 times for the sampling ratio of $\ratio = 5 \%$.
+From the above analysis, we can see that when the view definitions are more complex to evaluation, for example when the predicate or the join is expensive to evaluate, our sampling reduces costs significantly. 
+
+%For example, if the time of generating $n$ random numbers is negligible, we can save the cost of incremental view maintenance by 20 times for the sampling ratio of $\ratio = 5 \%$.
 
 \subsubsection{Aggregation View}
 The update patterns for an \aggview contains the update information for existing groups in the view as well as groups to be inserted. 
 Since, we may have to update existing groups, unlike \spview and \fjview, the first step is to construct a sample of all of the existing group keys in the \aggview.
+We can create this sample when the stale materialized view is created.
 To sample the group keys, we apply a hash function to the key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and filter
 \begin{equation}\label{eq:hash}
 \hashfunc{\textrm{``group key"}} \leq \ratio.
@@ -97,7 +102,7 @@ To sample the group keys, we apply a hash function to the key. We define a hash 
 Thus, if the hash function is uniform the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$
 
 Once, we have a random sample of the existing keys, we can use this sample to construct a sample of the update patterns.
-When a records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those group by keys that satisfy the condition on the hash above (i.e $le \ratio$). This ensures that if a key is already in the sample, our delta \emph{sample} \aggview contains this key.
+When a records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those group by keys that satisfy the condition on the hash above (i.e $\le \ratio$). This ensures that if a key is already in the sample, our delta \emph{sample} \aggview contains this key.
 For keys that are not already in the sample, the hash condition filters them to select a random sample of them with sampling ratio of~$\ratio$.
 This process ensures that a group is either fully represented in the sample or not at all, thus its aggregate is an exact result.
 
@@ -124,10 +129,11 @@ This process ensures that a group is either fully represented in the sample or n
 %As in \spview and \fjview, both incremental view maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. \vspace{-0.5em}
 \item \underline{Delta View.} For \aggview, incremental view maintenance has a grouping cost of $\cost_{group}(n)$ as well as an aggregation cost of $\cost_{agg}(\delta_v)$ where aggregates for each of the groups have to be maintained. In contrast, since we only maintain the update patterns for a sample of groups, we can reduce the grouping cost to $\cost_{group}(\ratio \cdot n)$ and the aggregation cost to $\cost_{group}(\ratio \cdot \delta_v)$. The additional overhead of sampling is to evaluate $\hashfunc{\cdot}$ for each inserted record, i.e., $\cost_{hash}(n)$.  \vspace{-0.5em}
 %Furthermore, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group-by key. \vspace{-0.5em}
-\item \underline{Refresh.} Compared to \spview and \fjview, the refresh cost of \aggview is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
-Incremental view maintenance has to apply $\delta_v$ records to the entire view while our sampling approach only needs to apply $\ratio \cdot \delta_v$ records to the sample view. 
-If there is an index in the view, we can 
-determine which records are new insertions and which correspond to existing records in constant time. Therefore, our sampling technique can reduce the refresh cost from $\cost_{apply}(\delta_v)$ to $\cost_{apply}(\ratio\cdot \delta_v)$.
+\item \underline{Refresh.} 
+%Compared to \spview and \fjview, the refresh cost of \aggview is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
+In full incremental view maintenance, $\delta_v$ rows have to be updated or inserted while our sampling approach only processes $\ratio \cdot \delta_v$ rows. 
+To avoid scanning the view for each update, if the view is indexed by group by key, we can determine which updates are new insertions and which correspond to existing records in constant time. 
+Therefore, our sampling technique can reduce the refresh cost from $\cost_{apply}(\delta_v)$ to $\cost_{apply}(\ratio\cdot \delta_v)$.
 
 \vspace{-0.25em}
 
@@ -137,7 +143,9 @@ determine which records are new insertions and which correspond to existing reco
 %Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $\ratio \cdot \delta_v$ rows. 
 \end{itemize}
 
-Similar to the analysis results of \spview and \fjview, our sampling techniques can save the cost by a factor of $1/\ratio$ in almost every stage of incremental view maintenance. The only additional overhead is to compute a hash value for each inserted record (i.e., $\cost_{hash}(n)$). However, as shown in our experiments (Section \ref{exp}), even with the additional overhead, our sampling techniques can save maintenance cost compared to full incremental maintenance. %\reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
+Similar to the analysis results of \spview and \fjview, sampling allows for greater savings when the cost maintaining the view is higher, for example, when the refresh step is expensive.
+
+%However, as shown in our experiments (Section \ref{exp}), even with the additional overhead, our sampling techniques can save maintenance cost compared to full incremental maintenance. %\reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
 
 \iffalse
 We enforce the hash function to each group-by key of the \aggview and return those groups, as $S_{V}$, such that $\hashfunc{\textrm{``group-by key"}} \leq \ratio$. Obviously, $S_{V}$ is a random sample of the \aggview with the sampling ratio of $\ratio$. 

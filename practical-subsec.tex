@@ -6,7 +6,7 @@ By the Central Limit Theorem, the mean value of numbers drawn by uniform random 
 \[
 \bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
 \]
-where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.
+where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size. \footnote{For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparision to k making this term insignificant.}
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$.
 Since the estimate is unbiased, the confidence interval indicates that the true value lies in the confidence interval with the specified probability.
 

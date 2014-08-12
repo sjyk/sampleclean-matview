@@ -7,13 +7,13 @@ In this section, we discuss how to correct stale query results using sample upda
 \subsection{\Cqp}\label{subsec:correct-principle}
 Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
 
-We proccess aggregation queries of the following form, 
+Recall, we proccess aggregation queries of the following form, 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-For ease of presentation, we assume the query does not have a group-by clause.
-But our methods can be easily extended to a group-by query by treating each group key as an additional condition of the query. 
+%For ease of presentation, we assume the query does not have a group-by clause.
+%But our methods can be easily extended to a group-by query by treating each group key as an additional condition of the query. 
 
 %where \texttt{f} is an aggregation function (i.e., $\avgfunc$, $\sumfunc$, $\countfunc$), \texttt{a} is an attribute, and \texttt{A} is a set of attributes. 
 
