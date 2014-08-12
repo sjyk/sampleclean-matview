@@ -20,7 +20,7 @@ We explore whether refreshing stale rows in a materialized view can be modeled a
 While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
 recent work has also considered the costs of data cleaning \cite{wang1999sample}.
 In particular, recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of dirty records.
-This model raises a new possibility for materialized views, namely, that a sample of up-to-date rows can be used to answer aggregate queries without having the maintain the entire materialized view.
+This model raises a new possibility for materialized views, namely, that a sample of up-to-date rows can be used to answer aggregate queries without having to maintain the entire materialized view.
 
 We propose Sample-View-Clean (SVC), a framework that samples updates to a materialized view and corrects stale aggregation query results.
 While approximate, the corrected query result is in-expectation fresh and can be bounded within confidence intervals.
@@ -54,7 +54,7 @@ To summarize, our contributions are as follows:
 The paper is organized in the following way. 
 In Section \ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
 Next, in Section \ref{sec-arch}, we give a brief overview of our overall system architecture.
-In Section \ref{sampling} and \ref{correction}, we describe the mathematics and query processing of our technique.
+In Section \ref{sampling} and \ref{correction}, we describe the sampling and query processing of our technique.
 In Section \ref{outlier}, we describe the outlier indexing framework.
 Then, in Section \ref{exp}, we evaluate our approach.
 Finally, we end with our Related Work in Section \ref{related} and our Conclusions and Future Work in Section \ref{conclusion}.

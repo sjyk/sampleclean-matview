@@ -39,10 +39,8 @@ GROUP BY [col1,col2,...]
 \end{lstlisting}
 
 There are three types of updates that can affect a base table: \insertion, \delete, \update.
-We can model \update as a \delete of the old record then an \insertion of a new record with updated values.
-In this paper, we present analysis and results for only insertions. 
-Insertion-only workloads are increasing common \reminder{Tim will find a citation}.
-In Section \ref{sec:del}, we discuss how to modify our query processing to support \delete, which in turn allows us to support \update.
+We can model \update as a \delete of the old record then an \insertion of a new record with updated values. Insertion-only workloads are increasing common \reminder{Tim will find a citation}.
+Thus, the primary focus of this paper is on analysis and results for \insertion. In Section \ref{sec:del}, we discuss how to modify our query processing to support \delete, which in turn allows us to support \update.
 
 \subsubsection{Supported Queries}
 In this paper, we focus on deriving corrections for the three most common aggregation queries on the view \footnote{For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query.} : 
