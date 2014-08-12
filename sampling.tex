@@ -5,9 +5,7 @@ In this section, we discuss how to correct stale query results using sample upda
 
 
 \subsection{\Cqp}\label{subsec:correct-principle}
-Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
-
-Recall, we proccess aggregation queries of the following form, 
+Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. Recall, that we focus on the three aggregation queries of the following form, 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
@@ -55,7 +53,7 @@ For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ a
 In Table~\ref{tbl:query-correct}, we show how to use the delta query result to correct a stale query result. 
 
 
-\begin{table}[tup]\renewcommand{\arraystretch}{1.5}
+\begin{table}[ht!]\renewcommand{\arraystretch}{1.5}
 \caption{Correcting a stale query result}\label{tbl:query-correct} \scriptsize \centering
 %\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
 %\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
@@ -70,7 +68,7 @@ In Table~\ref{tbl:query-correct}, we show how to use the delta query result to c
 \end{tabular}
 \end{table}
 
-To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the rescaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
+To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the re-scaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
 
 To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
 
@@ -192,7 +190,7 @@ an additional proportionality constant for a full correction.
 \[
 f(S_{V})\approx\epsilon
 \]
-However, when we introduce sampling a scaling constant is now neccessary.
+However, when we introduce sampling a scaling constant is now necessary.
 The scaling constant $c$ for the SUM and COUNT queries depends on the sample size and is $c = \frac{K}{N}$, 
 but $c = 1$ for the AVG query.
 For SUM, COUNT, AVG, and VAR, this estimate of $\epsilon$ is unbiased as before.
@@ -212,7 +210,7 @@ If there is a join index, in constant time, we can determine which rows are new 
 
 The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
 For aggregation views, we want to partition the data by the group by key.
-This allows a paritioned join which only requires communication (a shuffle operation) of the delta table.
+This allows a partitioned join which only requires communication (a shuffle operation) of the delta table.
 Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $p\delta_v$ rows.
 
 \textbf{Query: } For aggregation views, the cost is $v + pv'$ where we calculate a correction by processing $pv'$ rows and correct an existing aggregation of $v$ records.

@@ -77,13 +77,13 @@
 %\newcommand{\reminder}[1] {}
 \pagestyle{plain}
 
-\title{A Data Cleaning Approach to Materialized View Management}
+\title{Sample-View-Clean: A Data Cleaning and Outlier Indexing Approach For Managing Materialized Views}
 
 \maketitle
 \iffalse
 \begin{abstract}
-Materialized views, stored pre-computed query results, are used to optimize queries on large datasets.
-Materialized views can become out-date when base tables change and any queries issued to these views will give \emph{stale} results.
+Materialized views, stored pre-computed query results, are used to facilitate queries on large datasets.
+Materialized views can become out-date when base tables change and queries will give \emph{stale} results.
 Maintaining materialized views has been well studied but is often very costly.
 In this work, we model the view maintenance problem as a data cleaning problem and treat a stale row in a materialized view as a type of data error.
 In particular, we maintain a small sample of updates to a materialized view and infer how these updates affect a queries on a the stale view.
@@ -97,7 +97,8 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 \fi
 
 \begin{abstract}
-Materialized views, stored pre-computed query results, are widely used to optimize queries on large datasets. When base tables are updated, however, materialized views can become out-of-date and any queries issued to these views will give stale results. While various techniques have been proposed to make view maintenance run faster, they may still be very costly, especially in the Big Data era when new data is coming at an increasingly fast rate. In this work, we look at this problem from a different perspective. We treat staleness a type of data error and model the view-maintenance problem as a data-cleaning problem. Instead of maintaining a materialized view, we aim to correct a query result on the stale view using a sample. To achieve this goal, we define the concept of an update pattern and propose efficient techniques to maintain a sample of update patterns for three types of materialized views. For common aggregate queries (SUM, COUNT, and AVG), we bound our corrections in analytic confidence intervals, and prove that our technique is optimal with respect to estimate variance. As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. We evaluate our method on real and synthetic datasets and found that we are able to provide more up-to-date query results with a smaller mean error and at a lower maintenance cost than other methods. 
+Materialized views, stored pre-computed query results, are widely used to facilitate fast queries on large datasets. When base tables are updated, however, materialized views can become out-of-date and queries will give stale results, especially in the Big Data era when new data arrives at an increasingly fast rate. 
+In Sample-View-Clean, we approach staleness as a type of data error and model the view-maintenance problem as a data-cleaning problem. Instead of maintaining a materialized view, we aim to correct a query result on the stale view using a sample. To achieve this goal, we define the concept of an update pattern and propose efficient techniques to maintain a sample of update patterns for three types of materialized views. For common aggregate queries (SUM, COUNT, and AVG), we bound our corrections in analytic confidence intervals, and prove that our technique is optimal with respect to estimate variance. As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. We evaluate our method on real and synthetic datasets and result suggest that we are able to provide more up-to-date query results with a smaller mean error and at a lower maintenance cost than previous methods. 
 \end{abstract}
 
 

@@ -1,12 +1,12 @@
 \section{System Overview}\label{sec-arch}
-\subsection{Problem Scope}
-In this paper, we present our approach with insertions to the base table as the only type of update, see
+\subsection{Problem Setting}
+In this paper, we only consider insertions to the base table, see
 \reminder{Extended Paper} for more details on how to model deletions.
-Our framework cleans stale query results on three classes of materialized views, Select-Project, Foreign-Key, and Aggregation:
+SVC corrects stale query results on three classes of materialized views, Select-Project, Foreign-Key, and Aggregation:
 
 \vspace{1em}
 
-\noindent\textbf{Select-Project Views (\spview): } One type of view that we consider are views generated from Select-Project
+\noindent\textbf{Select-Project Views (\spview): } These views are defined by Select-Project
 expressions of the following form:
 
 \begin{lstlisting}
@@ -43,12 +43,10 @@ We focus on deriving corrections for the three most common aggregation queries o
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-For these queries, we bound the results in confidence intervals with the Central Limit Theorem and prove optimality of our approach with respect to estimate variance (Section \ref{subsec:correct-practical}).
-
-For general Select-Project queries on the view, we can still derive a bounded correction using the Chebyshev Inequality. 
-While the corrections are unbiased, this bound is not as tight as the CLT bound for the aggregation queries, and is not 
-optimal with respect to variance. 
-Characterizing which queries can be answered accurately using a sample is a subject of active research\cite{agarwalknowing}, and we hope to explore the problem of unbiased correction and optimality beyond (SUM, COUNT, AVG) in future work.
+For these queries, we bound the results in confidence intervals with the Central Limit Theorem and prove optimality of our approach with respect to estimate variance (Section \ref{subsec:correct-practical}). 
+All sampling-based systems are limited in the ways that they can address general Select queries.
+We provided limited support for Select queries, we can return the stale result with any additional rows that appear in the sample.
+However, since we can bound aggregation queries, we can bound how many rows are missing from the result which is a \countfunc query. 
 
 %\subsubsection{Supported Materialized Views}\label{subsubsec:supported-view}
 %We will first introduce the taxonomy of materialized views that can benefit from our approach. 
@@ -77,15 +75,14 @@ Characterizing which queries can be answered accurately using a sample is a subj
 %Furthermore, we also prove that this correction term is the optimal linear unbiased estimate for SUM, COUNT, and AVG.
 
 \subsection{System Architecture}
-Modeling this as a data cleaning problem gives us a new perspective for addressing staleness.
+Modeling view maintenance as a data cleaning problem gives us a new perspective for addressing staleness.
 Insertions to the base table can cause two types of staleness in the view: rows are either out-of-date or missing altogether.
 The challenge is to ``clean" the materialized view by updating the out-of-date rows and inserting the missing rows, however this can be very expensive if there are a large number of new records to process.
-Suppose, we cleaned a random sample of dirty rows processing only as many of the new insertions as necessary.
-For aggregate queries, such as \sumfunc, \countfunc, and \avgfunc, we can then estimate from this sample how much this cleaning changes the query results.
-From this estimate, we can derive a correction to stale query results.
+Suppose, we cleaned a random sample of dirty rows processing only as many of the new insertions as necessary this would potentially reduce the amount of updates, join executions, and aggregates we would need to compute.
+From this sample, we can derive a correction to stale query results.
 
-The architecture of our proposed solution is shown in Figure \ref{sys-arch}.
-The diagram depicts the following components: (1) as updates arrive we sample the ``update pattern". 
+The architecture of SVC is shown in Figure \ref{sys-arch}.
+The diagram depicts the following components: (1) we sample the ``update pattern". 
 (2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
 
 \begin{figure}[h]
@@ -94,15 +91,13 @@ The diagram depicts the following components: (1) as updates arrive we sample th
  \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded. \label{sys-arch}}
 \end{figure}
 
-In implementation, our proposed system will work in conjunction with existing maintenance or re-calculation approaches.
-We envision the scenario where materialized views are being refreshed periodically e.g. nightly.
+In implementation, SVC will work in conjunction with existing maintenance or re-calculation approaches.
+We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for aggregation queries.
 
 \subsubsection{Sampling the Update Pattern}
 %Given these materialized views, the first challenge is sampling.
-We have to sample the updates in a particular way so the sample accurately represents how updates
-affect queries on the view. 
 The three classes of views require different sampling techniques since they are affected by updates differently.
 For example, insertions to the base table only result in insertions to Select-Project views.
 But, for Aggregation Views, insertions to the base table can also result to updates to existing stale rows.
@@ -116,9 +111,9 @@ This can be used to reduce variance in our estimates.
 See Section \label{outlier} for details on this component.
 
 \subsubsection{Correcting a Query}
-Suppose, we issue an aggregate query to the stale view.
 We can use information from the sample to correct stale query results.
-The corrected result is in expectation up-to-date and is probabilistically bounded.
+For the three most common aggregate functions, \sumfunc, \countfunc, and \avgfunc, we calculate a correction
+which is bounded and provably optimal.
 Like the sampling, the algorithm to calculate the correction varies between the types of views.
 We detail query correction in Section \ref{correction}.
 
@@ -139,8 +134,8 @@ record must link to one video in the video table.
 
 \begin{figure}[t] 
 \centering
- \includegraphics[scale=0.33]{figs/sample-clean-example.png}\label{example-1}
- \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.}
+ \includegraphics[scale=0.33]{figs/sample-clean-example.png}
+ \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.\label{example-1}}
 \end{figure}
 
 Consider the following example materialized view \aggview, which stores a result for each video and the maximum time it took for the server to load that video:

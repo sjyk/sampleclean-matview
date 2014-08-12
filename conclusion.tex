@@ -26,12 +26,11 @@ Our experiments suggest that prior approaches (SAQP) are inefficient when update
 There are a variety of other works proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which are similar to materialized views. Furthermore, there is a close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases has also been studied \cite{re2007materialized}.
 Srinivasan and Carey studied compensation for concurrency errors that happen during query processing \cite{srinivasanC92}\reminder{Differentiate with our work}.
 \section{Conclusion and Future Work}\label{conclusion}
-In this paper, we proposed a new approach to the staleness problem in materialized views.
-We demonstrated how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
+In this paper, we propose a new approach to the staleness problem in materialized views.
+We demonstrate how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
 allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. 
-We evaluated this approach on a single node and in a distributed environment and found that sampling can provide a flexible tradeoff 
+We evaluate this approach on a single node and in a distributed environment and find that sampling can provide a flexible tradeoff 
 between accuracy and performance.
-In our end-to-end experiments with a 1TB log dataset from Conviva, we found that maintaining a 5\% sample was 16.3x faster yet  with only a mean query error of 1.4\%.
 
 Our results are promising and suggest many avenues for future work.
 We are interested in extending this approach to support a more general class of queries.

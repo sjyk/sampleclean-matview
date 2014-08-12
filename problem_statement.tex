@@ -46,20 +46,23 @@ maintenance cannot take advantage of the benefits of consolidating communication
 To address these challenges, deferred maintenance is alternative solution.
 The main idea of deferral is to avoid maintaining the view immediately and schedule an update at a more convenient time either in a pre-set way or adaptively.
 In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility for in scheduling.
-For example, a user can update the materialized view nightly during times of low-activity in the system.
-During these times, the system can use more resources to process the updates without worrying about the affect on the throughput.
+For example, views can be updated at night when the system can use more resources to process the updates without affecting a critical application.
 However, this also means that during the day the materialized view becomes increasingly stale as it was computed the night before.
 
-It is during this period of staleness we see an opportunity to apply our approach.
-Sampling gives the user an additional parameter that allows them to scale the maintenance cost to meet system resource constraints.
-Instead of stale query results during the day, the user can maintain as much their system allows them to do so, and for aggregation queries
-get results that are approximately up-to-date.
-This process is reset during the normal view maintenance cycle.
+These costs can also be deferred to query execution time.
+In particular, we highlight a technique called lazy maintenance which applies updates to the view only when a user's query requires a row \cite{zhou2007lazy}.
+Both lazy maintenance and immediate maintenance hit a bottleneck when there rapid updates making these approaches impractical.
 
-%More sophisticated deferred scheduling schemes are also possible.
-%In particular, we highlight a technique called lazy maintenance which defers maintenance until such time
-%a query on the view requires a row to be up-to-date \cite{zhou2007lazy}.
+
 %While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost to query execution time.
+
+%It is during this period of staleness we see an opportunity to apply our approach.
+%Sampling gives the user an additional parameter that allows them to scale the maintenance cost to meet system resource constraints.
+%Instead of stale query results during the day, the user can maintain as much their system allows them to do so, and for aggregation queries
+%get results that are approximately up-to-date.
+%This process is reset during the normal view maintenance cycle.
+
+
 
 %Immediate maintenance introduces a bottleneck on updates to the base table and lazy maintenance introduces a bottleneck during query execution,
 %and rapid updates can make these approaches impractical.
