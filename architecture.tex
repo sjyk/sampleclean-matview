@@ -45,7 +45,7 @@ WHERE Condition(A);
 \end{lstlisting}
 For these queries, we bound the results in confidence intervals with the Central Limit Theorem and prove optimality of our approach with respect to estimate variance (Section \ref{subsec:correct-practical}). 
 All sampling-based systems are limited in the ways that they can address general Select queries.
-We provided limited support for Select queries, we can return the stale result with any additional rows that appear in the sample.
+SVC hs limited support for Select queries, we can return the stale result with any additional rows that appear in the sample.
 However, since we can bound aggregation queries, we can bound how many rows are missing from the result which is a \countfunc query. 
 
 %\subsubsection{Supported Materialized Views}\label{subsubsec:supported-view}

@@ -228,6 +228,12 @@ MediumView computes buffering time statistics for each visitor over all videos t
 SmallView is a small view where most of the maintenance is updates to existing rows.
 SmallView computes statistics for log events that triggered error states.
 
+\begin{figure*}[ht!]
+\hspace{-1em}
+\includegraphics[scale=0.20]{exp/exp5-efficiency-conviva.eps}
+ \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}}
+\end{figure*}
+
 \subsubsection{Representativeness of the Views}
 We selected these views to be representative of the dataset and query workload. 
 We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log.
@@ -259,13 +265,6 @@ Even in the situation where the view is small, sampling can still have benefits 
 \subsubsection{Performance in Conviva}
 We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, as insertions as a percentage of the base data are the same.
 We derived the views from a 700GB base table and inserted records in approximately 14GB increments. 
-
-\begin{figure*}[ht!]
-
-\hspace{-1em}
-\includegraphics[scale=0.20]{exp/exp5-efficiency-conviva.eps}
- \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}}
-\end{figure*}
 
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
 As Spark does not support selective writes, we include view recalculation as a baseline for comparison.
