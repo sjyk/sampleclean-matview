@@ -29,12 +29,11 @@ For \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correction i
 In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
 \end{theorem}
 \begin{proof}
-We can reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. \sumfunc is the mean multiplied by the dataset size, and \countfunc
+\emph{Sketch: } We can reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. \sumfunc is the mean multiplied by the dataset size, and \countfunc
 is the sum where all the records have been set to 1. Then, we prove the theorem by induction. 
-Suppose, we have two estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ with unknown variance and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
+Suppose, we have two independent estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ with unknown variance and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
 Since, we do not know anything about the distribution by symmetry $c_1 = c_2 = 0.5$. 
 Thus we can recursively induct, and we find that if we do not know the variance of data, as is impossible with new updates, then equally weighting all input rows is optimal. 
-The full proof can be found in \reminder{Extended Paper}
 \end{proof}
 
 \section{Extensions}

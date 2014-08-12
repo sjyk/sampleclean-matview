@@ -1,32 +1,23 @@
-\section{Extensions and Discussion}
-In this section, we discuss some additional properties of our framework which
-we excluded from the previous sections for clarity of presentation.
+\section{Extensions}
+\subsection{Select Queries}\label{sec:sel}
+We can correct stale Selection queries with SVC.
+For \fjview and \spview, a stale selection query is missing rows.
+To correct this result, we can apply the query to the update pattern sample, we get a sample of records that satisfy the predicate.
+Then, we can take a union of the sampled selection and the stale selection.
+To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on the number of missing rows.
 
-\subsection{Class of Aggregation Views}
-There is a taxonomy of aggregation queries: distributive, holistic, and algebraic; refer to \cite{gray1997data} for details.
-Likewise, the same taxonomy can be extended to materialized views.
-Distributive queries require only a single parameter during the incremental refresh step, for example SUM and COUNT queries only need to
-add the SUM from the delta view and the stale view.
-Algebraic queries require a constant number of parameters, for example the AVG query requires the group count of the updates and the stale view before updating the aggregate.
-We presented an approach geared towards aggregation views defined by distributive and algebraic queries (SUM,COUNT, AVG, MAX, MIN).
-However, in the case of holisitc aggregates (eg. Median), we can still acheive performance gains.
-For these functions, the refresh step of incremental maintenance may require the entire distribution and not just merging two aggregates.
-For example, if we have a stale view defined by the Median, we have to know the entire distribution to keep it incrementally maintained.
-One way to do this is to maintain a histogram for each group on the relevant attribute on the stale view, and do the same on the delta view.
-Then, during the refresh we can merge the two histograms to update the median.
-Even in this setting, Sampling can help reduce processing (less histograms to compare) and communication (less histograms to communicate). 
+For \aggview, stale selection queries can also have out-of-date rows as well as missing rows.
+In this case, we can still apply the query to the update pattern sample and get a sample of rows to update and new rows to insert.
+For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
+To quantify the approximation error, we can give two bounds.
+As before, we can bound the number of missing rows in the result with a \countfunc query.
+We further can bound the number of existing rows that are not up-to-date with a \countfunc query.
 
-\subsection{Selection Queries}
-While our approach is optimal for SUM, COUNT, and AVG queries, and is exact for Selection queries on the outlier index, there is a question about processing general selection queries.
-For a Selection query, there are two possibilities: (1) the row is in the sample, and (2) the row in not in the sample.
-For rows in the sample, we can get an exact result.
-For rows not in the sample, we can bound the selection query using the Chebyshev inequality [?].
-\begin{equation}
-Pr(|X-\mu|\ge z\sigma)\le \frac{1}{z^2}
-\end{equation}
-Using the sample, we can estimate the average value and the standard deviation over all rows.
-This, gives us a bound on the distribution of unsampled rows.
-The value will not deviate from the mean by more than $\approx 4.5$ standard deviations with 95\% probability.
-This bound is very loose and is not practical for many applications, however, this result is promising as it does indicate 
-we can still acheive guarantees on general selection queries.
-We defer caclulating a correction for selection queries to future work.
+%Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
+In comparison to no maintenance, this approach gives a less stale result.
+SAQP is limited in its support of Selection queries.
+For example, if we had a 1\% sample, we could only get 1\% of the rows in the result.
+In comparison, for a 1\% sample, we take advantage of the existing stale result allowing us to combine to old result with 1\% of the newly inserted records; thus including a much greater portion of the result rows.
+
+\subsection{Deletions}\label{sec:del}
+\reminder{TODO}
