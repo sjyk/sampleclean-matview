@@ -134,14 +134,14 @@ However, that some queries were much more stale than others.
 In this experiment, we looked at the distribution of staleness for the aggregation view.
 We used a sampling ratio of 5\% and evaluate the accuracy of our approach. 
 In Figure \ref{exp3dist}, we show a CDF of the staleness and a scatter plot comparing the staleness of the query to the accuracy using our correction method.
-In the right figure, each green point corresponds to a query with the y-axis as SVC estimation error and the x-axis as staleness. 
+In the right figure, each green point corresponds to a query with the x-axis as SVC estimation error and the y-axis as staleness. 
 Even though some queries are more than 60\% stale, our corrections reduce the relative error to less than 20\%.
 
 \begin{figure}[ht!]
 \centering
  \includegraphics[scale=0.22]{exp/query_error_dist.eps}
  \includegraphics[scale=0.18]{exp/query_error_dist2.eps}
- \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each green point corresponds to a single query. Points above the dotted line show that we improved query accuracy.\label{exp3dist}}
+ \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (y-axis) and a query correction accuracy (x-axis). Each green point corresponds to a single query. Points above the dotted line show that we improved query accuracy.\label{exp3dist}}
 \end{figure}
 
 The long tail of query errors can occur for a variety of reasons.

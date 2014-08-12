@@ -1,9 +1,9 @@
 \section{System Overview}\label{sec-arch}
 \subsection{Problem Setting}
-In this paper, we only consider insertions to the base table, see
-\reminder{Extended Paper} for more details on how to model deletions.
-SVC corrects stale query results on three classes of materialized views, Select-Project, Foreign-Key, and Aggregation:
-
+%In this paper, we only consider insertions to the base table, see
+%\reminder{Extended Paper} for more details on how to model deletions.
+\subsubsection{Supported Views}
+We apply SVC to three classes of materialized views, Select-Project, Foreign-Key, and Aggregation:
 \vspace{1em}
 
 \noindent\textbf{Select-Project Views (\spview): } These views are defined by Select-Project
@@ -38,15 +38,26 @@ WHERE condition([col1,col2,...])
 GROUP BY [col1,col2,...]
 \end{lstlisting}
 
-We focus on deriving corrections for the three most common aggregation queries on the view \footnote{For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query.} : 
+For these materialized views, we model updates to the base tables as deletions and insertions.
+In this paper, we present analysis and results for only insertions. 
+Insertion-only workloads are increasing common \reminder{Tim will find a citation}.
+In Section \ref{sec:del}, we discuss how to modify our query processing to support deletions.
+
+\subsubsection{Supported Queries}
+In this paper, we focus on deriving corrections for the three most common aggregation queries on the view \footnote{For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query.} : 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-For these queries, we bound the results in confidence intervals with the Central Limit Theorem and prove optimality of our approach with respect to estimate variance (Section \ref{subsec:correct-practical}). 
-All sampling-based systems are limited in the ways that they can address general Select queries.
-SVC hs limited support for Select queries, we can return the stale result with any additional rows that appear in the sample.
-However, since we can bound aggregation queries, we can bound how many rows are missing from the result which is a \countfunc query. 
+For these queries, we prove optimality of our approach with respect to estimate variance (Section \ref{subsec:correct-practical}). 
+
+We also provide support for correcting stale Select queries of the following form:
+\begin{lstlisting} [mathescape]
+SELECT * FROM View 
+WHERE Condition(A);
+\end{lstlisting}
+Since the results of these queries are not numeric, we instead bound the cardinality of the results.
+Refer to Section \ref{sec:sel} for a discussion of how to correct Select queries with SVC. 
 
 %\subsubsection{Supported Materialized Views}\label{subsubsec:supported-view}
 %We will first introduce the taxonomy of materialized views that can benefit from our approach. 

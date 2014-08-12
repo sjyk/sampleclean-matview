@@ -37,24 +37,26 @@ Thus we can recursively induct, and we find that if we do not know the variance 
 The full proof can be found in \reminder{Extended Paper}
 \end{proof}
 
-\subsection{Extension to Select Queries}
-Sample-based approaches inherently focus on aggregate queries.
-For general Select queries, both SAQP and SVC have limitations.
-However, we find that SVC can provide more support for Select queries in comparison to SAQP and no maintenance.
-Suppose, we have a Select query of the following form:
-\begin{lstlisting} [mathescape]
-SELECT * FROM View 
-WHERE Condition(A);
-\end{lstlisting}
-In SVC, we correct stale query results.
-For Select query, this means that we need to missing rows to the stale result.
-If we apply the query to the update pattern sample, we get a sample of records that satisfy the condition.
+\section{Extensions}
+\subsection{Select Queries}\label{sec:sel}
+We can correct stale Selection queries with SVC.
+For \fjview and \spview, a stale selection query is missing rows.
+To correct this result, we can apply the query to the update pattern sample, we get a sample of records that satisfy the predicate.
 Then, we can take a union of the sampled selection and the stale selection.
-As before, this approach is approximate, however, since the results are not numeric, we have to quantify the approximation error in a different way.
-We can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on 
-the number of missing rows.
+To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on the number of missing rows.
 
-In comparison to no maintenance, this approach always gives a less stale result.
-In comparison to SAQP, we leverage the existing stale view to use the exact selection up-to the last maintenance time.
-Thus, we can often return more of the rows in the query result compared to SAQP.
-Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
+For \aggview, stale selection queries can also have out-of-date rows as well as missing rows.
+In this case, we can still apply the query to the update pattern sample and get a sample of rows to update and new rows to insert.
+For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
+To quantify the approximation error, we can give two bounds.
+As before, we can bound the number of missing rows in the result with a \countfunc query.
+We further can bound the number of existing rows that are not up-to-date with a \countfunc query.
+
+%Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
+In comparison to no maintenance, this approach gives a less stale result.
+SAQP is limited in its support of Selection queries.
+For example, if we had a 1\% sample, we could only get 1\% of the rows in the result.
+In comparison, for a 1\% sample, we take advantage of the existing stale result allowing us to combine to old result with 1\% of the newly inserted records; thus including a much greater portion of the result rows.
+
+\subsection{Deletions}\label{sec:del}
+\reminder{TODO}
