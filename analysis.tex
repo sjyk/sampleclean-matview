@@ -1,10 +1,11 @@
 \section{Extensions}
+\reminder{add some text to give an overview and motivation of the two subsections}
 \subsection{Select Queries}\label{sec:sel}
-We can correct stale Selection queries with SVC.
+We can correct stale Selection queries with SVC. \reminder{selection or select? Be consistent}
 For \fjview and \spview, a stale selection query is missing rows.
 To correct this result, we can apply the query to the update pattern sample, we get a sample of records that satisfy the predicate.
 Then, we can take a union of the sampled selection and the stale selection.
-To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on the number of missing rows.
+To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result; giving us a bound on the number of missing rows. \reminder{Is bound a good word? Why not use estimation?}
 
 For \aggview, stale selection queries can also have out-of-date rows as well as missing rows.
 In this case, we can still apply the query to the update pattern sample and get a sample of rows to update and new rows to insert.
@@ -14,10 +15,16 @@ As before, we can bound the number of missing rows in the result with a \countfu
 We further can bound the number of existing rows that are not up-to-date with a \countfunc query.
 
 %Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
-In comparison to no maintenance, this approach gives a less stale result.
+In comparison to no maintenance, this approach gives a less stale result. \reminder{You forget to mention the advantage of ``bounds".}
+
+\iffalse
 SAQP is limited in its support of Selection queries.
 For example, if we had a 1\% sample, we could only get 1\% of the rows in the result.
 In comparison, for a 1\% sample, we take advantage of the existing stale result allowing us to combine to old result with 1\% of the newly inserted records; thus including a much greater portion of the result rows.
+\fi
+
+\reminder{I removed the discussion of SAQP since people may argue that I would rather to see  a sample of up-to-date records than a mixture of stale results and a sample of up-to-date records}
+
 
 \subsection{Deletions}\label{sec:del}
 In the previous sections, we presented SVC focusing on \insertion operations to the base table.
@@ -26,7 +33,6 @@ To model \delete operations, we can extend our approach to also maintain a ``del
 %With respect to the deletion table, we can define similar update patterns.
 For \fjview and \spview, deletions only result in rows to remove an analog to before when we have rows to insert.
 We can define the update pattern in the same way but modify our correction technique to subtract rather than add.
-Thus, we replace all of the additions in first column of Table \ref{tbl:query-correct} with subtractions.
-For \aggview, the formulas presented in Table \ref{tbl:query-correct} apply without modifications.
-By supporting \delete, we can support \update operations to the base table.
-We can model an \update as an \insertion and then a \delete.
+Thus, we replace all of the additions in first column of Table \ref{tbl:query-correct} with subtractions  (e.g., $\ans_{sum}-\dans_{sum}/\ratio$).
+For \aggview, the formulas presented in Table \ref{tbl:query-correct} apply without modifications. \reminder{It would be better to explain the reason.}
+By supporting \delete, we can support \update operations to the base table as well since an \update can be modeled as an \insertion and then a \delete.
