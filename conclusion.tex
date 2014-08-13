@@ -32,16 +32,18 @@ In this paper, we propose a new approach to the staleness problem in materialize
 We demonstrate how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
 allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. 
 We evaluate this approach on a single node and in a distributed environment and find that sampling can provide a flexible tradeoff 
-between accuracy and performance.
+between accuracy and performance. \reminder{I would suggest to remove the flexible trade-off since SAQP can also give such trade-off. I think the main conclusion is that SVC can accurately correct the stale query results while require orders of magnitude less time than full maintenance}
 
 Our results are promising and suggest many avenues for future work.
 We are interested in extending this approach to support a more general class of queries.
-To support general selection queries, we will have to extend our query correction to predict and attribute value via a regression.
+To support general selection queries, \reminder{remove this?} we will have to extend our query correction to predict and attribute value via a regression.
 This is an ideal application for non-parametric regression techniques such as Gaussian Process Regression which do
-not make strong assumptions about the distribution of the data.
+not make strong assumptions about the distribution of the data.  
 This work also has applications in machine learning.
 We believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied
 to build fast, approximate streaming machine learning applications.
+
+\reminder{Multiple view settings: automating sampling ratio selection; learning update patterns for multiple view (see if there are some opportunities to share computation); select the best view to correct a given query result }
 
 
 
