@@ -173,8 +173,7 @@ WHERE maxResponseTime > 100
 \end{lstlisting}
 Let us suppose the initial query result is $15$.
 There now have been new log records inserted into the Log table making the old result of $15$ stale.
-For example, if our sampling ratio is 5\%, our system maintains a sample of this view. \reminder{Avoid saying that we maintain a sample of view. We actually maintain update patterns for a sample of view.}
-That means for 5\% of the videos (distinct videoID's) we refresh stale maxResponseTime if necessary.
+For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct videoID's) we refresh stale maxResponseTime if necessary.
 From this sample, we calculate how many new videos changed from a maxResponseTime of less than 100ms to times greater than 100ms; let us suppose this answer is $2$.
 Since our sampling ratio is 5\%, we extrapolate that $10$ new videos throughout the view should now be included in the count, resulting in the estimate of $25$.
 In contrast, if we had applied SAQP, we would have counted how many videos in the sample had a max response time of greater than 100ms.
