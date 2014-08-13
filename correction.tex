@@ -5,7 +5,7 @@ Updates can affect the three classes of materialized views in different ways, ma
 We describe this process as sampling the ``update pattern".
 In this section, we discuss how to efficiently sample update patterns for different types of views.
 We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present scalable sampling techniques in Section~\ref{subsec:sample-pattern}. 
-The cost analysis of this section ties back to our discussion of incremental maintenance in Section \ref{sec-background}, we analyze how sampling can save costs in comparison to full incremental maintenance.
+The cost analysis of this section ties back to our discussion of incremental maintenance in Section \ref{sec-background},\reminder{Section 2.1?} we analyze how sampling can save costs in comparison to full incremental maintenance.
 
 \begin{figure}[tup]
 \centering
@@ -36,7 +36,7 @@ The cost analysis of this section ties back to our discussion of incremental mai
 
 \subsection{Update Patterns}\label{subsec:pattern}
 An \emph{update pattern} represents how an update to a base table affects a materialized view derived from that table.
-We define this information to be such that if we took a 100\% sample the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
+We define this information to be such that if we took a 100\% sample, the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
 In our model, there are three possible update patterns. (1)~Insert a new row into a view;
 (2)~Update attribute values of an existing row in the view; (3)~Keep the view unchanged.
 Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
@@ -58,7 +58,7 @@ For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview 
 
 
 \subsection{Sampling Techniques for Update Patterns}\label{subsec:sample-pattern}
-The update pattern model gives us a logical unit to sample the updates to a materialized view.
+The update-pattern model gives us a logical unit to sample the updates to a materialized view.
 In this section, we show how to construct these samples and show how the cost of sampling is less than full incremental maintenance.
 The cost is further parameterized by the sampling ratio allowing the user to tradeoff accuracy or performance.
 Potentially far cheaper than full incremental maintenance, update pattern sampling can be applied in situations where incremental maintenance was deemed infeasible such as between periodic maintenance cycles.
@@ -77,7 +77,7 @@ For a given \fjview, let $T$ be the base table, and $T_1, T_2, \cdots, T_k$ also
 \vspace{.5em}
 
 
-{\noindent \bf Cost Analysis.} Let $n = |\triangle T|$ be the number of inserted records, $v$ be the cardinality of the stale view, $\delta_v$ be the cardinality of the delta view, and $\ratio$ be the sampling ratio. Table~\ref{tbl:cost-analysis} compares the cost of our update-pattern sampling techniques (denoted by Sampling) with the corresponding cost of incremental view maintenance (denoted by Maintenance). As both techniques require a single scan of the updates, we exclude the cost of scanning the newly inserted records.
+{\noindent \bf Cost Analysis.} Let $n = |\triangle T|$ be the number of inserted records, $v$ be the cardinality of the stale view, $\delta_v$ be the cardinality of the delta view, and $\ratio$ be the sampling ratio. Table~\ref{tbl:cost-analysis} compares the cost of our update-pattern sampling techniques (denoted by Sampling) with the corresponding cost of incremental view maintenance (denoted by Maintenance). As both techniques require a single scan of the updates, we exclude the cost of scanning the newly inserted records. \reminder{What do you mean by a single scan of the updates? I/O cost? In our experiment, did you exclude the I/O cost from our reported maintenance time? If so, we need to argue why it is a fair comparison to exclude the I/O cost of loading updates into memory.}
 
 %The table does not include the I/O cost of loading the updates into memory since in both Sampling and Maintenance we only need to load the updates once and amortize that I/O cost over all views.
 
@@ -108,8 +108,8 @@ To sample the group keys, we apply a hash function to the key. We define a hash 
 Thus, if the hash function is uniform the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$
 
 Once, we have a random sample of the existing keys, we can use this sample to construct a sample of the update patterns.
-When a records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those group by keys that satisfy the condition on the hash above (i.e $\le \ratio$). This ensures that if a key is already in the sample, our delta \emph{sample} \aggview contains this key.
-For keys that are not already in the sample, the hash condition filters them to select a random sample of them with sampling ratio of~$\ratio$.
+When records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those group keys that satisfy the condition on the hash above (i.e $\le \ratio$). This ensures that if a key is already in the sample, our delta \emph{sample} \aggview contains this key.
+For keys that are not already in the sample, the hash condition filters them to select a random sample of them with the sampling ratio of~$\ratio$.
 This process ensures that a group is either fully represented in the sample or not at all, thus its aggregate is an exact result.
 
 
@@ -138,7 +138,7 @@ This process ensures that a group is either fully represented in the sample or n
 \item \underline{Refresh.} 
 %Compared to \spview and \fjview, the refresh cost of \aggview is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
 In full incremental view maintenance, $\delta_v$ rows have to be updated or inserted while our sampling approach only processes $\ratio \cdot \delta_v$ rows. 
-To avoid scanning the view for each update, if the view is indexed by group by key, we can determine which updates are new insertions and which correspond to existing records in constant time. 
+To avoid scanning the view for each update, if the view is indexed by group key, we can determine which updates are new insertions and which correspond to existing ones in constant time. 
 Therefore, our sampling technique can reduce the refresh cost from $\cost_{apply}(\delta_v)$ to $\cost_{apply}(\ratio\cdot \delta_v)$.
 
 \vspace{-0.25em}

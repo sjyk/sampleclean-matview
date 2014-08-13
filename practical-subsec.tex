@@ -1,12 +1,12 @@
 \subsection{Error Bars and Optimality}\label{subsec:correct-practical}
-The only terms in the correction that are not deterministic is $\dans$ and $\dans_{cnt}$.
+The only terms in the correction that are not deterministic is $\dans$ and $\dans_{cnt}$. \reminder{I think you can remove $\dans_{cnt}$ from here. You may misunderstand my previous reminder. What I mean is that for \avgfunc of \spview and \fjview, we need to estimate both $\dans_{cnt}$ and $\dans_{avg}$. In this situation, can we still bound the query result?}
 For the \sumfunc, \countfunc, and \avgfunc queries, we can bound these terms in error bars thus giving us error bars for the entire expression (refer to \cite{wang1999sample} on how to do this).
 The intuition is that we can rewrite the term $\dans$ as a mean value of uniformly randomly sampled records.
 By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
 \[
 \bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
 \]
-where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size. \footnote{For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparison to k making this term insignificant.}
+where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.\footnote{\scriptsize For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparison to k making this term insignificant.}
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$.
 Since the estimate is unbiased, the confidence interval indicates that the true value lies in the confidence interval with the specified probability.
 
@@ -28,9 +28,9 @@ It turns out that the proposed corrections are the optimal strategy when nothing
 For \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correction is optimal over the class of linear estimators when no other information is known about the distribution. 
 In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
 \end{theorem}
-\begin{proof}
-\emph{Sketch: } We can reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. \sumfunc is the mean multiplied by the dataset size, and \countfunc
-is the sum where all the records have been set to 1. Then, we prove the theorem by induction. 
+\begin{proof}[Sketch]
+We can reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. \sumfunc is the mean multiplied by the dataset size, and \countfunc
+is the sum where all the records have been set to one. Then, we prove the theorem by induction. 
 Suppose, we have two independent estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ with unknown variance and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
 Since, we do not know anything about the distribution by symmetry $c_1 = c_2 = 0.5$. 
 Thus we can recursively induct, and we find that if we do not know the variance of data, as is impossible with new updates, then equally weighting all input rows is optimal. 

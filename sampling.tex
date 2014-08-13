@@ -1,7 +1,7 @@
 
 \section{Correcting Stale Query Results}
 \label{correction}
-In this section, we discuss how to correct stale query results using sample update patterns. We first present our correction query processing in Section~\ref{subsec:correct-principle} and then discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
+In this section, we discuss how to correct stale query results using sample update patterns. We first present our correction query processing in Section~\ref{subsec:correct-principle} and then discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}. \reminder{No Section 5.2?}
 
 
 \subsection{\Cqp}\label{subsec:correct-principle}
@@ -24,7 +24,7 @@ WHERE Condition(A);
 %basic idea
 
 \subsubsection{Select-Project and Foreign-Key Join Views} \label{subsubsec:correct-spfj}
-Since both of the update patterns of \spview and \fjview only consist of inserted records we can obtain corrections in the same way. Given the above query, to obtain its delta query result, we rewrite the query and run it on the sample update patterns as follows.  
+Since both of the update patterns of \spview and \fjview only consist of inserted records, we can obtain corrections in the same way. Given the above query, to obtain its delta query result, we rewrite the query and run it on the sample update patterns as follows.  
 
 \vspace{-.25em}
 
@@ -110,13 +110,13 @@ A delta query result tells us how data updates will affect the query result on a
 
 \subsection{Cost Analysis}
 While it is true that SVC shifts some of the costs of maintenance to query execution through the correction, we can show that these overheads are small.
-Let us consider the case where there is no index on the materialized view.
+Let us consider the case where there is no index on the materialized view. \reminder{Why do you make the assumption? It seems that the following statement still holds even without the assumtion.}
 For \fjview and \spview, our correction is calculated from applying the query to the sampled update pattern and the stale view.
-If we only consider insertions to the base table, the combined size of these two tables are guaranteed to be less than the size
-of the fully maintained view; thus actually leading to a reduced query time.
-For \aggview, since there are both updates and insertions, we do introduce an overhead.
+If the base table only has insertions, the combined size of these two tables are guaranteed to be less than the size
+of the fully maintained view, thus our query processing time is guaranteed to be smaller than full maintenance.
+For \aggview, since there are both updates and insertions, we do introduce an overhead. \reminder{It's not clear (1) what do you mean by overhead; (2) why do we have overhead in cases of updates and insertions.}
 In this case, our query has to scan both the stale view and the update pattern sample.
-If the sampling ratio is small, then this overhead will be small as well. 
+If the sampling ratio is small, then this overhead will be small as well. \reminder{I think the point we want to make here that the cost is still applying the query to the stale view and sampled update patterns. While this is not guaranteed to be smaller than full maintenance, since sample is usually much smaller than the stale view, the overhead is quite small. Furthermore, when \aggview is added many new groups, it is still possible that we are better than full maintenance. }
 
 \input{practical-subsec.tex}
 
