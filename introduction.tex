@@ -43,13 +43,16 @@ We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, w
 Our approach can be implemented with a relatively small overhead: at maintenance time the generation of random numbers to build the sample, and at query execution time single pass over a small sample of data to estimate a correction for the query.
 Consequently, sampling can significantly save on maintenance costs and give a flexible tradeoff between accuracy and performance.
 To summarize, our contributions are as follows:
-\begin{itemize}
-  \item We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.
-  \item We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. We show analytically and empirically that sampling update patterns can be far more efficient than full incremental maintenance.
-  \item Using a sample of update patterns, we can correct stale aggregation queries on materialized views. We bound these corrections in confidence intervals and prove optimality of our approach.
-  \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.
-  \item We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.
-\end{itemize}
+
+\noindent $\bullet$ We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{0.25em}
+
+\noindent $\bullet$ We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. \vspace{0.25em}
+
+\noindent $\bullet$ Using a sample of update patterns, we can correct stale aggregation queries on materialized views. We bound these corrections in confidence intervals and prove optimality of our approach. \vspace{0.25em}
+
+\noindent $\bullet$ We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{0.25em}
+
+\noindent $\bullet$ We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.\vspace{0.25em}
 
 The paper is organized in the following way. 
 In Section \ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
