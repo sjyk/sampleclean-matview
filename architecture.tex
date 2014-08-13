@@ -3,11 +3,13 @@
 %In this paper, we only consider insertions to the base table, see
 %\reminder{Extended Paper} for more details on how to model deletions.
 \subsubsection{Supported Views}
-We apply SVC to three classes of materialized views, Select-Project, Foreign-Key, and Aggregation:
+We apply SVC to three classes of materialized views, Select-Project, Foreign-Key, and Aggregation: \reminder{It would be better to say something about other types of views.}
 \vspace{1em}
 
 \noindent\textbf{Select-Project Views (\spview): } These views are defined by Select-Project
 expressions of the following form:
+
+\reminder{Maybe you can make the notations of views be consistent with the notations of queries.}
 
 \begin{lstlisting}
 SELECT [col1,col2,...] 
@@ -43,7 +45,7 @@ We can model \update as a \delete of the old record then an \insertion of a new 
 Thus, the primary focus of this paper is on analysis and results for \insertion. In Section \ref{sec:del}, we discuss how to modify our query processing to support \delete, which in turn allows us to support \update.
 
 \subsubsection{Supported Queries}
-In this paper, we focus on deriving corrections for the three most common aggregation queries on the view \footnote{For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query.} : 
+In this paper, we focus on deriving corrections for the three most common \reminder{Maybe saying ``three commonly used" is less argulable. } aggregation queries on the view\footnote{\scriptsize For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query.} : 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
@@ -91,7 +93,7 @@ Suppose, we cleaned a random sample of dirty rows processing only as many of the
 From this sample, we can derive a correction to stale query results.
 
 The architecture of SVC is shown in Figure \ref{sys-arch}.
-The diagram depicts the following components: (1) we sample the ``update pattern". 
+The diagram depicts the following components: (1) we sample the ``update pattern",
 (2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
 
 \begin{figure}[h]
@@ -109,7 +111,7 @@ Then, between maintenance periods, we can provide approximately up-to-date query
 %Given these materialized views, the first challenge is sampling.
 The three classes of views require different sampling techniques since they are affected by updates differently.
 For example, insertions to the base table only result in insertions to Select-Project views.
-But, for Aggregation Views, insertions to the base table can also result to updates to existing stale rows.
+But, for Aggregation Views, insertions to the base table can also result in updates to existing stale rows.
 In Section \ref{sampling}, we describe the sampling algorithm and a cost analysis of how much sampling can reduce maintenance costs.
 
 \subsubsection{Outlier Indexing}
@@ -117,21 +119,21 @@ We use an outlier index to reduce the sensitivity of our correction estimates to
 We guarantee that records (or rows in the view derived from those records) 
 in the outlier index are also included in the sample.
 This can be used to reduce variance in our estimates.
-See Section \label{outlier} for details on this component.
+See Section \label{outlier} \reminder{?} for details on this component.
 
 \subsubsection{Correcting a Query}
 We can use information from the sample to correct stale query results.
-For the three most common aggregate functions, \sumfunc, \countfunc, and \avgfunc, we calculate a correction
+For the aggregate functions, \sumfunc, \countfunc, and \avgfunc, we calculate a correction
 which is bounded and provably optimal.
 Like the sampling, the algorithm to calculate the correction varies between the types of views.
 We detail query correction in Section \ref{correction}.
 
 \subsubsection{Example Application: Log Analysis}
 To illustrate our approach, we use the following running example which is a 
-simplified schema of one of our experimental datasets (Figure ?).
+simplified schema of one of our experimental datasets (Figure~\ref{example-1}).
 Imagine, we are querying logs from a video streaming company. 
 These logs record visits from users as they happen and grow over time.
-We have two tables, Log and Video, with the following schema:
+We have two tables, \tbl{Log} and \tbl{Video}, with the following schema:
 
 \begin{lstlisting}[mathescape]
 Log(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
@@ -162,8 +164,8 @@ FROM AggView
 WHERE maxResponseTime > 100
 \end{lstlisting}
 Let us suppose the initial query result is $15$.
-There now have been new log records inserted into to the Log table making the old result of $15$ stale.
-For example, if our sampling ratio 5\%, our system maintains a sample of this view.
+There now have been new log records inserted into the Log table making the old result of $15$ stale.
+For example, if our sampling ratio is 5\%, our system maintains a sample of this view. \reminder{Avoid saying that we maintain a sample of view. We actually maintain update patterns for a sample of view.}
 That means for 5\% of the videos (distinct videoID's) we refresh stale maxResponseTime if necessary.
 From this sample, we calculate how many new videos changed from a maxResponseTime of less than 100ms to times greater than 100ms; let us suppose this answer is $2$.
 Since our sampling ratio is 5\%, we extrapolate that $10$ new videos throughout the view should now be included in the count, resulting in the estimate of $25$.

@@ -14,8 +14,8 @@ the intermediate result a ``delta'' view:
 \Delta\textbf{V}
 \]
 
-This is also called a \emph{change propagation formula} in some literature,
-especially on algebraic representations of incremental view maintenance.
+This is also called a \emph{change propagation formula} in some literature, 
+especially on algebraic representations of incremental view maintenance.\reminder{refs?}
 
 \textbf{Refresh View- }
 Given the ``delta'' view, we merge the results with the existing
@@ -39,13 +39,13 @@ any derived materialized view is also updated.
 Immediate maintenance has an advantage that queries on the materialized view are always up-to-date, 
 however it can be very expensive.
 This scheduling strategy places a bottleneck when records are written reducing 
-the available write-throughput for the database.
+the available write-throughput for the database. \reminder{The sentence is hard to read.}
 Furthermore, especially in a distributed setting, record-by-record 
 maintenance cannot take advantage of the benefits of consolidating communication overheads by batching.
 
 To address these challenges, deferred maintenance is alternative solution.
 The main idea of deferral is to avoid maintaining the view immediately and schedule an update at a more convenient time either in a pre-set way or adaptively.
-In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility for in scheduling.
+In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
 For example, views can be updated at night when the system can use more resources to process the updates without affecting a critical application.
 However, this also means that during the day the materialized view becomes increasingly stale as it was computed the night before.
 
@@ -79,12 +79,12 @@ This process allows the user to control the accuracy of the query with the sampl
 One of the algorithms in SampleClean, NormalizedSC, takes a dirty dataset and query and using a sample of clean data learns how
 to correct a query so the result is ``clean".
 Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for  \sumfunc, \countfunc, and \avgfunc queries.
-Extending this approach, we apply a data cleaning cleaning approach to materialized views where we model staleness as a type of data error and budget our cleaning effort to get an approximate correction for aggregate queries (\sumfunc, \countfunc, and \avgfunc).
+Extending this approach, we apply a data cleaning cleaning approach to materialized views where we model staleness as a type of data error and budget our cleaning effort to get an approximate correction for aggregate queries (\sumfunc, \countfunc, and \avgfunc). \reminder{I think we need to clarify the difference between this work and our sampleclean work somewhere; It would be better to avoid saying that this work is just an extension of our sampleclean work. }
 
 \subsection{SAQP}
 Estimating the results of aggregate queries from samples has been
 well studied in a field called Sample-based Approximate Query Processing
-(SAQP). 
+(SAQP). \reminder{refs?}
 Our approach differs from SAQP as we look to
 approximately correct a query rather than directly estimating the query result.
 In other words, we use a sample of up-to-date data to understand how to correct for the
