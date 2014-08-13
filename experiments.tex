@@ -140,8 +140,8 @@ Even though some queries are more than 60\% stale, our corrections reduce the re
 \begin{figure}[ht!]
 \centering
  \includegraphics[scale=0.22]{exp/query_error_dist.eps}
- \includegraphics[scale=0.18]{exp/query_error_dist2.eps}
- \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (y-axis) and a query correction accuracy (x-axis). Each green point corresponds to a single query. Points above the dotted line show that we improved query accuracy.\label{exp3dist}}
+ \includegraphics[scale=0.21]{exp/query_error_dist2.eps}
+ \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (y-axis) and a query correction accuracy (x-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.\label{exp3dist}}
 \end{figure}
 
 The long tail of query errors can occur for a variety of reasons.
@@ -160,19 +160,21 @@ However, for the \spview the gains are smaller with a 6.2x speedup.
 There are diminishing returns with smaller sample sizes as overheads start becoming significant. 
 
 \subsubsection{Overhead of Query Correction}
-In Section \ref{sampling}, we ran cost analyses to argue that sampling can greatly reduce delta view and refresh costs.
-In practice, these gains will only be meaningful if the overheads for the query correction are small.
-Since, we are correcting a stale query rather than the materialized view, we are shifting some of the computational cost from maintenance time to query execution time.
-If our updates only contain insertions, then for \spview and \fjview, since we derive a correction from a sample of the updates, we are guaranteed to have a reduced query time.
-However, for aggregation views, query correction requires a scan of the old view and a sample of the maintained view; potentially increasing the time to 
-answer the query. 
-In our first experiment, we set the sample size to 5\% and evaluate the aggregation view listed earlier for 5M inserted records. 
-In Figure \ref{exp10overheads}, we show that average query time is small compared to maintenance time, and furthermore, 
-the time to calculate a correction is a just fraction of the query time.
+In Section \ref{correction}, we analyzed the query execution times.
+We found that while for \spview and \fjview we have a reduced query time in comparison to full incremental maintenance, we can make no such
+guarantee for \aggview.
+In this experiment, we evaluated the query execution time of SVC compared to SAQP, full incremental maintenace (query on the fresh view), and no maintenance (query on the stale view).
+Since \spview and \fjview are similar, we only evalute query execution on \fjview.
+For each of the views, we insert 5M records (8\% of Base Data) and evaluate the average query execution time; that is over the 10,000 generated queries the average time to return a result. 
+For the aggregation view, the insertions were such that 50\% of the insertions updated existing rows and 50\% corresponded to new rows.
+In Figure \ref{exp10overheads}, we show the results of the experiment.
+SAQP, which avoids querying the entire view, is much faster than both, however has as seen in the previous experiments has lower accuracy.
+We also highlight that the introduced overhead for correction is orders of magnitude less than the maintenance time seen in the previous sections.
+
 \begin{figure}[h]
 \centering
- \includegraphics[width=\columnwidth]{exp/total_time_agg_view.png}
- \caption{While, there is an additional overhead to correcting a query, this is small compared to the overall maintenance time. \label{exp10overheads}}
+ \includegraphics[width=\columnwidth]{exp/total_time_agg_view.pdf}
+ \caption{We compare the query execution time for SVC, SAQP, Full Maintenance, and No Maintenance. Since, we use a sample to correct query results on the stale view, we always require a query on the stale view. For \fjview and \spview, we do not increase query execution time with our correction. However, for \aggview, we introduce a small overhead.\label{exp10overheads}}
 \end{figure}
 
 \subsubsection{View Complexity}
@@ -264,12 +266,12 @@ Even in the situation where the view is small, sampling can still have benefits 
 
 \subsubsection{Performance in Conviva}
 We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, as insertions as a percentage of the base data are the same.
-We derived the views from a 700GB base table and inserted records in approximately 14GB increments. 
+We derived the views from a 800GB base table and inserted records in approximately 20GB increments. 
 
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
 As Spark does not support selective writes, we include view recalculation as a baseline for comparison.
 In many Spark applications, recalculation is often faster than incremental maintenance.
-For LargeView a 10\% sample with 105GB of inserted records (15\%) acheives a  7.5x speedup over full incremental maintenance and a 5.6x speedup over recalculation.
+For LargeView a 10\% sample with 120GB of inserted records (15\%) acheives a  7.5x speedup over full incremental maintenance and a 5.6x speedup over recalculation.
 On the other hand, for SmallView, there is a 5.1x speedup over full incremental maintenance and a 1.7x improvement over recalcuation.
 Aggregation views with a larger cardinality create larger delta views.
 These delta views necessitate a shuffle operation that communications them during the refresh step.
