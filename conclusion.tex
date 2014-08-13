@@ -3,7 +3,7 @@
 Addressing the cost of materialized view maintenance is the subject of many recent works with
 focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transaction~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
-The steaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting}. In Spark Streaming they studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB they studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
+The steaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
 
 
 Sampling has been well studied in the context of query processing~\cite{agarwal2013blinkdb, olken1993random, garofalakis2001approximate}. Particularly, a similar idea of sampling from updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}. But none of these works studied how to sample update patterns w.r.t materialized views and how to use the sample update patterns to correct stale query results.
@@ -21,7 +21,7 @@ Gibbons et al. studied the maintenance of approximate histograms~\cite{gibbons19
 They, however, did not consider queries on these histograms but took a holistic approach to analyze the error on the entire histogram.
 We contrast our approach from those proposed since we do not estimate our query results directly from a sample.
 We use the sample to learn how the updates affect the query results and then compensate for those changes.
-Our experiments suggest that prior approaches (SAQP) are inefficient when updates are sparse and the maintenance batch is small compared to the base data.
+Our experiments suggest that our approach is more accurate than SAQP when updates are sparse and the maintenance batch is small compared to the base data.
 
 There are a variety of other works proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which are similar to materialized views. Furthermore, there is a close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases has also been studied \cite{re2007materialized}.
 Srinivasan and Carey studied related problem to query correction which they called compensation-based query processing \cite{srinivasanC92}.
@@ -32,16 +32,18 @@ In this paper, we propose a new approach to the staleness problem in materialize
 We demonstrate how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
 allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. 
 We evaluate this approach on a single node and in a distributed environment and find that sampling can provide a flexible tradeoff 
-between accuracy and performance.
+between accuracy and performance. \reminder{I would suggest to remove the flexible trade-off since SAQP can also give such trade-off. I think the main conclusion is that SVC can accurately correct the stale query results while require orders of magnitude less time than full maintenance}
 
 Our results are promising and suggest many avenues for future work.
 We are interested in extending this approach to support a more general class of queries.
-To support general selection queries, we will have to extend our query correction to predict and attribute value via a regression.
+To support general selection queries, \reminder{remove this?} we will have to extend our query correction to predict and attribute value via a regression.
 This is an ideal application for non-parametric regression techniques such as Gaussian Process Regression which do
-not make strong assumptions about the distribution of the data.
+not make strong assumptions about the distribution of the data.  
 This work also has applications in machine learning.
 We believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied
 to build fast, approximate streaming machine learning applications.
+
+\reminder{Multiple view settings: automating sampling ratio selection; learning update patterns for multiple view (see if there are some opportunities to share computation); select the best view to correct a given query result }
 
 
 
