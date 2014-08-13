@@ -1,15 +1,11 @@
 
 \section{Correcting Stale Query Results}
 \label{correction}
-In this section, we discuss how to correct stale query results using sample update patterns. We first present our correction query processing in Section~\ref{subsec:correct-principle} and then discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}. \reminder{No Section 5.2?}
+In this section, we discuss how to correct stale query results using sample update patterns. We first present our correction query processing in Section~\ref{subsec:correct-principle} and analyze the costs in Section~\ref{subsec-corr-cost}. Then, we discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
 
 
 \subsection{\Cqp}\label{subsec:correct-principle}
-Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. Recall, that we focus on the three aggregation queries of the following form, 
-\begin{lstlisting} [mathescape]
-SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
-WHERE Condition(A);
-\end{lstlisting}
+Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
 %For ease of presentation, we assume the query does not have a group-by clause.
 %But our methods can be easily extended to a group-by query by treating each group key as an additional condition of the query. 
 
@@ -108,15 +104,18 @@ $~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
 A delta query result tells us how data updates will affect the query result on an old (i.e., a stale) sample \aggview. Thus, it is computed as the difference between the query results on a stale sample \aggview and an updated sample \aggview. To use it to correct a stale query result (as shown in Table~\ref{tbl:query-correct}), for the \sumfunc query, since the \sumfunc difference is computed on a sample, we need to scale it to the full data, and add the rescaled value to the old query result, i.e., $\ans_{sum}+\dans_{sum}/\ratio$; for the \countfunc query, since a \countfunc query can be taken a special case of a \sumfunc query, similar to the \sumfunc query, we have $\ans_{count}+\dans_{count}/\ratio$; for the \avgfunc query, since the \avgfunc difference on a sample is an unbiased estimation of the \avgfunc difference on the full data, we add the delta query result to the old query result directly, i.e., $\ans_{avg}+\dans_{avg}$.
 
 
-\subsection{Cost Analysis}
-While it is true that SVC shifts some of the costs of maintenance to query execution through the correction, we can show that these overheads are small.
-Let us consider the case where there is no index on the materialized view. \reminder{Why do you make the assumption? It seems that the following statement still holds even without the assumtion.}
-For \fjview and \spview, our correction is calculated from applying the query to the sampled update pattern and the stale view.
-If the base table only has insertions, the combined size of these two tables are guaranteed to be less than the size
-of the fully maintained view, thus our query processing time is guaranteed to be smaller than full maintenance.
-For \aggview, since there are both updates and insertions, we do introduce an overhead. \reminder{It's not clear (1) what do you mean by overhead; (2) why do we have overhead in cases of updates and insertions.}
-In this case, our query has to scan both the stale view and the update pattern sample.
-If the sampling ratio is small, then this overhead will be small as well. \reminder{I think the point we want to make here that the cost is still applying the query to the stale view and sampled update patterns. While this is not guaranteed to be smaller than full maintenance, since sample is usually much smaller than the stale view, the overhead is quite small. Furthermore, when \aggview is added many new groups, it is still possible that we are better than full maintenance. }
+\subsection{Cost Analysis}\label{subsec-corr-cost}
+We analyze the costs of query correction in SVC.
+The cost of query execution has two components: we first apply the query to the stale view, and then correct the result by processing the update pattern sample.
+Therefore, the cost is proportional to the size of the stale view and update pattern sample in comparision to the size of the up-to-date view.
+For \fjview and \spview, if the only updates to the base table are insertions, the combined size of the update pattern sample and stale view are guaranteed to be less than the size of the fully maintained view, thus our query execution time is guaranteed to be smaller than full maintenance.
+
+We cannot make such a guarantee for \aggview.
+In \aggview, our update pattern sample also contains a sample of existing rows from the view.
+Thus, the combined size of the stale view and the update pattern sample may be larger than up-to-date view.
+Since our sample size is often small, for example 1\%, the additional query execution time is often small as well.
+Furthermore, if the insertions to the base table result in many new groups added to \aggview, then similar to the analysis 
+for \fjview and \spview our query execution cost can be less than full maintenance.
 
 \input{practical-subsec.tex}
 

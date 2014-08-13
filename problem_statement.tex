@@ -1,30 +1,21 @@
 \section{Background}\label{sec-background}
 
-\subsection{Incremental Maintenance}
+\subsection{Incremental Maintenance}\label{subsec-inc}
 Incremental maintenance of materialized views is well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
 Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
 and ``refreshing" the materialized view with the delta.
 More formally, given a base table $T$, a set of updates $U$,
-and a view $\textbf{V}_{T}$:
-
-\textbf{Calculate the Delta View- }
-In this step, we apply the view definition to the updates $U$ and we call
-the intermediate result a ``delta'' view:
-\[
-\Delta\textbf{V}
-\]
-
-This is also called a \emph{change propagation formula} in some literature, 
-especially on algebraic representations of incremental view maintenance.\reminder{refs?}
-
-\textbf{Refresh View- }
-Given the ``delta'' view, we merge the results with the existing
-view:
-\[
-\textbf{V}_{T}^{'}=refresh(\textbf{V}_{T},\Delta\textbf{V})
-\] 
+and a view $\textbf{V}_{T}$.
+For the ``delta view" step, we apply the view definition to the updates $U$ and we call
+the intermediate result a ``delta'' view $\Delta\textbf{V}$.
+For the refresh step, given the ``delta'' view, we merge the results with the existing
+view $\textbf{V}_{T}^{'}=refresh(\textbf{V}_{T},\Delta\textbf{V})$.
 The details of the refresh operation depend on the view definition.
 (See \cite{chirkova2011materialized}).
+
+%Remove this to save some space
+%This is also called a \emph{change propagation formula} in some literature, 
+%especially on algebraic representations of incremental view maintenance.\reminder{refs?}
 
 %In this work, we address three types of materialized views: Select-Project, Aggregation, and
 %Foreign-Key Join views; and four common aggregation queries on these

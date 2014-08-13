@@ -1,15 +1,24 @@
 \subsection{Error Bars and Optimality}\label{subsec:correct-practical}
-The only terms in the correction that are not deterministic is $\dans$ and $\dans_{cnt}$. \reminder{I think you can remove $\dans_{cnt}$ from here. You may misunderstand my previous reminder. What I mean is that for \avgfunc of \spview and \fjview, we need to estimate both $\dans_{cnt}$ and $\dans_{avg}$. In this situation, can we still bound the query result?}
-For the \sumfunc, \countfunc, and \avgfunc queries, we can bound these terms in error bars thus giving us error bars for the entire expression (refer to \cite{wang1999sample} on how to do this).
-The intuition is that we can rewrite the term $\dans$ as a mean value of uniformly randomly sampled records.
+\subsubsection{Confidence Intervals}
+In Table \ref{tbl:query-correct}, we present formulas to correct stale queries.
+In each of these formulas, all of the $\dans$ terms correspond to estimates and these estimates need to be bounded.
+The intuition is that we can rewrite the terms $\dans$ as a mean value of uniformly random variables.
 By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
 \[
 \bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
 \]
 where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.\footnote{\scriptsize For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparison to k making this term insignificant.}
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$.
-Since the estimate is unbiased, the confidence interval indicates that the true value lies in the confidence interval with the specified probability.
 
+For all of the queries in \aggview, and for \sumfunc, \countfunc in \spview and \fjview, there is only one term to bound.
+However, for \avgfunc in \spview and \fjview, as presented there are two terms to bound.
+Using the associativity properties of these queries, we can re-write the correction for \avgfunc in terms of a single summation.
+The numerator can be written as a single \sumfunc query, where we move the stale result $\ans_{cnt}\cdot\ans_{avg}$ inside the estimate.
+Next, we notice that the reformulation is now a \sumfunc over a \countfunc of the same set of records (with an additional offset of $ans_{cnt}$.
+Thus, this can be re-written as a single mean value. 
+See \cite{wang1999sample} for more details on the confidence intervals.
+
+\subsubsection{Optimality}
 We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
 \begin{proposition}
 An estimator is called a minimum variance unbiased estimator (MVUE) of a parameter if it is unbiased and the variance of the parameter estimate is less than or equal to that of any other unbiased estimator of the parameter.
