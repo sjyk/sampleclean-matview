@@ -25,7 +25,7 @@ This model raises a new possibility for materialized views, namely, that a sampl
 
 We propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{clean} stale aggregation query results.
 While approximate, the corrected query result can be bounded within confidence intervals.
-This framework will be complementary to existing deferred maintenance approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximately results for far less costs than having to maintain the entire view.
+This framework will be complementary to existing deferred maintenance approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximate results for far less costs than having to maintain the entire view.
 Without SVC, existing work allows the user to control the freshness of queries by changing maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience.
 Without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
 On the other hand, SVC gives results that are fresh and the user controls a bounded approximation error with the sampling ratio.
