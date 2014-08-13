@@ -8,7 +8,7 @@ Then, we briefly present each of the components of our system.
 %\reminder{Extended Paper} for more details on how to model deletions.
 \subsubsection{Materialized Views}
 In this paper, we evaluate SVC on three classes of materialized views, Select-Project, Foreign-Key Join, and Aggregation:
-\vspace{0.5em}
+\vspace{0.25em}
 
 \noindent\textbf{Select-Project Views (\spview): } These views are defined by Select-Project
 expressions of the following form:
@@ -18,7 +18,7 @@ SELECT [a1,a2,...] FROM Table
 WHERE Condition(A) 
 \end{lstlisting}
 
-\vspace{0.5em}
+\vspace{0.25em}
 
 \noindent\textbf{Foreign-Key Join Views (\fjview): } As an extension to the Select-Project Views, we can support views derived from a Foreign-Key join:
 
@@ -29,7 +29,7 @@ WHERE
 Table1.fk = Table2.fk  AND Condition(A);
 \end{lstlisting}
 
-\vspace{0.5em}
+\vspace{0.25em}
 
 \noindent\textbf{Aggregation Views (\aggview): } We also consider views defined by group-by aggregation queries of the following form:
 
@@ -40,7 +40,7 @@ WHERE Condition(A)
 GROUP BY [a3,a4,...];
 \end{lstlisting}
 
-\vspace{0.5em}
+\vspace{0.25em}
 
 We selected these classes of views to be specific enough to analyze in terms of cost but general enough to evaluate using real datasets and query workloads.
 There are, however, other types of materialized views that SVC can support including views defined by nested queries, equality joins, and aggregate queries with \havingfunc clauses.
