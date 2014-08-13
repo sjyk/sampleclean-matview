@@ -1,7 +1,7 @@
 \section{Results}
 \label{exp}
-We first evaluate our approach, which we denote as \textbf{Sample View Clean (SVC)}, on a synthetic benchmark dataset where we can control the data distribution and the update rate.
-Next, we evaluate overheads and tradeoffs to using our approach.
+We first evaluate our SVC approach on a synthetic benchmark dataset where we can control the data distribution and the update rate. \reminder{The following two sentences should be revised. I think you can point out what we want to show in the experiment. You can refer to our sampleclean paper for reference.}
+Next, we evaluate overheads and tradeoffs to using our approach. 
 Then, we evaluate the benefits and tradeoffs of outlier indexing.
 After evaluation on the benchmark, we present an end-to-end application of log analysis with a dataset from a video streaming company.
 
@@ -25,7 +25,9 @@ The dataset is provided in the form of a generation program which can generate b
 
 For this dataset, we applied our approach to three materialized views, each of a different type:
 
-{\noindent \bf \spview :}
+\vspace{0.5em}
+
+{\noindent \bf \spview :}\vspace{-0.25em}
 \begin{lstlisting}
 SELECT *, 
        IF(Lcase(l_shipinstruct) LIKE '%deliver%' 
@@ -35,7 +37,7 @@ FROM   lineitem_s
 
 \vspace{0.5em}
 
-{\noindent \bf \aggview :}
+{\noindent \bf \aggview :}\vspace{-0.25em}
 \begin{lstlisting}
 SELECT l_orderkey, l_shipdate, 
        Sum(l_quantity)      AS quantity_sum, 
@@ -49,10 +51,10 @@ GROUP  BY l_orderkey,
 
 \vspace{0.5em}
 
-{\noindent \bf \fjview :}
-\begin{lstlisting}
+{\noindent \bf \fjview :}\vspace{-0.25em}
+\begin{lstlisting}[mathescape]
 SELECT supplier.*, customer.* 
-FROM   customer, orders, lineitem, supplier, partsupp 
+FROM   customer$,\;$orders$,\;$lineitem$,\;$supplier$,\;$partsupp 
 WHERE  c_custkey = o_custkey 
        AND o_orderkey = l_orderkey 
        AND l_suppkey = ps_suppkey 
@@ -63,19 +65,29 @@ WHERE  c_custkey = o_custkey
 
 \vspace{0.5em}
 
+%\sloppy
+
 {\noindent \bf Queries on the views :}
+We randomly generated 10,000 aggregate queries for each view, based on the query templates provided by the TPCD-Skew dataset. These queries are in the form of ``SELECT $f(a)$ FROM View WHERE Condition(A)", where $f$ is randomly selected from \{\sumfunc, \countfunc, \avgfunc\}, $a$ is randomly selected from the  aggregation attributes of the query templates, and $Condition(A)$ is randomly selected from the predicates of the query templates.
+
+%\fussy
+
+\iffalse
+
 Along with the TPCD specification are templates to generate a query workload to benchmark database systems.
 We used these templates to generate queries and filtered the query workload to the aggregation queries and the ones whose predicates could be applied on our views.
 In all, for each view, we had 10,000 aggregate queries with different randomly generated predicates from the template.
 
+\fi
+
 \vspace{0.5em}
 
 {\noindent \bf Experimental Platform :}
-All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node with a MySQL database.
+All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node (\reminder{CPU, RAM, disk}) with a MySQL database. \reminder{Add version}
 With MySQL, we create these views as tables.
-We construct a separate in-memory temporary table of updates, and then measure the time needed to propagate the necessary updates (forming the delta table and writing the updates) to the views.
+We construct a separate in-memory temporary table of updates, \reminder{in memory?} and then measure the time needed to propagate the necessary updates (forming the delta table and writing the updates) to the views.
 In evaluating \fjview, we only insert records into the lineitem table and create an index on all of the dimension tables.
-For \aggview, we have an index on the group by key of sampled materialized view.
+For \aggview, we have an index on the group-by key of sampled materialized view.
 Note, that we do not assume there are any indices on the newly inserted records.
 We use the MySQL query profiling feature to isolate the cost of view maintenance in both the delta view phase and the refresh phase.
 
@@ -84,16 +96,16 @@ We use the MySQL query profiling feature to isolate the cost of view maintenance
 Conviva is a video streaming company and we evaluated our approach on user activity logs \cite{conviva}.
 We experimented with a 1TB dataset of these logs which formed a single base table.
 With this dataset, there was a corresponding dataset of analyst SQL queries on the log table.
-Using the query dataset, we constructed 67 aggregation views and queries to run on the views.
-We constructed the queries in a similar way to the TPCD-Skew queries, where we found all of the aggregate queries and filtered down
-to those that could run on the views.
-We used this dataset to evaluate the end-to-end accuracy and performance of the system on a real dataset and query workload.
+Using the query dataset, we constructed 67 aggregation views, and 10,000 queries for each view using a similar method as the TPCD-Skew dataset. 
+%We constructed the queries in a similar way to the TPCD-Skew queries  %, where we found all of the aggregate queries and filtered down
+%to those that could run on the views.
+We used this dataset to evaluate the end-to-end accuracy and performance of the system in a real-world application. %on a real dataset and query workload.
 
 \vspace{0.5em}
 
 {\noindent \bf Experimental Platform :}
-We evaluated performance on Apache Spark with a 20 node r3.large Amazon EC2 cluster. 
-Spark supports materialized views through a distributed data structure called an RDD.
+We evaluated performance on Apache Spark with a 20 node r3.large Amazon EC2 cluster. \reminder{add spark version?}
+Spark supports materialized views through a distributed data structure called an RDD. \reminder{add the spark paper}
 There is a SQL interface which transforms the RDD's using Map-Reduce chains.
 The RDD's are immutable, thus requiring significant overhead to maintain.
 As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
@@ -141,7 +153,7 @@ Even though some queries are more than 60\% stale, our corrections reduce the re
 \centering
  \includegraphics[scale=0.22]{exp/query_error_dist.eps}
  \includegraphics[scale=0.21]{exp/query_error_dist2.eps}
- \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (y-axis) and a query correction accuracy (x-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.\label{exp3dist}}
+ \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (y-axis) and a query correction accuracy (x-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy. \reminder{I would suggest to swap  x-axis and y-axis of the right-most figure to make its x-axis be the same as the left-most figure.}}\label{exp3dist}
 \end{figure}
 
 The long tail of query errors can occur for a variety of reasons.
@@ -168,8 +180,8 @@ Since \spview and \fjview are similar, we only evalute query execution on \fjvie
 For each of the views, we insert 5M records (8\% of Base Data) and evaluate the average query execution time; that is over the 10,000 generated queries the average time to return a result. 
 For the aggregation view, the insertions were such that 50\% of the insertions updated existing rows and 50\% corresponded to new rows.
 In Figure \ref{exp10overheads}, we show the results of the experiment.
-SAQP, which avoids querying the entire view, is much faster than both, however has as seen in the previous experiments has lower accuracy.
-We also highlight that the introduced overhead for correction is orders of magnitude less than the maintenance time seen in the previous sections.
+SAQP, which avoids querying the entire view, is much faster than both, however has as seen in the previous experiments has lower accuracy. \reminder{Give an example to show how inaccurate the SAQP's result is for 8\% updates.}
+We also highlight that the introduced overhead for correction is orders of magnitude less than the maintenance time seen in the previous sections. \reminder{Show an example to show the maintenance time that we saved and the query overhead that we introduced.}
 
 \begin{figure}[h]
 \centering
@@ -238,7 +250,7 @@ SmallView computes statistics for log events that triggered error states.
 
 \subsubsection{Representativeness of the Views}
 We selected these views to be representative of the dataset and query workload. 
-We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log.
+We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log. \reminder{Give the reasons that why you only use 7GB instead of 1TB.}
 We derived each view from a 7GB base table and inserted 1.1GB (15\%) of records to the table. 
 In Figure \ref{exp12conviva}, we plot the average staleness of each of the views and mark the three views.
 While queries on LargeView and MediumView are 21\% and 16\% stale respectively, queries on SmallView are 0.5\%.
