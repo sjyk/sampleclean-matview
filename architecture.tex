@@ -1,51 +1,59 @@
 \section{System Overview}\label{sec-arch}
+In this section, we give an overview of the entire architecture of SVC.
+We first define the scope of SVC including which types of views and queries we address.
+Then, we briefly present each of the components of our system.
+
 \subsection{Problem Setting}
 %In this paper, we only consider insertions to the base table, see
 %\reminder{Extended Paper} for more details on how to model deletions.
-\subsubsection{Supported Views}
-We apply SVC to three classes of materialized views, Select-Project, Foreign-Key, and Aggregation: \reminder{It would be better to say something about other types of views.}
-\vspace{1em}
+\subsubsection{Materialized Views}
+In this paper, we evaluate SVC on three classes of materialized views, Select-Project, Foreign-Key Join, and Aggregation:
+\vspace{0.5em}
 
 \noindent\textbf{Select-Project Views (\spview): } These views are defined by Select-Project
 expressions of the following form:
 
-\reminder{Maybe you can make the notations of views be consistent with the notations of queries.}
-
 \begin{lstlisting}
-SELECT [col1,col2,...] 
-FROM table 
-WHERE condition([col1,col2,...]) 
+SELECT [a1,a2,...] FROM Table 
+WHERE Condition(A) 
 \end{lstlisting}
 
-\vspace{1em}
+\vspace{0.5em}
 
 \noindent\textbf{Foreign-Key Join Views (\fjview): } As an extension to the Select-Project Views, we can support views derived from a Foreign-Key join:
 
 \begin{lstlisting}
-SELECT table1.[col1,col2,...], 
-table2.[col1,col2,...]
-FROM table1, table2 
-WHERE table1.fk = table2.fk 
-AND condition([col1,col2,...]) 
+SELECT table1.[a1,a2,...],
+table2.[a1,a2,...] FROM Table1, Table2 
+WHERE
+Table1.fk = Table2.fk  AND Condition(A);
 \end{lstlisting}
 
-\vspace{1em}
+\vspace{0.5em}
 
 \noindent\textbf{Aggregation Views (\aggview): } We also consider views defined by group-by aggregation queries of the following form:
 
 \begin{lstlisting}
-SELECT [f1(col1),f2(col2),...] 
-FROM table 
-WHERE condition([col1,col2,...]) 
-GROUP BY [col1,col2,...]
+SELECT [f1(a1),f2(a2),...] 
+FROM Table 
+WHERE Condition(A)
+GROUP BY [a3,a4,...];
 \end{lstlisting}
 
+\vspace{0.5em}
+
+We selected these classes of views to be specific enough to analyze in terms of cost but general enough to evaluate using real datasets and query workloads.
+There are, however, other types of materialized views that SVC can support including views defined by nested queries, equality joins, and aggregate queries with \havingfunc clauses.
+
+\subsubsection{Updates}
 There are three types of updates that can affect a base table: \insertion, \delete, \update.
-We can model \update as a \delete of the old record then an \insertion of a new record with updated values. Insertion-only workloads are increasing common \reminder{Tim will find a citation}.
+We can model \update as a \delete of the old record then an \insertion of a new record with updated values. 
+Insertion-only workloads are increasing common \reminder{Tim will find a citation}.
 Thus, the primary focus of this paper is on analysis and results for \insertion. In Section \ref{sec:del}, we discuss how to modify our query processing to support \delete, which in turn allows us to support \update.
 
 \subsubsection{Supported Queries}
-In this paper, we focus on deriving corrections for the three most common \reminder{Maybe saying ``three commonly used" is less argulable. } aggregation queries on the view\footnote{\scriptsize For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query.} : 
+In this paper, we focus on deriving corrections for the three commonly used aggregation queries on the view.
+For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query: 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 
 WHERE Condition(A);
@@ -87,7 +95,7 @@ Refer to Section \ref{sec:sel} for a discussion of how to correct Select queries
 
 \subsection{System Architecture}
 Modeling view maintenance as a data cleaning problem gives us a new perspective for addressing staleness.
-Insertions to the base table can cause two types of staleness in the view: rows are either out-of-date or missing altogether.
+Insertions to the base table can cause two types of errors in the view: rows are either out-of-date or missing altogether.
 The challenge is to ``clean" the materialized view by updating the out-of-date rows and inserting the missing rows, however this can be very expensive if there are a large number of new records to process.
 Suppose, we cleaned a random sample of dirty rows processing only as many of the new insertions as necessary this would potentially reduce the amount of updates, join executions, and aggregates we would need to compute.
 From this sample, we can derive a correction to stale query results.

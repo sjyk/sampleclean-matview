@@ -33,13 +33,12 @@ The details of the refresh operation depend on the view definition.
 %and deletions for future work.
 
 \subsection{Maintenance Strategies}
-There are two principle types of maintenance strategies: immediate and deferred. 
+There are two principle incremental maintenance strategies: immediate and deferred. 
 In immediate maintenance, as soon as the base table is updated, 
 any derived materialized view is also updated.
 Immediate maintenance has an advantage that queries on the materialized view are always up-to-date, 
 however it can be very expensive.
-This scheduling strategy places a bottleneck when records are written reducing 
-the available write-throughput for the database. \reminder{The sentence is hard to read.}
+This scheduling strategy places a bottleneck on updates to the base table.
 Furthermore, especially in a distributed setting, record-by-record 
 maintenance cannot take advantage of the benefits of consolidating communication overheads by batching.
 
@@ -75,20 +74,16 @@ Recent work has begun to consider the costs of data cleaning as well as how to b
 %The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples \cite{kandel2011wrangler}.
 The SampleClean project framework cleans a sample of data, and then bounds the results of aggregate queries on dirty datasets with respect to the clean data \cite{wang1999sample}.
 
-This process allows the user to control the accuracy of the query with the sampling ratio as opposed to querying a dirty dataset with an unknown level of data error.
-One of the algorithms in SampleClean, NormalizedSC, takes a dirty dataset and query and using a sample of clean data learns how
-to correct a query so the result is ``clean".
-Since the ``correction" is derived from a sample, the correction is approximate but it turns out it bounded in error for  \sumfunc, \countfunc, and \avgfunc queries.
-Extending this approach, we apply a data cleaning cleaning approach to materialized views where we model staleness as a type of data error and budget our cleaning effort to get an approximate correction for aggregate queries (\sumfunc, \countfunc, and \avgfunc). \reminder{I think we need to clarify the difference between this work and our sampleclean work somewhere; It would be better to avoid saying that this work is just an extension of our sampleclean work. }
+One of the algorithms in SampleClean, takes a random sample of dirty records, applies data cleaning, and learns how to correct a query applied to the dirty data.
+Instead of modeling data error on the base table, SampleClean considers how dirtiness affects queries on the data.
+In SVC, we look at queries on stale materialized views from this perspective.
+As materialized views are different problem setting, there are new challenges such as sampling from changing base tables, selection queries, and considering the effects of outliers.
 
 \subsection{SAQP}
 Estimating the results of aggregate queries from samples has been
 well studied in a field called Sample-based Approximate Query Processing
-(SAQP). \reminder{refs?}
-Our approach differs from SAQP as we look to
-approximately correct a query rather than directly estimating the query result.
-In other words, we use a sample of up-to-date data to understand how to correct for the
-staleness. 
+(SAQP) \cite{OlkenR86,AgarwalMPMMS13}.
+Our approach differs from SAQP as we use a sample to correct a query rather than directly estimating the query result.
 The SAQP approach to this problem, would be to
 estimate the result directly from the maintained sample \cite{joshi2008materialized}.
 We found that estimating

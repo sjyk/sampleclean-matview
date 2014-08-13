@@ -1,6 +1,6 @@
 \section{Introduction}
 Materialized views, stored pre-computed query results, are used to facilitate fast query processing on large datasets \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
-Materialization and related concepts such as selecting which queries to materialize
+Materialization and related concepts such as selecting queries to materialize
 have been well studied in recent research \cite{zaharia2012resilient,lefevre2014opportunistic, bailis2014scalable, perez2014history}.
 This research has further expanded beyond the SQL setting \cite{nikolic2014linview, zhang2014mat} and 
 has shown promising results when applied to numerical linear algebra and machine learning.
@@ -9,25 +9,26 @@ materialized views face the challenge of \emph{staleness} where the pre-computed
 To avoid expensive recalculation, incrementally updating the views,
 also called incremental maintenance, has been well studied \cite{gupta1995maintenance, chirkova2011materialized}.
 
-Unfortunately, in many applications, incrementally maintenance on each update can be very costly. 
+Unfortunately, in many applications, incremental maintenance on each update can be very costly. 
 Consequently, it is common to defer maintenance to a later time \cite{chirkova2011materialized, zhou2007lazy}.
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
-Deferral strategies provide increased flexibility to meet the resource constraints of the system, but may not guarantee that the views will always be up-to-date.
-When a materialized view is out-of-date during a maintenance gap, queries issued to the view can have \emph{stale} results. 
+Deferral allows for increased flexibility to meet the resource constraints of the system, but may not guarantee that the view will be up-to-date.
+
+%When a materialized view is out-of-date during a maintenance gap, queries issued to the view can have \emph{stale} results. 
 
 In this work, we address the view-maintenance problem from a different perspective.
 We explore whether refreshing stale rows in a materialized view can be modeled as a data cleaning problem and whether stale query results can be \emph{cleaned}.
 While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
 recent work has also considered the costs of data cleaning \cite{wang1999sample}.
-In particular, recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of dirty records.
-This model raises a new possibility for materialized views, namely, that a sample of up-to-date rows can be used to answer aggregate queries without having to maintain the entire materialized view.
+Recent results show that to answer aggregate queries, such as SUM, COUNT, and AVG, on dirty datasets, it suffices to clean a small, representative sample of dirty records.
+This model raises a new possibility for materialized views, namely, that a sample of up-to-date rows can be used to answer aggregate queries without incurring the cost of full maintenance.
 
-We propose Sample-View-Clean (SVC), a framework that samples updates to a materialized view and corrects stale aggregation query results.
-While approximate, the corrected query result is in-expectation fresh and can be bounded within confidence intervals.
-This framework will be complementary to periodic approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximately fresh results for far less costs than having to maintain the entire view.
-Without SVC, existing periodic maintenance approaches allow the user to control the freshness of queries by changing maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience.
-However, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
-On the other hand, SVC gives results that are fresh and the user controls a bounded approximation error.
+We propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{clean} stale aggregation query results.
+While approximate, the corrected query result can be bounded within confidence intervals.
+This framework will be complementary to existing deferred maintenance approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximately results for far less costs than having to maintain the entire view.
+Without SVC, existing work allows the user to control the freshness of queries by changing maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience.
+Without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
+On the other hand, SVC gives results that are fresh and the user controls a bounded approximation error with the sampling ratio.
 
 %Sampling gives the user the ability to scale the performance 
 %Existing techniques allow the user to control the freshness of queries by chaning maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience. However, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
@@ -35,8 +36,7 @@ On the other hand, SVC gives results that are fresh and the user controls a boun
 
 %The SampleClean project [?] studied a related problem of bounding aggregate queries on dirty datasets but did not consider materialized views or the effect of missing records.
 
-SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define a logical unit called an ``update pattern" which represents how an update affects the derived view. (2) we use the sampled update patterns to correct aggregate queries on stale materialized views.
-From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
+SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the derived view, and we take a sample of these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
 Finally, in (3) sampling is known to be sensitive to outliers \cite{chaudhuri2001overcoming}.
 We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample, which can be used to increase correction accuracy.
 
