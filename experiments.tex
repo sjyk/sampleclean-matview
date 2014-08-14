@@ -155,7 +155,7 @@ Even though some queries are more than 60\% stale, our corrections reduce the re
 \centering
  \includegraphics[scale=0.22]{exp/query_error_dist.eps}
  \includegraphics[scale=0.21]{exp/query_error_dist2.eps}\vspace{-.5em}
- \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.}\label{exp3dist}\vspace{-.5em}
+ \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.}\label{exp3dist} %\vspace{-.5em}
 \end{figure}
 
 The long tail of query errors can occur for a variety of reasons.
@@ -165,7 +165,7 @@ Next, outliers can be caused by large updates to the data that are missed by our
 \subsection{Efficiency}
 \vspace{-.5em}
 \subsubsection{Sampling Efficiency}\label{exp:tpcd-eff}
-In Figure \ref{exp2update} (b)(d)(f), we evaluate how sampling can reduce maintenance time for each ove the views.
+In Figure \ref{exp2update} (b)(d)(f), we evaluate how sampling can reduce maintenance time for each of the views.
 For a batch of updates, we evaluate how long it takes to sample the update patterns as opposed to maintaining the view.
 As a baseline, we compare to full incremental maintenance.
 We find that for the \aggview and \fjview, which are more expensive to maintain, sampling leads to more pronounced savings. 
@@ -177,8 +177,8 @@ There are diminishing returns with smaller sample sizes as overheads start becom
 In Section \ref{subsec-corr-cost}, we analyzed the query execution times.
 We found that while for \spview and \fjview we have a reduced query time in comparison to full incremental maintenance, we can make no such
 guarantee for \aggview.
-In this experiment, we evaluated the query execution time of SVC compared to SAQP, full incremental maintenace (query on the fresh view), and no maintenance (query on the stale view).
-Since \spview and \fjview are similar, we only evalute query execution on \fjview.
+In this experiment, we evaluated the query execution time of SVC compared to SAQP, full incremental maintenance (query on the fresh view), and no maintenance (query on the stale view).
+Since \spview and \fjview are similar, we only evaluate query execution on \fjview.
 For each of the views, we insert 5M records (8\% of Base Data) and evaluate the average query execution time; that is over the 10,000 generated queries the average time to return a result. 
 For the aggregation view, the insertions were such that 50\% of the insertions updated existing rows and 50\% corresponded to new rows.
 In Figure \ref{exp10overheads}, we show the results of the experiment.
@@ -187,10 +187,10 @@ For the \aggview, it has a mean error of 6.6\% compared to SVC's 0.8\% (Section 
 We also highlight that the introduced overhead for correction is orders of magnitude less than the maintenance time seen in the previous sections.
 For \aggview, full incremental maintenance requires 106.3 seconds while 5\% SVC only requires 5.5 seconds, and in comparison the correction 0.08 seconds (Section \ref{exp:tpcd-eff}).
 
-\begin{figure}[h]
+\begin{figure}[t]\vspace{-2em}
 \centering
  \includegraphics[width=\columnwidth]{exp/total_time_agg_view.pdf}\vspace{-1em}
- \caption{We compare the query execution time for SVC, SAQP, the fresh view, and stale view. Since, we use a sample to correct query results on the stale view, we always require a query on the stale view. For \fjview and \spview, we do not increase query execution time with our correction. However, for \aggview, we introduce a small overhead.\label{exp10overheads}}\vspace{-1em}
+ \caption{We compare the query execution time for SVC, SAQP, the fresh view, and stale view. Since, we use a sample to correct query results on the stale view, we always require a query on the stale view. For \fjview and \spview, we do not increase query execution time with our correction. However, for \aggview, we introduce a small overhead.\label{exp10overheads}} \vspace{-1em}
 \end{figure}
 
 \subsubsection{View Complexity}
@@ -213,16 +213,13 @@ cardinality of the view.
 We found that for a highly selective group by clause (thus a large view) the savings were 16.9x.
 However, when the view was small with the l\_shipdate key, the cost savings were smaller 5.5x.
 These experiments emphasize that when views are large and complex, we can have significant improvements.
-\begin{figure}[!t]
+\begin{figure}[!t]\vspace{-1em}
  \includegraphics[trim = 35mm 0mm 35mm 0mm, clip,width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}\vspace{-1em}
  \caption{As the view definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).\label{exp11overheads}}\vspace{-1em}
 \end{figure}
 %This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
 
-\begin{figure}[ht!]
-\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp6-outlier-full.eps}\vspace{-1em}
- \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.\label{exp7outlier}}\vspace{-1em}
-\end{figure}
+
 
 \subsection{Outlier Indexing}
 We use a 5\% sample size and 5M records (8\% of Base Data) inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
@@ -233,6 +230,11 @@ We find that for these queries, we can improve the accuracy by a factor of 8.2.
 We further evaluated the overhead of the approach compared to the base SVC time of 1.44s and found that the overhead was only 1\% for an outlier index of size 1000.
 We varied the Zipfian parameter from (0,1,2,3,4), which makes the distribution more skewed, and measured the average improvement in accuracy over all queries.
 We found that as the dataset becomes more skewed, outlier indexing is increasingly important leading to almost a 6x more accurate estimate for $z=4$.
+
+\begin{figure}[ht!]
+\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp6-outlier-full.eps}\vspace{-1em}
+ \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.\label{exp7outlier}}\vspace{-1em}
+\end{figure}
 
 \subsection{Application: Log Analysis For Conviva}
 We used a 1TB dataset of queries given by Conviva to generate three materialized views.
@@ -249,11 +251,11 @@ Instead, for evaluating accuracy we used a 7GB subset of the logs corresponding 
 However, for the scalability experiments, we use the full 1TB dataset.
 We present results in terms of relative sizes in comparison to the base table.
 
-\begin{figure*}[ht]
+\begin{figure*}[ht] %\vspace{-0.75em}
 \hspace{-1em}
 \vspace{-0.75em}
 \includegraphics[scale=0.21]{exp/exp5-efficiency-conviva.eps}
- \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}}\vspace{-1em}
+ \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}} \vspace{-1em}
 \end{figure*}
 
 \begin{figure}[t]
@@ -294,8 +296,8 @@ We derived the views from a 800GB base table and inserted records in approximate
 In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
 As Spark does not support selective writes, we include view recalculation as a baseline for comparison.
 In many Spark applications, recalculation is often faster than incremental maintenance.
-For LargeView a 10\% sample with 120GB of inserted records (15\%) acheives a  7.5x speedup over full incremental maintenance and a 5.6x speedup over recalculation.
-On the other hand, for SmallView, there is a 5.1x speedup over full incremental maintenance and a 1.7x improvement over recalcuation.
+For LargeView a 10\% sample with 120GB of inserted records (15\%) achieves a  7.5x speedup over full incremental maintenance and a 5.6x speedup over recalculation.
+On the other hand, for SmallView, there is a 5.1x speedup over full incremental maintenance and a 1.7x improvement over recalculation.
 Aggregation views with a larger cardinality create larger delta views.
 These delta views necessitate a shuffle operation that communications them during the refresh step.
 As SmallView is smaller, the communication gains are less and the only savings are in computation.

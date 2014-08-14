@@ -15,7 +15,7 @@ The cost analysis of this section ties back to our discussion of incremental mai
 \end{figure}
 
 \begin{table*}\renewcommand{\arraystretch}{1.2}
-\vspace{-1em}
+\vspace{-2em}
 \caption{Cost comparison between incremental view maintenance and update-pattern sampling.}\label{tbl:cost-analysis} \small \centering
 %\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
 %\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
@@ -31,7 +31,7 @@ The cost analysis of this section ties back to our discussion of incremental mai
   \specialcell{$\textrm{cost}_{group}(n)$ \\+ $\textrm{cost}_{agg}(\delta_{v})$} &
    \specialcell{$\textrm{cost}_{hash}(n)$ + \\$\textrm{cost}_{group}(\ratio \cdot n)$ + \\ $\textrm{cost}_{agg}(\ratio \cdot \delta_{v})$}        \\ \hline
   \bf{Refresh}    & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$  & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$ &  $\textrm{cost}_{apply}(\delta_v)$ & $\textrm{cost}_{apply}(\ratio \cdot \delta_v)$\\ \hline
-\end{tabular}\vspace{-1em}
+\end{tabular}\vspace{-.5em}
 \end{table*}
 
 
@@ -69,7 +69,7 @@ Consider a base table $T$ and the corresponding insertion table $\triangle T$. G
 
 \sloppy
 
-For a given \fjview, let $T$ be the base table, and $T_1, T_2, \cdots, T_k$ also base tables with which are linked to $T$ with foreign-key relationships. The update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
+For a given \fjview, let $T$ be the base table, and $T_1, T_2, \cdots, T_k$ also base tables with which are linked to $T$ with foreign-key relationships. The update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{\scriptsize Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
 
 \fussy
 

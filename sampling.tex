@@ -47,7 +47,16 @@ $~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A);
 
 For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ and $\dans_{count}$, respectively. But for the \avgfunc query, in addition to $\dans_{avg}$, we also need to compute $\dans_{cnt}$ for query correction.
 In Table~\ref{tbl:query-correct}, we show how to use the delta query result to correct a stale query result. 
-\begin{table}[ht!]\renewcommand{\arraystretch}{1.5}\vspace{-0.5em}
+
+
+To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the re-scaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
+
+To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
+
+To correct an \avgfunc query result, we can treat it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ rows\footnote{\small $\ans_{cnt}$ denotes the number of rows that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ represents the average value of $\dans_{cnt}$ rows. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
+
+
+\begin{table}[t]\renewcommand{\arraystretch}{1.5}\vspace{-0.5em}
 \caption{Correcting a stale query result}\label{tbl:query-correct} \scriptsize \centering
 %\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
 %\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
@@ -61,14 +70,6 @@ In Table~\ref{tbl:query-correct}, we show how to use the delta query result to c
    \avgfunc     &  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$                                &     $\ans_{avg}+\dans_{avg}$     \\ \hline 
 \end{tabular}\vspace{-1.5em}
 \end{table}
-
-To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the re-scaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
-
-To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
-
-To correct an \avgfunc query result, we can treat it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ rows\footnote{\small $\ans_{cnt}$ denotes the number of rows that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ represents the average value of $\dans_{cnt}$ rows. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
-
-
 
 
 \subsubsection{Aggregation View}\label{subsubsec:correct-agg}

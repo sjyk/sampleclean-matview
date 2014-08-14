@@ -15,7 +15,7 @@ Consequently, it is common to defer the maintenance to a later time \cite{chirko
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
 While deferral has compelling benefits, it does not guarantee up-to-date results between maintenance periods. 
 
-\begin{figure}[t]\vspace{-1.5em}
+\begin{figure}[t] %\vspace{-1.5em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch.pdf}
  \caption{SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. From a sample of up-to-date data, we estimate
@@ -127,7 +127,7 @@ given an aggregation query on this view, from this small sample, we
 can estimate how the updates affect the query result. We apply this
 estimate to correct the dirty aggregation query result on the stale
 data. We call this approach \emph{approximate query correction}. 
-These corrections are provably bounded, in contrast to the unbounded stalness,
+These corrections are provably bounded, in contrast to the unbounded staleness,
 and the sampling gives a flexible tradeoff to meet performance constraints such as throughput.
 Sampling helps reduces both bottlenecks in view maintenance, delta
 view calculation and view updating, as it reduces the number of updates
