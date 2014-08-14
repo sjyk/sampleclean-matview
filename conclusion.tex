@@ -4,10 +4,10 @@
 Addressing the cost of materialized view maintenance is the subject of many recent works with
 focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transaction~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
-The steaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
+The steaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting, KrishnamurthyFDFGLT10}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
 
 
-Sampling has been well studied in the context of query processing~\cite{agarwal2013blinkdb, olken1993random, garofalakis2001approximate}. Particularly, a similar idea of sampling from updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation,KrishnamurthyFDFGLT10}. But none of these works studied how to sample update patterns w.r.t materialized views and how to use the sample update patterns to correct stale query results.
+Sampling has been well studied in the context of query processing~\cite{agarwal2013blinkdb, olken1993random, garofalakis2001approximate}. Particularly, a similar idea of sampling from updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}. But none of these works studied how to sample update patterns w.r.t materialized views and how to use the sample update patterns to correct stale query results.
 %However, we argue, that our application of sampling in this work has a fundamentally different goal.
 %Prior work emphasizes sampling as a technique to reduce query execution time.
 %We, on the other hand, use sampling to reduce maintenance costs.
