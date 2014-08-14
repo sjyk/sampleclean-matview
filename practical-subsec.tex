@@ -12,11 +12,16 @@ We can use this to bound the term with its 95\% confidence interval (or any othe
 
 For all of the queries in \aggview, and for \sumfunc, \countfunc in \spview and \fjview, there is only one term to bound.
 However, for \avgfunc in \spview and \fjview, as presented there are two terms to bound.
-Using the associativity properties of these queries, we can re-write the correction for \avgfunc in terms of a single summation.
+Using the associativity properties of \countfunc and \sumfunc, we can re-write the correction for \avgfunc.
 The numerator can be written as a single \sumfunc query, where we move the stale result $\ans_{cnt}\cdot\ans_{avg}$ inside the estimate.
-Next, we notice that the reformulation is now a \sumfunc over a \countfunc of the same set of records (with an additional offset of $ans_{cnt}$.
-Thus, this can be re-written as a single mean value. 
-See \cite{wang1999sample} for more details on the confidence intervals.
+The resulting formula gives a correction of the following form:
+\[
+\frac{\sumfunc(data) + A}{\countfunc{data} + B}
+\]
+where A and B are constants.
+Next, we notice that the reformulation is now a \sumfunc divided by a \countfunc of the same set of records, with additional constant offsets.
+\sumfunc divided by a \countfunc is equivalent to an \avgfunc query and we can bound this in confidence intervals.
+See \cite{wang1999sample} for more details on the confidence intervals of such queries.
 
 \subsubsection{Optimality}
 We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
@@ -38,9 +43,11 @@ For \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correction i
 In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
 \end{theorem}
 \begin{proof}[Sketch]
-We can reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. \sumfunc is the mean multiplied by the dataset size, and \countfunc
-is the sum where all the records have been set to one. Then, we prove the theorem by induction. 
-Suppose, we have two independent estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ with unknown variance and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
-Since, we do not know anything about the distribution by symmetry $c_1 = c_2 = 0.5$. 
-Thus we can recursively induct, and we find that if we do not know the variance of data, as is impossible with new updates, then equally weighting all input rows is optimal. 
+As discussed before reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. We prove the theorem by induction. 
+Suppose, we have two independent unbiased estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
+Since both estimates are unbiased, $c_1 + c_2 = 1$ to ensure the merged estimate is also unbiased, and now we consider the variance of the merged estimate.
+The variance of the estimate is $var(\bar{X}) = c_1^2var(\bar{X}_1) + c_2^2var(\bar{X}_2)$.
+Since, we don't know anything about the distribution of the data, by symmetry $var(\bar{X}_1) = var(\bar{X}_2)$.
+Consequently, the optimal choice is $c_1=c_2=0.5$. 
+We can recursively induct, and we find that if we do not know the variance of data, as is impossible with new updates, then equally weighting all input rows is optimal. 
 \end{proof}

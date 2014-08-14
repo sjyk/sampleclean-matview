@@ -43,7 +43,7 @@ GROUP BY [a3,a4,...];
 \vspace{0.25em}
 
 We selected these classes of views to be specific enough to analyze in terms of cost but general enough to evaluate using real datasets and query workloads.
-There are, however, other types of materialized views that SVC can support including views defined by nested queries, equality joins, and aggregate queries with \havingfunc clauses.
+%There are, however, other types of materialized views that SVC can support including views defined by aggregate queries with \havingfunc clauses.
 
 \subsubsection{Updates}
 There are three types of updates that can affect a base table: \insertion, \delete, \update.
@@ -100,15 +100,9 @@ The challenge is to ``clean" the materialized view by updating the out-of-date r
 Suppose, we cleaned a random sample of dirty rows processing only as many of the new insertions as necessary this would potentially reduce the amount of updates, join executions, and aggregates we would need to compute.
 From this sample, we can derive a correction to stale query results.
 
-The architecture of SVC is shown in Figure \ref{sys-arch}.
-The diagram depicts the following components: (1) we sample the ``update pattern",
+The architecture of SVC is shown in the introduction (Figure \ref{sys-arch}).
+The diagram depicts the following three components: (1) we sample the ``update pattern",
 (2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
-
-\begin{figure}[h]
-\centering
- \includegraphics[scale=0.30]{figs/sys-arch.pdf}
- \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded. \label{sys-arch}}
-\end{figure}
 
 In implementation, SVC will work in conjunction with existing maintenance or re-calculation approaches.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.

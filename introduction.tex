@@ -6,7 +6,7 @@ More recent work expands the developed techniques to data analytics and, for exa
 
 However, materialized views are not for free. 
 In the Big Data era, new data arrives at an increasingly fast rate, and for frequently changing tables, maintaining the materialized view can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
-The preferred approach to reduce the overhead of updating the views is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
+The preferred approach to reduce the overhead of updating is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
 Instead of re-calculating the whole view for every update, incremental view maintenance reduces the cost by calculating only the incremental changes from one view to the next updated view. 
 Still, for many applications, even incremental maintenance can be too expensive. 
 %This is particularly true for very fast changing tables and/or complex views. 
@@ -16,12 +16,12 @@ Deferral allows for many advantages such as batching updates together to amortiz
 While deferral has compelling benefits, it does not guarantee up-to-date results at any time. 
 
 The problem of \emph{stale} materialized views closely mirrors the problem of dirty data studied in data cleaning \cite{rahm2000data}, and 
-as a materialized view becomes more stale, queries on the view become increasingly inaccurate.
+as with dirty data, when materialized view becomes more stale, queries on the view become increasingly inaccurate.
 Numerous data cleaning approaches have been proposed to to efficiently clean data errors and improve the accuracy of query results.
 In this work, we explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem and whether stale query results can be \emph{cleaned}.
-In particular, we take inspiration from one such recent data cleaning framework, SampleClean, which shows to answer aggregate queries on dirty datasets, it suffices to clean a small, representative sample of dirty records \cite{wang1999sample}.
-This model raises a new possibility for materialized views, namely, that we can approximately answer aggregate queries without incurring the cost of full view maintenance.
-However, staleness is very different from the data errors considered in SampleClean not only resulting in erroneous records but potentially leading to missing records, and this raises interesting new challenges in sampling, correction, and query processing.
+In particular, we take inspiration from one such recent framework, SampleClean, which shows to answer aggregate queries on dirty datasets, it suffices to clean a small, representative sample of dirty records \cite{wang1999sample}.
+This model raises a new possibility for materialized views, namely, that we can approximately answer queries without incurring the cost of full view maintenance.
+However, staleness is very different from the data errors considered in SampleClean not only resulting in erroneous data but potentially leading to missing data, and this raises interesting new challenges in sampling, correction, and query processing.
 
 %Recent results in data cleaning increasingly consider the costs of data cleaning .
 
@@ -66,7 +66,8 @@ On the other hand, SVC gives results that are fresh and the user controls a boun
 \begin{figure}[ht]
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch.pdf}
- \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded. \label{sys-arch}}
+ \caption{SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. From a sample of up-to-date data, we estimate
+ a correction for queries on stale materialized views. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}
 \end{figure}
 
 In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the derived view, and we take a sample of these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
