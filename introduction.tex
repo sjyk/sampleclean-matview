@@ -15,11 +15,11 @@ Consequently, it is common to defer the maintenance to a later time \cite{chirko
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
 While deferral has compelling benefits, it does not guarantee up-to-date results between maintenance periods. 
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-1.5em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch.pdf}
  \caption{SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. From a sample of up-to-date data, we estimate
- a correction for queries on stale materialized views. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}
+ a correction for queries on stale materialized views. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}\vspace{-1.5em}
 \end{figure}
 
 As a materialized view becomes more stale, queries on the view become increasingly inaccurate.
@@ -27,7 +27,7 @@ This closely mirrors the problem of dirty data where data errors can reduce the 
 %Numerous data cleaning approaches have been proposed to to efficiently clean data errors and improve the accuracy of query results.
 In this work, we explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem.
 We take inspiration from recent results from the SampleClean data-cleaning framework which show that instead of cleaning the entire dataset,
-it suffices to clean a small dirty records to greatly improve query accuracy \cite{wang1999sample}.
+it suffices to clean a small sample of dirty records to greatly improve query accuracy \cite{wang1999sample}.
 This data-cleaning perspective raises a new possibility for materialized views, namely, that we can return more accurate results without incurring the cost of full view maintenance.
 However, staleness is different sort of data error that raises interesting new challenges in sampling, cleaning, and efficient query processing.
 
@@ -77,25 +77,21 @@ We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, w
 %Consequently, sampling can significantly save on maintenance costs and give a flexible tradeoff between accuracy and performance.
 To summarize, our contributions are as follows:
 
-%\begin{itemize}
-\noindent $\bullet$ We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{0.2em}
-
-\noindent $\bullet$ We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. \vspace{0.2em}
-
-\noindent $\bullet$ Using a sample of update patterns, we can correct stale aggregation queries on materialized views with bounded accuracy.\vspace{0.2em}
-
-\noindent $\bullet$We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{0.2em}
-
-\noindent $\bullet$ We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.\vspace{0.2em}
-%\end{itemize}
+\begin{itemize}\vspace{-.45em}
+\item We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{-.45em}
+\item We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. \vspace{-.45em}
+\item Using a sample of update patterns, we can correct stale aggregation queries on materialized views with bounded accuracy.\vspace{-.45em}
+\item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{-.45em}
+\item We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.\vspace{-.45em}
+\end{itemize}
 
 The paper is organized in the following way. 
-In Section \ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
-Next, in Section \ref{sec-arch}, we give a brief overview of our overall system architecture.
-In Section \ref{sampling} and \ref{correction}, we describe the sampling and query processing of our technique.
-In Section \ref{outlier}, we describe the outlier indexing framework.
-Then, in Section \ref{exp}, we evaluate our approach.
-Finally, we end with our Related Work in Section \ref{related} and our Conclusions and Future Work in Section \ref{conclusion}.
+In Section~\ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
+Next, in Section~\ref{sec-arch}, we give a brief overview of our overall system architecture.
+In Section~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
+In Section~\ref{outlier}, we describe the outlier indexing framework.
+Then, in Section~\ref{exp}, we evaluate our approach.
+Finally, we end with our Related Work in Section~\ref{related} and our Conclusions and Future Work in Section~\ref{conclusion}.
 
 \iffalse
  These two pieces can be costly in different

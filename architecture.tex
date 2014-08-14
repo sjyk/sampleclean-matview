@@ -6,6 +6,7 @@ Then, we briefly present each of the components of our system.
 \subsection{Problem Setting}
 %In this paper, we only consider insertions to the base table, see
 %\reminder{Extended Paper} for more details on how to model deletions.
+\vspace{-.5em}
 \subsubsection{Materialized Views}
 In this paper, we evaluate SVC on three classes of materialized views, Select-Project, Foreign-Key Join, and Aggregation:
 \vspace{0.25em}
@@ -23,10 +24,9 @@ WHERE Condition(A)
 \noindent\textbf{Foreign-Key Join Views (\fjview): } As an extension to the Select-Project Views, we can support views derived from a Foreign-Key join:
 
 \begin{lstlisting}
-SELECT table1.[a1,a2,...],
-table2.[a1,a2,...] FROM Table1, Table2 
-WHERE
-Table1.fk = Table2.fk  AND Condition(A);
+SELECT table1.[a1,a2,...], table2.[a1,a2,...] 
+FROM Table1, Table2 
+WHERE Table1.fk = Table2.fk AND Condition(A);
 \end{lstlisting}
 
 \vspace{0.25em}
