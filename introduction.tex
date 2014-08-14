@@ -1,20 +1,31 @@
 \section{Introduction}
-Materialized views, stored pre-computed query results, are one of the most well-known techniques to speed- and scale-up query processing \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
-During the last 30 years, the research community thoroughly studied them  \cite{LarsonY85, zaharia2012resilient,lefevre2014opportunistic, bailis2014scalable, perez2014history} and all major database vendors added support for them. 
-More recent work expands the developed techniques to new domains and, for example, shows remarkable results for linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
+Materialized views, stored pre-computed query results, are one of the most well-known techniques to speed- and scale-up query processing \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
+During the last 30 years, the research community has thoroughly studied the approach, and all major database vendors have added support for them. 
+As data grows, materialized views have become increasingly important and have been the subject of numerous recent works \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history}.
+More recent work expands the developed techniques to data analytics and, for example, shows remarkable results for linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
-Yet, materialized views are not for free. 
-When applied to frequently changing tables maintaining the materialized view can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
-One of the most well-known technique to reduce the overhead is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
+However, materialized views are not for free. 
+In the Big Data era, new data arrives at an increasingly fast rate, and for frequently changing tables, maintaining the materialized view can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
+The preferred approach to reduce the overhead of updating the views is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
 Instead of re-calculating the whole view for every update, incremental view maintenance reduces the cost by calculating only the incremental changes from one view to the next updated view. 
 Still, for many applications, even incremental maintenance can be too expensive. 
-This is particularly true for very fast changing tables and/or complex views. 
+%This is particularly true for very fast changing tables and/or complex views. 
 Furthermore, recent database systems are increasingly often distributed across machines, further amplifying the challenge of updating materialized views. 
 Consequently, it is common to defer the maintenance to a later time \cite{chirkova2011materialized, zhou2007lazy}.
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
 While deferral has compelling benefits, it does not guarantee up-to-date results at any time. 
 
+The problem of \emph{stale} materialized views closely mirrors the problem of dirty data studied in data cleaning \cite{rahm2000data}, and 
+as a materialized view becomes more stale, queries on the view become increasingly inaccurate.
+Numerous data cleaning approaches have been proposed to to efficiently clean data errors and improve the accuracy of query results.
+In this work, we explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem and whether stale query results can be \emph{cleaned}.
+In particular, we take inspiration from one such recent data cleaning framework, SampleClean, which shows to answer aggregate queries on dirty datasets, it suffices to clean a small, representative sample of dirty records \cite{wang1999sample}.
+This model raises a new possibility for materialized views, namely, that we can approximately answer aggregate queries without incurring the cost of full view maintenance.
+However, staleness is very different from the data errors considered in SampleClean not only resulting in erroneous records but potentially leading to missing records, and this raises interesting new challenges in sampling, correction, and query processing.
 
+%Recent results in data cleaning increasingly consider the costs of data cleaning .
+
+%The results show that 
 
 %Materialized views, stored pre-computed query results, are used to facilitate fast query processing on large datasets \cite{gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
 %Materialization and related concepts such as selecting queries to materialize
@@ -33,12 +44,11 @@ While deferral has compelling benefits, it does not guarantee up-to-date results
 
 %When a materialized view is out-of-date during a maintenance gap, queries issued to the view can have \emph{stale} results. 
 
-In this work, we address the view-maintenance problem from a different perspective.
-We explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem and whether stale query results can be \emph{cleaned}.
-While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
-recent work has also considered the costs of data cleaning \cite{wang1999sample}.
-The results show that to answer aggregate queries on dirty datasets, it suffices to clean a small, representative sample of dirty records.
-This model raises a new possibility for materialized views, namely, that a sample of up-to-date rows can be used to answer aggregate queries without incurring the cost of full view maintenance.
+%In this work, we address the view-maintenance problem from a different perspective.
+%We explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem and whether stale query results can be \emph{cleaned}.
+%While much of the data cleaning literature focuses on improving query accuracy on dirty datasets,
+%recent work has also considered the costs of data cleaning \cite{wang1999sample}.
+
 
 We propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{clean} stale aggregation query results.
 While approximate, the corrected query result can be bounded within confidence intervals.
@@ -53,7 +63,13 @@ On the other hand, SVC gives results that are fresh and the user controls a boun
 
 %The SampleClean project [?] studied a related problem of bounding aggregate queries on dirty datasets but did not consider materialized views or the effect of missing records.
 
-SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the derived view, and we take a sample of these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
+\begin{figure}[ht]
+\centering
+ \includegraphics[scale=0.30]{figs/sys-arch.pdf}
+ \caption{We clean a stale query result by deriving a correction from a sample of up-to-date data. To make this process robust to skewed datasets, we couple sampling with an outlier indexing approach. For aggregation queries, we can guarantee that our results are unbiased and bounded. \label{sys-arch}}
+\end{figure}
+
+In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the derived view, and we take a sample of these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
 Finally, in (3) sampling is known to be sensitive to outliers \cite{chaudhuri2001overcoming}.
 We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample, which can be used to increase correction accuracy.
 
