@@ -1,3 +1,4 @@
+\vspace{-.5em}
 \section{Results}
 \label{exp}
 First, we evaluate SVC on a synthetic benchmark dataset where we can control the data distribution and the update rate.
@@ -8,11 +9,12 @@ After evaluation on the benchmark, we present an end-to-end application of log a
 
 \begin{figure*}[ht!]
 \hspace{-5.5em}
- \includegraphics[trim = 10mm 0mm 10mm 0mm, clip, scale=0.19]{exp/exp2-full.eps}
- \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. \label{exp2update} }
+ \includegraphics[trim = 10mm 0mm 10mm 0mm, clip, scale=0.19]{exp/exp2-full.eps}\vspace{-1em}
+ \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. \label{exp2update} }\vspace{-1em}
 \end{figure*}
 
 \subsection{Experimental Setting}
+\vspace{-.5em}
 \subsubsection{TPCD-Skew}
 {\noindent \bf Dataset Description and Views :}
 TPCD-Skew dataset \cite{tpcdskew} is based on the Transaction Processing Council's benchmark
@@ -113,7 +115,7 @@ As Spark does not have support for indices, we rely on partitioned joins for inc
 We partitioned the aggregation views by group-by key, and joined the delta table with the aggregation view.
 
 \subsection{Accuracy}
-
+\vspace{-.5em}
 \subsubsection{Update Rate and Accuracy}\label{exp:tpcd-acc}
 For each of the three views listed above, we evaluate the accuracy of our approach.
 We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500K (0.8\% base data) records to a final count of 8M records (13.3\% base data).
@@ -136,8 +138,8 @@ In our experiment, we found that a 0.1\% sample was sufficient to ensure the app
 SAQP also has this break even point, but we found for this number of inserted records the point SAQP required a much larger sample size.
 
 \begin{figure}[ht!]
- \includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp1-samplesize-accuracy.eps}
- \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{samplesize}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size. \label{exp1sample} }
+ \includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp1-samplesize-accuracy.eps}\vspace{-1em}
+ \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{samplesize}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size. \label{exp1sample} }\vspace{-1em}
 \end{figure}
 
 \subsubsection{Distribution of Query Error} In our earlier experiments, we presented the average error for the queries on the views.
@@ -152,8 +154,8 @@ Even though some queries are more than 60\% stale, our corrections reduce the re
 \begin{figure}[ht!]
 \centering
  \includegraphics[scale=0.22]{exp/query_error_dist.eps}
- \includegraphics[scale=0.21]{exp/query_error_dist2.eps}
- \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.}\label{exp3dist}
+ \includegraphics[scale=0.21]{exp/query_error_dist2.eps}\vspace{-.5em}
+ \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.}\label{exp3dist}\vspace{-.5em}
 \end{figure}
 
 The long tail of query errors can occur for a variety of reasons.
@@ -161,7 +163,7 @@ First, some of the generated queries are highly selective and a uniform sampling
 Next, outliers can be caused by large updates to the data that are missed by our sampling, which we will address in subsequent experiments.
 
 \subsection{Efficiency}
-
+\vspace{-.5em}
 \subsubsection{Sampling Efficiency}\label{exp:tpcd-eff}
 In Figure \ref{exp2update} (b)(d)(f), we evaluate how sampling can reduce maintenance time for each ove the views.
 For a batch of updates, we evaluate how long it takes to sample the update patterns as opposed to maintaining the view.
@@ -187,8 +189,8 @@ For \aggview, full incremental maintenance requires 106.3 seconds while 5\% SVC 
 
 \begin{figure}[h]
 \centering
- \includegraphics[width=\columnwidth]{exp/total_time_agg_view.pdf}
- \caption{We compare the query execution time for SVC, SAQP, the fresh view, and stale view. Since, we use a sample to correct query results on the stale view, we always require a query on the stale view. For \fjview and \spview, we do not increase query execution time with our correction. However, for \aggview, we introduce a small overhead.\label{exp10overheads}}
+ \includegraphics[width=\columnwidth]{exp/total_time_agg_view.pdf}\vspace{-1em}
+ \caption{We compare the query execution time for SVC, SAQP, the fresh view, and stale view. Since, we use a sample to correct query results on the stale view, we always require a query on the stale view. For \fjview and \spview, we do not increase query execution time with our correction. However, for \aggview, we introduce a small overhead.\label{exp10overheads}}\vspace{-1em}
 \end{figure}
 
 \subsubsection{View Complexity}
@@ -211,15 +213,15 @@ cardinality of the view.
 We found that for a highly selective group by clause (thus a large view) the savings were 16.9x.
 However, when the view was small with the l\_shipdate key, the cost savings were smaller 5.5x.
 These experiments emphasize that when views are large and complex, we can have significant improvements.
-\begin{figure}[ht!]
- \includegraphics[trim = 35mm 0mm 35mm 0mm, clip,width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}
- \caption{As the view definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).\label{exp11overheads}}
+\begin{figure}[!t]
+ \includegraphics[trim = 35mm 0mm 35mm 0mm, clip,width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}\vspace{-1em}
+ \caption{As the view definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).\label{exp11overheads}}\vspace{-1em}
 \end{figure}
 %This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
 
 \begin{figure}[ht!]
-\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp6-outlier-full.eps}
- \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.\label{exp7outlier}}
+\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp6-outlier-full.eps}\vspace{-1em}
+ \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.\label{exp7outlier}}\vspace{-1em}
 \end{figure}
 
 \subsection{Outlier Indexing}
@@ -251,19 +253,19 @@ We present results in terms of relative sizes in comparison to the base table.
 \hspace{-1em}
 \vspace{-0.75em}
 \includegraphics[scale=0.21]{exp/exp5-efficiency-conviva.eps}
- \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}}
+ \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}}\vspace{-1em}
 \end{figure*}
 
 \begin{figure}[t]
 \centering
 \vspace{-0.75em}
-\includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}
+\includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}\vspace{-.5em}
  \caption{We chose three views that represented the distribution of all views well in terms of both accuracy. We plot the staleness of each of the 67 views and mark the three views in our experiment.\label{exp12conviva}}
 \end{figure}
 
 \begin{figure}[t]
-\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp5-coniva-accuracy.eps}
- \caption{We compare average query staleness to our approach for a variety of sample sizes. For the larger views, we find that small sample sizes can give accurate results. Larger sample sizes are needed for accurate estimates in SmallView. \label{exp5conviva}}
+\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp5-coniva-accuracy.eps}\vspace{-.5em}
+ \caption{We compare average query staleness to our approach for a variety of sample sizes. For the larger views, we find that small sample sizes can give accurate results. Larger sample sizes are needed for accurate estimates in SmallView. \label{exp5conviva}}\vspace{-.5em}
 \end{figure}
 
 

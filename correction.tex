@@ -15,7 +15,7 @@ The cost analysis of this section ties back to our discussion of incremental mai
 \end{figure}
 
 \begin{table*}\renewcommand{\arraystretch}{1.2}
-
+\vspace{-1em}
 \caption{Cost comparison between incremental view maintenance and update-pattern sampling.}\label{tbl:cost-analysis} \small \centering
 %\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
 %\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
@@ -31,7 +31,7 @@ The cost analysis of this section ties back to our discussion of incremental mai
   \specialcell{$\textrm{cost}_{group}(n)$ \\+ $\textrm{cost}_{agg}(\delta_{v})$} &
    \specialcell{$\textrm{cost}_{hash}(n)$ + \\$\textrm{cost}_{group}(\ratio \cdot n)$ + \\ $\textrm{cost}_{agg}(\ratio \cdot \delta_{v})$}        \\ \hline
   \bf{Refresh}    & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$  & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$ &  $\textrm{cost}_{apply}(\delta_v)$ & $\textrm{cost}_{apply}(\ratio \cdot \delta_v)$\\ \hline
-\end{tabular}
+\end{tabular}\vspace{-1em}
 \end{table*}
 
 

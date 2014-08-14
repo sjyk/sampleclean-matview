@@ -46,8 +46,8 @@ $~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A);
 \vspace{-.25em}
 
 For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ and $\dans_{count}$, respectively. But for the \avgfunc query, in addition to $\dans_{avg}$, we also need to compute $\dans_{cnt}$ for query correction.
-In Table~\ref{tbl:query-correct}, we show how to use the delta query result to correct a stale query result. \vspace{-0.5em}
-\begin{table}[ht!]\renewcommand{\arraystretch}{1.5}
+In Table~\ref{tbl:query-correct}, we show how to use the delta query result to correct a stale query result. 
+\begin{table}[ht!]\renewcommand{\arraystretch}{1.5}\vspace{-0.5em}
 \caption{Correcting a stale query result}\label{tbl:query-correct} \scriptsize \centering
 %\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
 %\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
@@ -59,7 +59,7 @@ In Table~\ref{tbl:query-correct}, we show how to use the delta query result to c
    \sumfunc     &  $\ans_{sum}+\dans_{sum}/\ratio$ &   $\ans_{sum}+\dans_{sum}/\ratio$        \\ \hline 
    \countfunc   &  $\ans_{cnt}+\dans_{cnt}/\ratio$ &   $\ans_{cnt}+\dans_{cnt}/\ratio$       \\ \hline 
    \avgfunc     &  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$                                &     $\ans_{avg}+\dans_{avg}$     \\ \hline 
-\end{tabular}
+\end{tabular}\vspace{-1.5em}
 \end{table}
 
 To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the re-scaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
