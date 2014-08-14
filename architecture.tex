@@ -16,7 +16,7 @@ expressions of the following form:
 
 \begin{lstlisting}
 SELECT [a1,a2,...] FROM Table 
-WHERE Condition(A) 
+WHERE Condition(A);
 \end{lstlisting}
 
 \vspace{0.25em}
@@ -24,8 +24,8 @@ WHERE Condition(A)
 \noindent\textbf{Foreign-Key Join Views (\fjview): } As an extension to the Select-Project Views, we can support views derived from a Foreign-Key join:
 
 \begin{lstlisting}
-SELECT table1.[a1,a2,...], table2.[a1,a2,...] 
-FROM Table1, Table2 
+SELECT table1.[a1,a2,...], table2.[a1,a2,...],...
+FROM Table1, Table2,...
 WHERE Table1.fk = Table2.fk AND Condition(A);
 \end{lstlisting}
 
@@ -98,12 +98,12 @@ Refer to Section \ref{sec:sel} for a discussion of how to correct Select queries
 Modeling view maintenance as a data cleaning problem gives us a new perspective for addressing staleness.
 Insertions to the base table can cause two types of errors in the view: rows are either out-of-date or missing altogether.
 The challenge is to ``clean" the materialized view by updating the out-of-date rows and inserting the missing rows, however this can be very expensive if there are a large number of new records to process.
-Suppose, we cleaned a random sample of dirty rows processing only as many of the new insertions as necessary this would potentially reduce the amount of updates, join executions, and aggregates we would need to compute.
+Cleaning a sample of dirty rows potentially reduces the amount of updates, join executions, and aggregates we need to compute.
 From this sample, we can derive a correction to stale query results.
 
 The architecture of SVC is shown in the introduction (Figure \ref{sys-arch}).
 The diagram depicts the following three components: (1) we sample the ``update pattern",
-(2) we maintain an outlier index, and (3) we combine the sample and the outlier index to process queries on the stale view.
+(2) we use the sample to correct stale queries, and (3) we maintain an index of outliers.
 
 In implementation, SVC will work in conjunction with existing maintenance or re-calculation approaches.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
@@ -115,14 +115,7 @@ Then, between maintenance periods, we can provide approximately up-to-date query
 The three classes of views require different sampling techniques since they are affected by updates differently.
 For example, insertions to the base table only result in insertions to Select-Project views.
 But, for Aggregation Views, insertions to the base table can also result in updates to existing stale rows.
-In Section \ref{sampling}, we describe the sampling algorithm and a cost analysis of how much sampling can reduce maintenance costs.
-
-\subsubsection{Outlier Indexing}
-We use an outlier index to reduce the sensitivity of our correction estimates to skewed distributions. 
-We guarantee that records (or rows in the view derived from those records) 
-in the outlier index are also included in the sample.
-This can be used to reduce variance in our estimates.
-See Section \ref{outlier} for details on this component.
+In Section \ref{sampling}, we describe the sampling techniques and a cost analysis of how much sampling can reduce maintenance costs.
 
 \subsubsection{Correcting a Query}
 We can use information from the sample to correct stale query results.
@@ -130,6 +123,13 @@ For the aggregate functions, \sumfunc, \countfunc, and \avgfunc, we calculate a 
 which is bounded and provably optimal.
 Like the sampling, the algorithm to calculate the correction varies between the types of views.
 We detail query correction in Section \ref{correction}.
+
+\subsubsection{Outlier Indexing}
+We use an outlier index to reduce the sensitivity of our correction estimates to skewed distributions. 
+We guarantee that records (or rows in the view derived from those records) 
+in the outlier index are also included in the sample.
+This can be used to reduce variance in our estimates.
+See Section \ref{outlier} for details on this component.
 
 \subsubsection{Example Application: Log Analysis}
 To illustrate our approach, we use the following running example which is a 
@@ -144,7 +144,7 @@ Video(videoId$\textrm{,}$ title$\textrm{,}$ duration)
 \end{lstlisting}
 These tables are related with a foreign-key relationship between
 Log and Video, and there is an integrity constraint that every log
-record must link to one video in the video table.
+record must link to one video in the Video table.
 
 \begin{figure}[ht!] 
 \centering
@@ -165,11 +165,12 @@ The user wants to know how many videos had a max response time of greater than 1
 \begin{lstlisting} 
 SELECT COUNT(1)
 FROM AggView
-WHERE maxResponseTime > 100
+WHERE maxResponseTime > 100;
 \end{lstlisting}
-Let us suppose the initial query result is $15$.
-There now have been new log records inserted into the Log table making the old result of $15$ stale.
+Let us suppose the initial query result is $45$.
+There now have been new log records inserted into the Log table making the old result stale.
 For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct videoID's) we refresh stale maxResponseTime if necessary.
 From this sample, we calculate how many new videos changed from a maxResponseTime of less than 100ms to times greater than 100ms; let us suppose this answer is $2$.
-Since our sampling ratio is 5\%, we extrapolate that $10$ new videos throughout the view should now be included in the count, resulting in the estimate of $25$.
+Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
+This means that we should correct the old result by $40$ resulting in the estimate of $85$.
 In contrast, if we had applied SAQP, we would have counted how many videos in the sample had a max response time of greater than 100ms.
