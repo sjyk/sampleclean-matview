@@ -17,7 +17,6 @@ While deferral has compelling benefits, it does not guarantee up-to-date results
 
 \begin{figure}[t]
 \centering
-\vspace{-2em}
  \includegraphics[scale=0.30]{figs/sys-arch.pdf}
  \caption{SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. From a sample of up-to-date data, we estimate
  a correction for queries on stale materialized views. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}
@@ -78,14 +77,18 @@ We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, w
 %Our approach can be implemented with a relatively small overhead: at maintenance time the generation of random numbers to build the sample, and at query execution time single pass over a small sample of data to estimate a correction for the query.
 %Consequently, sampling can significantly save on maintenance costs and give a flexible tradeoff between accuracy and performance.
 To summarize, our contributions are as follows:
-\begin{itemize}
-\itemsep0.25em
-  \item We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.
-  \item We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. 
-  \item Using a sample of update patterns, we can correct stale aggregation queries on materialized views with bounded accuracy.
-  \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.
-  \item We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.
-\end{itemize}
+
+%\begin{itemize}
+\noindent $\bullet$ We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{0.2em}
+
+\noindent $\bullet$ We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. \vspace{0.2em}
+
+\noindent $\bullet$ Using a sample of update patterns, we can correct stale aggregation queries on materialized views with bounded accuracy.\vspace{0.2em}
+
+\noindent $\bullet$We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{0.2em}
+
+\noindent $\bullet$ We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.\vspace{0.2em}
+%\end{itemize}
 
 The paper is organized in the following way. 
 In Section \ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
