@@ -16,7 +16,7 @@ Using the associativity properties of \countfunc and \sumfunc, we can re-write t
 The numerator can be written as a single \sumfunc query, where we move the stale result $\ans_{cnt}\cdot\ans_{avg}$ inside the estimate.
 The resulting formula gives a correction of the following form:
 \[
-\frac{\sumfunc(data) + A}{\countfunc{data} + B}
+\frac{\sumfunc(data) + A}{\countfunc(data) + B}
 \]
 where A and B are constants.
 Next, we notice that the reformulation is now a \sumfunc divided by a \countfunc of the same set of records, with additional constant offsets.
