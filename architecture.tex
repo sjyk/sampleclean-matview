@@ -52,7 +52,7 @@ Insertion-only workloads are increasing common \cite{grund2009vertical} in enter
 Thus, the primary focus of this paper is on analysis and results for \insertion. In Section \ref{sec:del}, we discuss how to modify our query processing to support \delete, which in turn allows us to support \update.
 
 \subsubsection{Supported Queries} \label{subsubsec:queries}
-In this paper, we focus on deriving corrections for the three commonly used aggregation queries on the view.
+In this paper, we focus correct three commonly used aggregation queries on the view.
 For ease of presentation, we assume the query does not have a group-by clause, which can be easily extended by treating each group key as an additional condition of the query: 
 \begin{lstlisting} [mathescape]
 SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View 

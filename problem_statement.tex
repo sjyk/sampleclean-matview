@@ -33,8 +33,8 @@ This scheduling strategy places a bottleneck on updates to the base table.
 Furthermore, especially in a distributed setting, record-by-record 
 maintenance cannot take advantage of the benefits of consolidating communication overheads by batching.
 
-To address these challenges, deferred maintenance is alternative solution.
-The main idea of deferral is to avoid maintaining the view immediately and schedule an update at a more convenient time either in a pre-set way or adaptively.
+To address these challenges, deferred maintenance is an alternative solution.
+The main insight of deferral is to avoid maintaining the view immediately and to schedule an update at a more convenient time either in a pre-set way or adaptively.
 In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
 For example, views can be updated at night when the system can use more resources to process the updates without affecting a critical application.
 However, this also means that during the day the materialized view becomes increasingly stale as it was computed the night before.
