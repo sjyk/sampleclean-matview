@@ -41,7 +41,7 @@ However, this also means that during the day the materialized view becomes incre
 
 These costs can also be deferred to query execution time.
 In particular, we highlight a technique called lazy maintenance which applies updates to the view only when a user's query requires a row \cite{zhou2007lazy}.
-Both lazy maintenance and immediate maintenance hit a bottleneck when there rapid updates making these approaches impractical.
+Both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates making these approaches impractical.
 
 
 %While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost to query execution time.
@@ -68,7 +68,7 @@ The SampleClean project framework cleans a sample of data, and then bounds the r
 One of the algorithms in SampleClean, takes a random sample of dirty records, applies data cleaning, and learns how to correct a query applied to the dirty data.
 Instead of modeling data error on the base table, SampleClean considers how dirtiness affects queries on the data.
 In SVC, we look at queries on stale materialized views from this perspective.
-As materialized views are different problem setting, there are new challenges such as sampling from changing base tables, selection queries, and considering the effects of outliers.
+As materialized views are different problem setting, there are new challenges such as sampling from changing base tables, correction queries on a view, and considering the effects of outliers.
 
 \subsection{SAQP}
 Estimating the results of aggregate queries from samples has been
