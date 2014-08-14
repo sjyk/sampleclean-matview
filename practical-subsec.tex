@@ -1,8 +1,8 @@
 \subsection{Error Bars and Optimality}\label{subsec:correct-practical}
 \subsubsection{Confidence Intervals}
-In Table \ref{tbl:query-correct}, we present formulas to correct stale queries.
-In each of these formulas, all of the $\dans$ terms correspond to estimates and these estimates need to be bounded.
-The intuition is that we can rewrite the terms $\dans$ as a mean value of uniformly random variables.
+In Table \ref{tbl:query-correct}, we present formulas to correct stale query results.
+In each of these formulas, all of the $\dans$ terms correspond to estimates, and these estimates need to be bounded.
+To find these bounds, we can rewrite the terms $\dans$ as a mean value of random variables.
 By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
 \[
 \bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
