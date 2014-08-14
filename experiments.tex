@@ -91,7 +91,7 @@ With MySQL, we create these views as tables.
 We construct a separate table of updates, and then measure the time needed to propagate the necessary updates (forming the delta table and writing the updates) to the views.
 In evaluating \fjview, we only insert records into the lineitem table and create an index on all of the dimension tables.
 For \aggview, we have an index on the group-by key of sampled materialized view.
-Note, that we do not assume there are any indices on the newly inserted records.
+%Note, that we do not assume there are any indices on the newly inserted records.
 We use the MySQL query profiling feature to isolate the cost of view maintenance in both the delta view phase and the refresh phase.
 
 \subsubsection{Conviva}
@@ -122,7 +122,6 @@ We set the sample size to $5\%$ and then vary the number of inserted records by 
 For the 10,000 generated queries on the view, we calculate the mean error as a relative percentage of the true value.
 As a baseline, we compare against SAQP and no maintenance (i.e., the stale error).
 In Figure \ref{exp2update} (a)(c)(e), we show the results of the experiment. 
-
 For all three views a 5\% sample sufficed to achieve a mean relative error of less than 1\%, even though when 8M records were inserted the staleness was 7\%.
 Furthermore, in comparison to SAQP, the accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
 As more records are inserted the approximation error in our approach increases.
@@ -150,14 +149,12 @@ We used a sampling ratio of 5\% and evaluate the accuracy of our approach.
 In Figure \ref{exp3dist} (a), we show a cumulative distribution function (CDF) of the staleness and a scatter plot comparing the staleness of the query to the accuracy using our correction method.
 In the right figure (Figure \ref{exp3dist} (b)), each black point corresponds to a query with the y-axis as SVC estimation error and the x-axis as staleness. 
 Even though some queries are more than 60\% stale, our corrections reduce the relative error to less than 20\%.
-
 \begin{figure}[ht!]
 \centering
  \includegraphics[scale=0.22]{exp/query_error_dist.eps}
  \includegraphics[scale=0.21]{exp/query_error_dist2.eps}\vspace{-.5em}
- \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points above the dotted line show that we improved query accuracy.}\label{exp3dist} %\vspace{-.5em}
+ \caption{While the mean error is 9\%, 5\% of queries have more than 20\% relative error. However, in the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points below the dotted line show that we improved query accuracy.}\label{exp3dist} %\vspace{-.5em}
 \end{figure}
-
 The long tail of query errors can occur for a variety of reasons.
 First, some of the generated queries are highly selective and a uniform sampling approach may not sample enough records to answer it accurately.
 Next, outliers can be caused by large updates to the data that are missed by our sampling, which we will address in subsequent experiments.
@@ -273,7 +270,6 @@ We present results in terms of relative sizes in comparison to the base table.
 
 
 \subsubsection{Representativeness of the Views}
-We selected these views to be representative of the dataset and query workload. 
 We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log. 
 We derived each view from a 7GB base table and inserted 1.1GB (15\%) of records to the table. 
 Since the query accuracy is a function of the data distribution and staleness.
