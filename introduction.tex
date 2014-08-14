@@ -4,16 +4,16 @@ During the last 30 years, the research community has thoroughly studied the appr
 As data grows, materialized views have become increasingly important and have been the subject of numerous recent works \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history}.
 More recent work expands the developed techniques to data analytics problems and, for example, shows remarkable results for linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
-However, materialized views are not for free. 
-In the Big Data era, new data arrives at an increasingly fast rate, and for frequently changing tables, maintaining the materialized view can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
-The preferred approach to reduce the overhead of updating is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
+However, materialized views face the problem of \emph{staleness} when base tables are updated. 
+A well-studied efficient solution is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
 Instead of re-calculating the whole view for every update, incremental view maintenance reduces the cost by calculating only the incremental changes from one view to the next updated view. 
-Still, for many applications, even incremental maintenance can be too expensive. 
+In the Big Data era, new data arrives at an increasingly fast rate, and for frequently changing tables, even incremental maintenance can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
+%Still, for many applications, even incremental maintenance can be too expensive. 
 %This is particularly true for very fast changing tables and/or complex views. 
 Furthermore, recent database systems are often distributed across machines, further amplifying the challenge. 
 Consequently, it is common to defer the maintenance to a later time \cite{chirkova2011materialized, zhou2007lazy}.
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
-While deferral has compelling benefits, it does not guarantee up-to-date results at any time. 
+While deferral has compelling benefits, it does not guarantee up-to-date results between maintenance periods. 
 
 \begin{figure}[t]
 \centering
@@ -22,13 +22,14 @@ While deferral has compelling benefits, it does not guarantee up-to-date results
  a correction for queries on stale materialized views. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}
 \end{figure}
 
-The problem of \emph{stale} materialized views closely mirrors the problem of dirty data studied in data cleaning \cite{rahm2000data}, and 
-as with dirty data, when materialized view becomes more stale, queries on the view become increasingly inaccurate.
-Numerous data cleaning approaches have been proposed to to efficiently clean data errors and improve the accuracy of query results.
-In this work, we explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem and whether stale query results can be \emph{cleaned}.
-In particular, we take inspiration from one such recent framework, SampleClean, which shows to answer aggregate queries on dirty datasets, it suffices to clean a small, representative sample of dirty records \cite{wang1999sample}.
-This model raises a new possibility for materialized views, namely, that we can approximately answer queries without incurring the cost of full view maintenance.
-However, staleness is different sort of data error, as it not only results in erroneous data but potentially leads to missing data, and this raises interesting new challenges in sampling, cleaning, and efficient query processing.
+As a materialized view becomes more stale, queries on the view become increasingly inaccurate.
+This closely mirrors the problem of dirty data where data errors can reduce the accuracy of query results, and data cleaning has been proposed to mitigate such inaccuracy \cite{rahm2000data}.
+%Numerous data cleaning approaches have been proposed to to efficiently clean data errors and improve the accuracy of query results.
+In this work, we explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem.
+We take inspiration from recent results from the SampleClean data-cleaning framework which show that instead of cleaning the entire dataset,
+it suffices to clean a small dirty records to greatly improve query accuracy \cite{wang1999sample}.
+This data-cleaning perspective raises a new possibility for materialized views, namely, that we can return more accurate results without incurring the cost of full view maintenance.
+However, staleness is different sort of data error that raises interesting new challenges in sampling, cleaning, and efficient query processing.
 
 %Recent results in data cleaning increasingly consider the costs of data cleaning .
 
@@ -57,12 +58,10 @@ However, staleness is different sort of data error, as it not only results in er
 %recent work has also considered the costs of data cleaning \cite{wang1999sample}.
 
 
-We propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{clean} stale aggregation query results.
+We propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{correct} stale aggregation query results.
 While approximate, the corrected query result can be bounded within confidence intervals.
 This framework will be complementary to existing deferred maintenance approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximate results for a far smaller cost than having to maintain the entire view.
-Without SVC, existing work allows the user to control the freshness of queries by changing maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience.
-Without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
-On the other hand, SVC gives results that are fresh and the user controls a bounded approximation error with the sampling ratio.
+SVC gives results that are fresh and the user controls a bounded approximation error with the sampling ratio.
 
 %Sampling gives the user the ability to scale the performance 
 %Existing techniques allow the user to control the freshness of queries by chaning maintenance parameters (e.g. nightly maintenance vs. hourly maintenance) based on prior experience. However, without bounds on the results, a burst of updates can lead to unexpected changes in query accuracy.
@@ -70,7 +69,7 @@ On the other hand, SVC gives results that are fresh and the user controls a boun
 
 %The SampleClean project [?] studied a related problem of bounding aggregate queries on dirty datasets but did not consider materialized views or the effect of missing records.
 
-In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the derived view, and we take a sample of these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
+In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the view, and we sample these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
 Finally, in (3) sampling is known to be sensitive to outliers \cite{chaudhuri2001overcoming}.
 We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample, which can be used to increase correction accuracy.
 
