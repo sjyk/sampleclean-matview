@@ -11,7 +11,7 @@ In the Big Data era, new data arrives at an increasingly fast rate, and for freq
 %Still, for many applications, even incremental maintenance can be too expensive. 
 %This is particularly true for very fast changing tables and/or complex views. 
 Furthermore, recent database systems are often distributed across machines, further amplifying the challenge. 
-Consequently, it is common to defer the maintenance to a later time \cite{chirkova2011materialized, zhou2007lazy}.
+Consequently, it is common to defer the maintenance to a later time \cite{chirkova2011materialized, DBLP:conf/sigmod/ColbyGLMT96}.
 Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
 While deferral has compelling benefits, it does not guarantee up-to-date results between maintenance periods. 
 
@@ -69,7 +69,7 @@ SVC gives results that are fresh and the user controls a bounded approximation e
 
 %The SampleClean project [?] studied a related problem of bounding aggregate queries on dirty datasets but did not consider materialized views or the effect of missing records.
 
-In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the view, and we sample these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to clean the stale query result.
+In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the view, and we sample these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to correct the stale query result.
 Finally, in (3) sampling is known to be sensitive to outliers \cite{chaudhuri2001overcoming}.
 We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample, which can be used to increase correction accuracy.
 
