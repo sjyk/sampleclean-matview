@@ -4,7 +4,7 @@ During the last 30 years, the research community has thoroughly studied the appr
 As data grows, materialized views have become increasingly useful and have been the subject of numerous recent works \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history}.
 More recent work expands the developed techniques to data analytics problems and, for example, shows remarkable results for linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
-However, materialized views face the problem of \emph{staleness} when base tables are updated. 
+However,when base tables are updated, materialized views face the problem of \emph{staleness}. 
 A well-studied efficient solution is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
 Instead of re-calculating the whole view for every update, incremental view maintenance reduces the cost by calculating only the incremental changes from one view to the next updated view. 
 In the Big Data era, new data arrives at an increasingly fast rate, and for frequently changing tables, even incremental maintenance can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
