@@ -114,12 +114,12 @@ We partitioned the aggregation views by group-by key, and joined the delta table
 
 \subsection{Accuracy}
 
-\subsubsection{Update Rate and Accuracy}
+\subsubsection{Update Rate and Accuracy}\label{exp:tpcd-acc}
 For each of the three views listed above, we evaluate the accuracy of our approach.
 We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500K (0.8\% base data) records to a final count of 8M records (13.3\% base data).
 For the 10,000 generated queries on the view, we calculate the mean error as a relative percentage of the true value.
-As a baseline, we compare against SAQP and no maintenance (ie. the stale error).
-In Figure \ref{exp2update}, we show the results of the experiment. 
+As a baseline, we compare against SAQP and no maintenance (i.e., the stale error).
+In Figure \ref{exp2update} (a)(c)(e), we show the results of the experiment. 
 
 For all three views a 5\% sample sufficed to achieve a mean relative error of less than 1\%, even though when 8M records were inserted the staleness was 7\%.
 Furthermore, in comparison to SAQP, the accuracy our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
@@ -145,8 +145,8 @@ We found that for inserted 5M records (8\% base data) on average queries on the 
 However, that some queries were much more stale than others.
 In this experiment, we looked at the distribution of staleness for the aggregation view.
 We used a sampling ratio of 5\% and evaluate the accuracy of our approach. 
-In Figure \ref{exp3dist}, we show a CDF of the staleness and a scatter plot comparing the staleness of the query to the accuracy using our correction method.
-In the right figure, each green point corresponds to a query with the y-axis as SVC estimation error and the x-axis as staleness. 
+In Figure \ref{exp3dist} (a), we show a cumulative distribution function (CDF) of the staleness and a scatter plot comparing the staleness of the query to the accuracy using our correction method.
+In the right figure (Figure \ref{exp3dist} (b)), each black point corresponds to a query with the y-axis as SVC estimation error and the x-axis as staleness. 
 Even though some queries are more than 60\% stale, our corrections reduce the relative error to less than 20\%.
 
 \begin{figure}[ht!]
@@ -162,8 +162,8 @@ Next, outliers can be caused by large updates to the data that are missed by our
 
 \subsection{Efficiency}
 
-\subsubsection{Sampling Efficiency}
-In Figure \ref{exp2update}, we evaluate how sampling can reduce maintenance time.
+\subsubsection{Sampling Efficiency}\label{exp:tpcd-eff}
+In Figure \ref{exp2update} (b)(d)(f), we evaluate how sampling can reduce maintenance time for each ove the views.
 For a batch of updates, we evaluate how long it takes to sample the update patterns as opposed to maintaining the view.
 As a baseline, we compare to full incremental maintenance.
 We find that for the \aggview and \fjview, which are more expensive to maintain, sampling leads to more pronounced savings. 
@@ -172,7 +172,7 @@ However, for the \spview the gains are smaller with a 6.2x speedup.
 There are diminishing returns with smaller sample sizes as overheads start becoming significant. 
 
 \subsubsection{Overhead of Query Correction}
-In Section \ref{correction}, we analyzed the query execution times.
+In Section \ref{subsec-corr-cost}, we analyzed the query execution times.
 We found that while for \spview and \fjview we have a reduced query time in comparison to full incremental maintenance, we can make no such
 guarantee for \aggview.
 In this experiment, we evaluated the query execution time of SVC compared to SAQP, full incremental maintenace (query on the fresh view), and no maintenance (query on the stale view).
@@ -181,9 +181,9 @@ For each of the views, we insert 5M records (8\% of Base Data) and evaluate the 
 For the aggregation view, the insertions were such that 50\% of the insertions updated existing rows and 50\% corresponded to new rows.
 In Figure \ref{exp10overheads}, we show the results of the experiment.
 SAQP, which avoids querying the entire view, is much faster than both, however has as seen in the previous experiments has lower accuracy. 
-For the \aggview, it has a mean error of 6.6\% compared to SVC's 0.8\%.
+For the \aggview, it has a mean error of 6.6\% compared to SVC's 0.8\% (Section \ref{exp:tpcd-acc}).
 We also highlight that the introduced overhead for correction is orders of magnitude less than the maintenance time seen in the previous sections.
-For \aggview, full incremental maintenance requires 106.3 seconds while 5\% SVC only requires 5.5 seconds, and in comparison the correction 0.08 seconds.
+For \aggview, full incremental maintenance requires 106.3 seconds while 5\% SVC only requires 5.5 seconds, and in comparison the correction 0.08 seconds (Section \ref{exp:tpcd-eff}).
 
 \begin{figure}[h]
 \centering
@@ -198,7 +198,7 @@ For example:
 \begin{lstlisting}
 WHERE (condition1)
 WHERE (condition1 || condition2)
-WHERE (condition1 || condition2 || condition 3)
+WHERE (condition1 || condition2 || condition3)
 \end{lstlisting}
 We set the sample size to 5\%, insert 5M records (8\% of Base Data), and measure the maintenance time.
 For the selection view the only cost for maintenance is a scan of the data and evaluating the predicate. 
@@ -213,7 +213,7 @@ However, when the view was small with the l\_shipdate key, the cost savings were
 These experiments emphasize that when views are large and complex, we can have significant improvements.
 \begin{figure}[ht!]
  \includegraphics[trim = 35mm 0mm 35mm 0mm, clip,width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}
- \caption{As the views definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).\label{exp11overheads}}
+ \caption{As the view definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).\label{exp11overheads}}
 \end{figure}
 %This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
 
@@ -230,7 +230,7 @@ We set the outlier index size to the top 500 records in the base table, and look
 We find that for these queries, we can improve the accuracy by a factor of 8.2.
 We further evaluated the overhead of the approach compared to the base SVC time of 1.44s and found that the overhead was only 1\% for an outlier index of size 1000.
 We varied the Zipfian parameter from (0,1,2,3,4), which makes the distribution more skewed, and measured the average improvement in accuracy over all queries.
-We found that as the dataset become more skewed, outlier indexing is increasingly important leading to almost a 6x more accurate estimate for $z=4$.
+We found that as the dataset becomes more skewed, outlier indexing is increasingly important leading to almost a 6x more accurate estimate for $z=4$.
 
 \subsection{Application: Log Analysis For Conviva}
 We used a 1TB dataset of queries given by Conviva to generate three materialized views.
@@ -272,7 +272,7 @@ We present results in terms of relative sizes in comparison to the base table.
 We selected these views to be representative of the dataset and query workload. 
 We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log. 
 We derived each view from a 7GB base table and inserted 1.1GB (15\%) of records to the table. 
-Since the query accuracy is a function of the data distribution and staleness
+Since the query accuracy is a function of the data distribution and staleness.
 In Figure \ref{exp12conviva}, we plot the average staleness of each of the views and mark the three views.
 While queries on LargeView and MediumView are 21\% and 16\% stale respectively, queries on SmallView are 0.5\%.
 For the rest of our experiments, we use SmallView as the counter-example since the results are not affected much by the updates.
@@ -282,7 +282,7 @@ Even so, we still show in subsequent experiments that we can achieve more accura
 We evaluated the average query accuracy for different sample sizes and numbers of records inserted.
 As before, we derived each view from a 7GB base table and inserted 1.4GB (20\%) of records to the table. 
 We built an outlier index on all of the attributes that represent time intervals or rates.
-Figure \ref{exp5conviva}, compares the accuracy to the staleness of the query.
+Figure \ref{exp5conviva} compares the accuracy to the staleness of the query.
 We find that even a $0.1\%$ sample gives significantly more accurate results for LargeView and MediumView.
 Even in the situation where the view is small, sampling can still have benefits as seen in SmallView.
 
