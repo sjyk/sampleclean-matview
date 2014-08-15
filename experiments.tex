@@ -7,7 +7,7 @@ Next, we evaluate how SVC performs as we vary the complexity of the materialized
 Then, we evaluate the outlier indexing approach in terms of improved query accuracy and also evaluate the overhead associated with using the index.
 After evaluation on the benchmark, we present an end-to-end application of log analysis with a dataset from a video streaming company.
 
-\begin{figure*}[ht!]
+\begin{figure*}[ht!]\vspace{-1em}
 \hspace{-5.5em}
  \includegraphics[trim = 10mm 0mm 10mm 0mm, clip, scale=0.19]{exp/exp2-full.eps}\vspace{-1em}
  \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. \label{exp2update} }\vspace{-1em}
@@ -120,7 +120,7 @@ We partitioned the aggregation views by group-by key, and joined the delta table
 For each of the three views listed above, we evaluate the accuracy of our approach.
 We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500K (0.8\% base data) records to a final count of 8M records (13.3\% base data).
 For the 10,000 generated queries on the view, we calculate the mean error as a relative percentage of the true value.
-As a baseline, we compare against SAQP and no maintenance (i.e., the stale error).
+As a baseline, we compare against SAQP with the sample sampling ratio (5\%) and no maintenance (i.e., the stale error).
 In Figure \ref{exp2update} (a)(c)(e), we show the results of the experiment. 
 For all three views a 5\% sample sufficed to achieve a mean relative error of less than 1\%, even though when 8M records were inserted the staleness was 7\%.
 Furthermore, in comparison to SAQP, the accuracy of our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
@@ -165,6 +165,7 @@ Next, outliers can be caused by large updates to the data that are missed by our
 In Figure \ref{exp2update} (b)(d)(f), we evaluate how sampling can reduce maintenance time for each of the views.
 For a batch of updates, we evaluate how long it takes to sample the update patterns as opposed to maintaining the view.
 As a baseline, we compare to full incremental maintenance.
+In this experiment, we exclude SAQP since for the same sampling ratio SAQP and SVC require the same amount of time.
 We find that for the \aggview and \fjview, which are more expensive to maintain, sampling leads to more pronounced savings. 
 For 10\% of data inserted and a 10\% sampling ratio, the maintenance time for \fjview  is 9.35x faster and for \aggview it is 8.4x faster.
 However, for the \spview the gains are smaller with a 6.2x speedup.
@@ -285,10 +286,10 @@ Even in the situation where the view is small, sampling can still have benefits 
  \caption{We compare average query staleness to our approach for a variety of sample sizes. For the larger views, we find that small sample sizes can give accurate results. Larger sample sizes are needed for accurate estimates in SmallView. \label{exp5conviva}}\vspace{-.5em}
 \end{figure}
 
-\begin{figure*}[ht] \vspace{-0.75em}
+\begin{figure*}[ht] \vspace{-1em}
 \hspace{-1em}
 \vspace{-0.75em}
-\includegraphics[scale=0.21]{exp/exp5-efficiency-conviva.eps}
+\includegraphics[scale=0.20]{exp/exp5-efficiency-conviva.eps}
  \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}} \vspace{-1em}
 \end{figure*}
 

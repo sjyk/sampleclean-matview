@@ -10,7 +10,7 @@ The cost analysis of this section ties back to our discussion of incremental mai
 \begin{figure}[tup]
 \centering
 \vspace{-0.75em}
- \hspace*{-2em}\includegraphics[scale=0.4]{figs/update-pattern-new.pdf}\vspace{-1em}
+ \hspace*{-2em}\includegraphics[scale=0.36]{figs/update-pattern-new.pdf}\vspace{-1em}
  \caption{Illustration of the update patterns for \spview and \fjview and \aggview.}\label{fig:update-pattern}\vspace{-1em}
 \end{figure}
 
@@ -102,7 +102,7 @@ From the above analysis, we can see that when the view definitions are more comp
 The update patterns for an \aggview contains the update information for existing groups in the view as well as groups to be inserted. 
 Since, we may have to update existing groups, unlike \spview and \fjview, the first step is to construct a sample of all of the existing groups in the \aggview.
 We can create this sample when the stale materialized view is created.
-To sample the groups, we apply a hash function to the group key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and filter
+To sample the groups, we apply a hash function to the group key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and then we filter:
 \begin{equation}\label{eq:hash}
 \hashfunc{\textrm{``group key"}} \leq \ratio.
 \end{equation}
