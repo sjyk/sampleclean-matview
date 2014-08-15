@@ -29,7 +29,7 @@ SVC gives results that are fresh, with a bounded approximation error that can be
 
 In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. For (1), we define the notion of an ``update pattern", which represents how an update affects the view and we sample based on these patterns. For (2) we use the sample to estimate impact of the updates on the query result and we use this estimate to correct the stale query result.
 Finally, in (3), since sampling is known to be sensitive to outliers (i.e., rows that have abnormal attribute values) \cite{chaudhuri2001overcoming}, we
-utilize a technique called outlier indexing \cite{chaudhuri2001overcoming} to ensure that MV rows that are derived from an ``outlier" records arecontained in the sample.  This technique further increases correction accuracy.
+utilize a technique called outlier indexing \cite{chaudhuri2001overcoming} to ensure that MV rows that are derived from an ``outlier" records are contained in the sample.  This technique further increases correction accuracy.
 
 To summarize, our contributions are as follows:
 \begin{itemize}\vspace{-.45em}
