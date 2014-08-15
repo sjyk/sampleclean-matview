@@ -1,3 +1,4 @@
+\vspace{-0.5em}
 \section{Introduction}
 Materialized views (MVs) are a well-known approach to improving query processing performance \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
 During the last 30 years, the research community has thoroughly studied MVs, and all major database vendors have added support for them.
@@ -13,11 +14,11 @@ Deferral has many advantages such as batching updates together to amortize overh
 
 While deferring maintenance has compelling benefits, it unfortunately, brings its own costs, namely that views become increasingly stale in-between maintenance periods, so that queries on those views can return increasingly incorrect results.  In a sense, stale MVs are dirty data, and queries over them suffer from inaccuracies as a result.   The observation that stale MVs are a type of dirty data leads us to the key insight behind this work, namely, that data cleaning techniques can be used to mitigate the negative impacts of deferred MV maintenance.  
 
-\begin{figure}[t] \vspace{-1.5em}
+\begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.30]{figs/sys-arch.pdf}
+ \includegraphics[scale=0.30]{figs/sys-arch.pdf} \vspace{-.25em}
  \caption{SVC has three main components: (1) sampling, (2) correction, and (3) outlier indexing. From a sample of up-to-date data, we estimate
- a correction for queries on stale MVs. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}\vspace{-1.5em}
+ a correction for queries on stale MVs. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes and arrival rates have lead to development of new, efficient sampling-based approaches coping with dirty data.   In particular, the SampleClean framework has been shown to greatly improve query accuracy while cleaning a small sample of dirty records rather than an entire dirty data set \cite{wang1999sample}.  This data-cleaning perspective raises a new possibility for MVs, namely, that we can return more accurate results without incurring the cost of full view maintenance.   Of course, the metaphor of stale MVs as dirty data only goes so far. Staleness is different sort of data error that raises interesting new challenges in sampling, cleaning, and efficient query processing.
