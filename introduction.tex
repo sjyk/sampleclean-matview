@@ -27,18 +27,17 @@ SVC is complementary to existing deferred maintenance approaches; when the mater
 SVC gives results that are fresh, with a bounded approximation error that can be controlled by adjusting sampling ratio.
 
 
-In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. For (1), we define the notion of an ``update pattern", which represents how an update affects the view and we sample based on these patterns. For (2) we use the sample to estimate impact of the updates on query correctness and we use this estimate to correct the stale query result.
+In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. For (1), we define the notion of an ``update pattern", which represents how an update affects the view and we sample based on these patterns. For (2) we use the sample to estimate impact of the updates on the query result and we use this estimate to correct the stale query result.
 Finally, in (3), since sampling is known to be sensitive to outliers (i.e., rows that have abnormal attribute values) \cite{chaudhuri2001overcoming}, we
 utilize a technique called outlier indexing \cite{chaudhuri2001overcoming} to ensure that MV rows that are derived from an ``outlier" records arecontained in the sample.  This technique further increases correction accuracy.
 
 To summarize, our contributions are as follows:
-
 \begin{itemize}\vspace{-.45em}
 \item We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{-.45em}
 \item We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. \vspace{-.45em}
 \item Using a sample of update patterns, we can correct stale aggregation queries on materialized views with bounded accuracy.\vspace{-.45em}
 \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{-.45em}
-\item We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.\vspace{-.45em}
+\item We evaluate our approach on a single node with a 10GB skewed TPCD benchmark dataset and in a distributed environment with a 1TB log dataset from a video streaming company, Conviva. Our results suggest that sampling is significantly faster than full view maintenance, and also can give highly accurate results for a variety of queries and views.\vspace{-.45em}
 \end{itemize}
 
 The paper is organized as follows: 
