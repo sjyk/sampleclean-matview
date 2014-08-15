@@ -220,6 +220,9 @@ These experiments emphasize that when views are large and complex, we can have s
 
 
 \subsection{Outlier Indexing}
+
+\sloppy
+
 We use a 5\% sample size and 5M records (8\% of Base Data) inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
 We apply the index to the \spview, where we index the attributes l\_extendedprice and l\_quantity.
 The results for the other two views were similar, and in this paper, we only present results for the \spview.
@@ -230,6 +233,8 @@ We find that for these queries, we can improve the accuracy by a factor of 8.2.
 We further evaluated the overhead of the approach compared to the time needed to sample SVC 5\% of 1.44s and found that the overhead was only 1\% for an outlier index of size 1000.
 We varied the Zipfian parameter from (0,1,2,3,4), which makes the distribution more skewed, and measured the average improvement in accuracy over all queries.
 We found that as the dataset becomes more skewed, outlier indexing is increasingly important leading to almost a 6x more accurate estimate for $z=4$.
+
+\fussy
 
 \begin{figure}[ht!]
 \includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp7-outlier.eps}\vspace{-1em}
@@ -251,11 +256,11 @@ Instead, for evaluating accuracy we used a 7GB subset of the logs corresponding 
 However, for the scalability experiments, we use the full 1TB dataset.
 We present results in terms of relative sizes in comparison to the base table.
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-1em}
 \centering
 \vspace{-0.75em}
 \includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}\vspace{-.5em}
- \caption{We chose three views that represented the distribution of all views well in terms of both accuracy. We plot the staleness of each of the 67 views and mark the three views in our experiment.\label{exp12conviva}}
+ \caption{We chose three views that represented the distribution of all views well in terms of both accuracy. We plot the staleness of each of the 67 views and mark the three views in our experiment.\label{exp12conviva}}\vspace{-1em}
 \end{figure}
 
 \subsubsection{Representativeness of the Views}
@@ -275,12 +280,12 @@ Figure \ref{exp5conviva} compares the accuracy to the staleness of the query.
 We find that even a $0.1\%$ sample gives significantly more accurate results for LargeView and MediumView.
 Even in the situation where the view is small, sampling can still have benefits as seen in SmallView.
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-1em}
 \includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp5-coniva-accuracy.eps}\vspace{-.5em}
  \caption{We compare average query staleness to our approach for a variety of sample sizes. For the larger views, we find that small sample sizes can give accurate results. Larger sample sizes are needed for accurate estimates in SmallView. \label{exp5conviva}}\vspace{-.5em}
 \end{figure}
 
-\begin{figure*}[ht] %\vspace{-0.75em}
+\begin{figure*}[ht] \vspace{-0.75em}
 \hspace{-1em}
 \vspace{-0.75em}
 \includegraphics[scale=0.21]{exp/exp5-efficiency-conviva.eps}

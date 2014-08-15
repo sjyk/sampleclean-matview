@@ -48,9 +48,11 @@ By guaranteeing that certain rows are in the index, we
 have to merge two results: one over the outliers and one over the regular records.
 For a given aggregation query, let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
 Let $v_{reg}$ be the query result for the regular records, and $v_{out}$ is the query result for outliers, then:
+
 \[
  v = \frac{N-l}{N}v_{reg} + \frac{l}{N}v_{out}
 \]
+
 We can use this method to improve the accuracy of our correction estimates (Table \ref{tbl:query-correct}), by calculating $\dans$ 
 on the outliers and the regular records separately then averaging them together. 
 %See \cite{chaudhuri2001overcoming} for additional query processing details.
