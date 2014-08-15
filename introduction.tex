@@ -37,7 +37,7 @@ To summarize, our contributions are as follows:
 \item We define the concept of ``update patterns", a logical unit that represents how an update affects a materialized view, and show how to sample the update patterns. \vspace{-.45em}
 \item Using a sample of update patterns, we can correct stale aggregation queries on materialized views with bounded accuracy.\vspace{-.45em}
 \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{-.45em}
-\item We evaluate our approach on a single node with a 10GB skewed TPCD benchmark dataset and in a distributed environment with a 1TB log dataset from a video streaming company, Conviva. Our results suggest that sampling is significantly faster than full view maintenance, and also can give highly accurate results for a variety of queries and views.\vspace{-.45em}
+\item We evaluate our approach on a single node MySQL database with a 10GB skewed TPCD benchmark dataset and in a 20-node Apache Spark cluster with a 1TB log dataset from a video streaming company, Conviva. Our results suggest that sampling is significantly faster than full view maintenance, and also can give highly accurate results for a variety of queries and views.\vspace{-.45em}
 \end{itemize}
 
 The paper is organized as follows: 
