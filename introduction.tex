@@ -1,17 +1,17 @@
 \section{Introduction}
-Materialized views, stored pre-computed query results, are a well-known approach to speed- and scale-up query processing \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
-During the last 30 years, the research community has thoroughly studied the approach, and all major database vendors have added support for them. 
-As data grows, materialized views have become increasingly useful and have been the subject of numerous recent works \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history}.
-This work has further expanded to data analytics problems and, for example, has shown remarkable results for linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
+Materialized views (MVs) are a well-known approach to improving query processing performance \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
+During the last 30 years, the research community has thoroughly studied MVs, and all major database vendors have added support for them.
+In a world of ever-increasing data sizes, MVs are becoming even more important, both for traditional query processing
+ \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history} and for more advanced analytics based on linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
-However, when base tables are updated, materialized views face the problem of \emph{staleness}. 
-A well-studied efficient solution is incremental view maintenance \cite{gupta1995maintenance, chirkova2011materialized}.
-Instead of re-calculating the whole view for every update, incremental view maintenance reduces the cost by calculating only the incremental changes from one view to the next updated view. 
-In the Big Data era, new data arrives at an increasingly fast rate, and for frequently changing tables, even incremental maintenance can be expensive; every update to one of the {\em base} tables requires updating all the dependent views. 
-Furthermore, database systems are more often distributed across machines, further amplifying the challenge. 
-Consequently, it is common to defer the maintenance to a later time \cite{chirkova2011materialized, DBLP:conf/sigmod/ColbyGLMT96}.
-Deferral allows for many advantages such as batching updates together to amortize overheads and scheduling updates at times when there are more system resources available, for example, at night.
-While deferral has compelling benefits, it does not guarantee up-to-date results between maintenance periods. 
+MVs, are effectively stored, pre-computed query results, so when the underlying data is changed, MVs can become \emph{stale}. 
+Incremental view maintenance has been developed to address this problem\cite{gupta1995maintenance, chirkova2011materialized}.
+Instead of re-creating an entire view for every update, incremental view maintenance executes only the incremental changes required to ensure that an MV accurately reflects the current state of the base data.   However, for frequently changing tables even incremental maintenance can be expensive; every update to the underlying data requires updating all the dependent views.  This problem is exacerbated in Big Data environments, where new records arrive at an increasingly fast rate and where data are often 
+distributed across multiple machines.  As a result, in production environments it is
+common to defer view maintenance to a later time \cite{chirkova2011materialized, DBLP:conf/sigmod/ColbyGLMT96}.
+Deferral has many advantages such as batching updates together to amortize overheads and allowing maintenance work to be scheduled for times of low system utilization.   
+
+While deferring maintenance has compelling benefits, it unfortunately, brings its own costs, namely that views become increasingly stale in-between maintenance periods, so that queries on those views can return increasingly incorrect results.  In a sense, stale MVs are dirty data, and queries over them suffer from inaccuracies as a result.   The observation that stale MVs are a type of dirty data leads us to the key insight behind this work, namely, that data cleaning techniques can be used to mitigate the negative impacts of deferred MV maintenance.  
 
 \begin{figure}[t] %\vspace{-1.5em}
 \centering
@@ -20,24 +20,16 @@ While deferral has compelling benefits, it does not guarantee up-to-date results
  a correction for queries on stale materialized views. To make this process robust to outliers, we apply a technique called outlier indexing. \label{sys-arch}}\vspace{-1.5em}
 \end{figure}
 
-As a materialized view becomes more stale, queries on the view become increasingly inaccurate.
-This closely mirrors the problem of dirty data where data errors can reduce the accuracy of query results, and data cleaning has been proposed to mitigate such inaccuracy \cite{rahm2000data}.
-In this work, we explore whether refreshing stale rows in a materialized view can be modeled as a data-cleaning problem.
-We take inspiration from recent results from the SampleClean data-cleaning framework which show that instead of cleaning the entire dataset,
-it suffices to clean a small sample of dirty records to greatly improve query accuracy \cite{wang1999sample}.
-This data-cleaning perspective raises a new possibility for materialized views, namely, that we can return more accurate results without incurring the cost of full view maintenance.
-However, staleness is different sort of data error that raises interesting new challenges in sampling, cleaning, and efficient query processing.
+Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes and arrival rates have lead to development of new, efficient sampling-based approaches coping with dirty data.   In particular, the SampleClean framework has been shown to greatly improve query accuracy while cleaning a small sample of dirty records rather than an entire dirty data set \cite{wang1999sample}.  This data-cleaning perspective raises a new possibility for MVs, namely, that we can return more accurate results without incurring the cost of full view maintenance.   Of course, the metaphor of stale MVs as dirty data only goes so far. Staleness is different sort of data error that raises interesting new challenges in sampling, cleaning, and efficient query processing.
+
+To address these challenges, we propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{correct} stale query results.  While approximate, the corrected query result can be bounded within confidence intervals.
+SVC is complementary to existing deferred maintenance approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximate results for a far smaller cost than having to maintain the entire view.
+SVC gives results that are fresh, with a bounded approximation error that can be controlled by adjusting sampling ratio.
 
 
-We propose Sample-View-Clean (SVC), a framework that uses a \emph{sample} of up-to-date data to \emph{correct} stale aggregation query results.
-While approximate, the corrected query result can be bounded within confidence intervals.
-This framework will be complementary to existing deferred maintenance approaches; when the materialized views are stale between maintenance cycles, we can apply SVC for approximate results for a far smaller cost than having to maintain the entire view.
-SVC gives results that are fresh and the user controls a bounded approximation error with the sampling ratio.
-
-
-In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. In (1), we define an ``update pattern" which represents how an update affects the view, and we sample these patterns. (2)  From the sample, we estimate how much the updates affect the query and we use this estimate to correct the stale query result.
-Finally, in (3) sampling is known to be sensitive to outliers \cite{chaudhuri2001overcoming}.
-We utilize a technique called outlier indexing \cite{chaudhuri2001overcoming}, which guarantees that rows in the materialized view derived from an ``outlier" record (one that has abnormal attribute values) is contained in the sample, which can be used to increase correction accuracy.
+In Figure \ref{sys-arch}, we highlight the three main components of SVC: (1) sampling, (2) correction, and (3) outlier indexing. For (1), we define the notion of an ``update pattern", which represents how an update affects the view and we sample based on these patterns. For (2) we use the sample to estimate impact of the updates on query correctness and we use this estimate to correct the stale query result.
+Finally, in (3), since sampling is known to be sensitive to outliers (i.e., rows that have abnormal attribute values) \cite{chaudhuri2001overcoming}, we
+utilize a technique called outlier indexing \cite{chaudhuri2001overcoming} to ensure that MV rows that are derived from an ``outlier" records arecontained in the sample.  This technique further increases correction accuracy.
 
 To summarize, our contributions are as follows:
 
@@ -49,11 +41,11 @@ To summarize, our contributions are as follows:
 \item We evaluate our approach on real and synthetic datasets in both single-node and distributed environments.\vspace{-.45em}
 \end{itemize}
 
-The paper is organized in the following way. 
-In Section~\ref{sec-background}, we introduce materialized views and discuss the current maintenance challenges.
+The paper is organized as follows: 
+In Section~\ref{sec-background}, we introduce MVs and discuss the current maintenance challenges.
 Next, in Section~\ref{sec-arch}, we give a brief overview of our overall system architecture.
 In Section~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
 In Section~\ref{outlier}, we describe the outlier indexing framework.
 In Section~\ref{sec:ext}, we discuss how our framework extends to Select queries and deletions.
 Then, in Section~\ref{exp}, we evaluate our approach.
-Finally, we end with our Related Work in Section~\ref{related} and our Conclusions and Future Work in Section~\ref{conclusion}.
+Finally, we discuss Related Work in Section~\ref{related} and present our Conclusions and Future Work in Section~\ref{conclusion}.
