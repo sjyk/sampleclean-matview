@@ -113,26 +113,26 @@ Then, between maintenance periods, we can provide approximately up-to-date query
 \subsubsection{Sampling the Update Pattern}
 %Given these materialized views, the first challenge is sampling.
 The three classes of views require different sampling techniques since they are affected by updates differently.
-For example, insertions to the base table only result in insertions to Select-Project views.
-But, for Aggregation Views, insertions to the base table can also result in updates to existing stale rows.
+For example, insertions to the base table only result in insertions to \spview and \fjview.
+But, for \aggview, insertions to the base table can also result in updates to existing stale rows.
 In Section \ref{sampling}, we describe the sampling techniques and a cost analysis of how much sampling can reduce maintenance costs.
 
 \subsubsection{Correcting a Query}
-We can use information from the sample to correct stale query results.
+We can use udpate information from the sample to correct stale query results.
 For the aggregate functions, \sumfunc, \countfunc, and \avgfunc, we calculate a correction
 which is bounded and provably optimal.
 Like the sampling, the algorithm to calculate the correction varies between the types of views.
 We detail query correction in Section \ref{correction}.
 
 \subsubsection{Outlier Indexing}
-We use an outlier index to reduce the sensitivity of our correction estimates to skewed distributions. 
+Furthermore, we use an outlier index to reduce the sensitivity of our correction estimates to skewed distributions. 
 We guarantee that records (or rows in the view derived from those records) 
 in the outlier index are also included in the sample.
 This can be used to reduce variance in our estimates.
 See Section \ref{outlier} for details on this component.
 
 \subsubsection{Example Application: Log Analysis}
-To illustrate our approach, we use the following running example which is a 
+To illustrate our system, we use the following running example which is a 
 simplified schema of one of our experimental datasets (Figure~\ref{example-1}).
 Imagine, we are querying logs from a video streaming company. 
 These logs record visits from users as they happen and grow over time.

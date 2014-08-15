@@ -5,7 +5,7 @@ In this section, we discuss how to correct stale query results using sample upda
 
 
 \subsection{\Cqp}\label{subsec:correct-principle}
-Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. 
+Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. We apply our corrections to aggregate queries of the following form: ``SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View WHERE Condition(A);".
 %For ease of presentation, we assume the query does not have a group-by clause.
 %But our methods can be easily extended to a group-by query by treating each group key as an additional condition of the query. 
 
@@ -53,7 +53,7 @@ To correct a \sumfunc query result, we have to scale the delta query result acco
 
 To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
 
-To correct an \avgfunc query result, we can treat it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ rows\footnote{\small $\ans_{cnt}$ denotes the number of rows that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\ans_{avg}$ represents the average value of $\dans_{cnt}$ rows. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
+To correct an \avgfunc query result, we can treat it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ rows\footnote{\small $\ans_{cnt}$ denotes the number of rows that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\dans_{avg}$ represents the average value of $\dans_{cnt}$ rows. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
 
 
 \begin{table}[t]\renewcommand{\arraystretch}{1.5}\vspace{-0.5em}

@@ -1,7 +1,7 @@
 \section{Outlier Indexing}\label{outlier}
 Sampling update patterns may be sensitive to power-laws and other long-tailed distributions which are common in large datasets\cite{clauset2009power}.
 Sampling may also hide any outliers, records with abnormally large or small attribute values.
-Since oultiers may occur very rarely, they are unlikely to be represented in a small sample. 
+Since outliers may occur very rarely, they are unlikely to be represented in a small sample. 
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records and ensure that these records are included in the sample.
 
@@ -33,7 +33,7 @@ As before, these records are marked with a flag denoting they are outliers.
 We check the outlier index prior to sampling to ensure that rows added due to the outlier index are not double counted from the sample.
 The flags ensure that we always know which records were sampled and which come from the outlier index.
 
-Outlier indexing adds additional overhead since for \spview and \fjview it adds the overhead of a hash table lookup for each record, and for Aggregation views it further requires a single initial scan of the entire index. 
+Outlier indexing adds additional overhead since for \spview and \fjview it adds the overhead of a hash table lookup for each record, and for \aggview it further requires a single initial scan of the entire outlier index. 
 However, we envision that in most datasets the outlier index will be very small making this overhead negligible.
 In our experiments, we show that even a very small outlier index (less than .01\% of records) is sufficient to greatly improve the accuracy of
 correction estimates.
@@ -46,11 +46,11 @@ To query the outlier rows, we can select all of the rows in the materialized vie
 We can also incorporate the outliers into our correction estimates.  
 By guaranteeing that certain rows are in the index, we
 have to merge two results: one over the outliers and one over the regular records.
-For a given aggregation query, let $N$ be the count of records that satisfy condition and $l$ be the number of outliers that satisfy the condition.
+For a given aggregation query, let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
 Let $v_{reg}$ be the query result for the regular records, and $v_{out}$ is the query result for outliers, then:
 \[
  v = \frac{N-l}{N}v_{reg} + \frac{l}{N}v_{out}
 \]
-We can use this method improve the accuracy of our correction estimates, by calculating $\dans$ 
+We can use this method to improve the accuracy of our correction estimates (Table \ref{tbl:query-correct}), by calculating $\dans$ 
 on the outliers and the regular records separately then averaging them together. 
 %See \cite{chaudhuri2001overcoming} for additional query processing details.

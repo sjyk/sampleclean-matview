@@ -49,12 +49,12 @@ For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. 
 
 \vspace{0.5em}
 
-{\noindent \bf \fjview :} Similar to \spview, its update patterns only involve insertion. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new rows that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
+{\noindent \bf \fjview :} Similar to \spview, its update patterns only involve insertions. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new rows that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
 
 \vspace{0.5em}
 
-{\noindent \bf \aggview :} The updates could be inserting a new group, updating the aggregation attribute values of an existing group, or keep the view unchanged. 
-For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview and Figure~\ref{fig:update-pattern}(c-2) illustrates the update patterns for the \aggview. In the figure, ``Insert $r_1$" indicates that the group-by key, ``videoId = 5", does not exist in the original view, and we need to insert this new group into the view; ``Update $r_2$" indicates that the group-by key, ``videoId = 1", is already in the original view, and we should update the aggregation attribute value (i.e., \field{maxResponseTime}) of the group from 1298 ms to 6298 ms; ``Keep $r_3$" indicates that the group-by key, ``videoId = 65", is already in the original  view, and we do not need to change the aggregation attribute value of the group.    
+{\noindent \bf \aggview :} For \aggview, the updates could be inserting a new group, updating the aggregation attribute values of an existing group, or keep the view unchanged. 
+For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview and Figure~\ref{fig:update-pattern}(c-2) illustrates the update patterns for the \aggview. In the figure, ``Insert $r_1$" indicates that the group key, ``videoId = 5", does not exist in the original view, and we need to insert this new group into the view; ``Update $r_2$" indicates that the group key, ``videoId = 1", is already in the original view, and we should update the aggregation attribute value (i.e., \field{maxResponseTime}) of the group from 1298 ms to 6298 ms; ``Keep $r_3$" indicates that the group key, ``videoId = 65", is already in the original  view, and we do not need to change the aggregation attribute value of the group.    
 
 
 
@@ -89,7 +89,7 @@ For a given \fjview, let $T$ be the base table, and $T_1, T_2, \cdots, T_k$ be b
 \vspace{-.5em}
 
 \begin{itemize} %[leftmargin=5.5mm]
-\item \underline{Delta View.} For \spview and \fjview, incremental view maintenance has the processing cost of $\cost_{pred}(n)$ and $\cost_{join}(n)$, respectively, since they have to evaluate the predicate or the join for all $n$ inserted records. For SVC, there is first a cost to sample $\ratio \cdot n$ records $\cost_{rand}(n)$. Then sampling reduce the predicate and join evaluations by a factor of $\ratio$ as we only need to evaluate them on our sample.  \vspace{-0.5em}
+\item \underline{Delta View.} For \spview and \fjview, incremental view maintenance has the processing cost of $\cost_{pred}(n)$ and $\cost_{join}(n)$, respectively, since they have to evaluate the predicate or the join for all $n$ inserted records. For SVC, there is first a cost to sample $\ratio \cdot n$ records $\cost_{rand}(n)$. Then sampling reduces the predicate and join evaluations by a factor of $\ratio$ as we only need to evaluate them on our sample.  \vspace{-0.5em}
 \item \underline{Refresh.} For \spview and \fjview, incremental view maintenance has to insert $\delta_v$ rows into the original view while we have to insert only $\ratio \cdot \delta_v$ records into the sample of update patterns. %\reminder{Move this to ourlier indexing section? ``If there is an outlier index, this cost increases to $\ratio\delta_v + l$"} 
 \end{itemize}
 \vspace{-.5em}
@@ -100,16 +100,16 @@ From the above analysis, we can see that when the view definitions are more comp
 
 \subsubsection{Aggregation View}
 The update patterns for an \aggview contains the update information for existing groups in the view as well as groups to be inserted. 
-Since, we may have to update existing groups, unlike \spview and \fjview, the first step is to construct a sample of all of the existing group keys in the \aggview.
+Since, we may have to update existing groups, unlike \spview and \fjview, the first step is to construct a sample of all of the existing groups in the \aggview.
 We can create this sample when the stale materialized view is created.
-To sample the group keys, we apply a hash function to the key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and filter
+To sample the groups, we apply a hash function to the group key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and filter
 \begin{equation}\label{eq:hash}
 \hashfunc{\textrm{``group key"}} \leq \ratio.
 \end{equation}
-Thus, if the hash function is uniform the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$
+Thus, if the hash function is uniform the maintained groups are a random sample of all the groups with the sampling ratio of~$\ratio$
 
-Once, we have a random sample of the existing keys, we can use this sample to construct a sample of the update patterns.
-When records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those group keys that satisfy the condition on the hash above (i.e $\le \ratio$). This ensures that if a key is already in the sample, our delta \emph{sample} \aggview contains this key.
+Once, we have a random sample of the existing groups, we can use this sample to construct a sample of the update patterns.
+When records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those groups that satisfy the condition on the hash above (i.e $\le \ratio$). This ensures that if a group is already in the sample, our delta \emph{sample} \aggview contains this key.
 For keys that are not already in the sample, the hash condition filters them to select a random sample of them with the sampling ratio of~$\ratio$.
 This process ensures that a group is either fully represented in the sample or not at all, thus its aggregate is an exact result.
 
@@ -138,7 +138,7 @@ This process ensures that a group is either fully represented in the sample or n
 %Furthermore, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group-by key. \vspace{-0.5em}
 \item \underline{Refresh.} 
 %Compared to \spview and \fjview, the refresh cost of \aggview is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
-In full incremental view maintenance, $\delta_v$ rows have to be updated or inserted while our sampling approach only processes $\ratio \cdot \delta_v$ rows. 
+In full incremental view maintenance, $\delta_v$ rows have to be applied (updated or inserted) while our sampling approach only processes $\ratio \cdot \delta_v$ rows. 
 To avoid scanning the view for each update, if the view is indexed by group key, we can determine which updates are new insertions and which correspond to existing ones in constant time. 
 Therefore, our sampling technique can reduce the refresh cost from $\cost_{apply}(\delta_v)$ to $\cost_{apply}(\ratio\cdot \delta_v)$.
 

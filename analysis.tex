@@ -39,7 +39,7 @@ To model \delete operations, we can extend our approach to also maintain a ``del
 %With respect to the deletion table, we can define similar update patterns.
 For \fjview and \spview, deletions only result in rows to remove an analog to before when we have rows to insert.
 We can define the update pattern in the same way but modify our correction technique to subtract rather than add.
-Thus, we replace all of the additions in first column of Table \ref{tbl:query-correct} with subtractions  (e.g., $\ans_{sum}-\dans_{sum}/\ratio$).
+Thus, we replace all of the additions in the first column of Table \ref{tbl:query-correct} with subtractions  (e.g., $\ans_{sum}-\dans_{sum}/\ratio$).
 For \aggview, the formulas presented in Table \ref{tbl:query-correct} apply without modifications.
 This is because the update patterns for \aggview include the updated value of the records.
 By supporting \delete, we can support \update operations to the base table as well since an \update can be modeled as an \insertion and then a \delete.
