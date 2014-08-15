@@ -154,6 +154,9 @@ record must link to one video in the Video table.
 \end{figure}
 
 Consider the following example materialized view \aggview, which stores a result for each video and the maximum time it took for the server to load that video:
+
+\vspace{0.5em}
+
 \begin{lstlisting} 
 SELECT videoId, 
 max(responseTime) AS maxResponseTime 

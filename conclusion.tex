@@ -2,9 +2,9 @@
 \section{Related Work}\label{related}
 \vspace{-.25em}
 Addressing the cost of materialized view maintenance is the subject of many recent works with
-focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transaction~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
+focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transactions~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
-The steaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting, KrishnamurthyFDFGLT10}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
+The streaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting, KrishnamurthyFDFGLT10}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
 
 
 Sampling has been well studied in the context of query processing~\cite{AgarwalMPMMS13, olken1993random, garofalakis2001approximate}. Particularly, a similar idea of sampling from updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}. But none of these works studied how to sample update patterns w.r.t materialized views and how to use the sample update patterns to correct stale query results.
@@ -19,13 +19,13 @@ These techniques mirror what we called SAQP in our evaluation.
 %Their focus, however, was not addressing incremental maintenance costs but rather operations on materialized views.
 %They proposed a tree-like data structure that could support queries on multiple materialized views and operations on these views.
 Gibbons et al. studied the maintenance of approximate histograms~\cite{gibbons1997fast}, which closely resemble aggregation materialized views.
-They, however, did not consider queries on these histograms but took a holistic approach to analyze the error on the entire histogram.
-We contrast our approach from those proposed since we do not estimate our query results directly from a sample.
+They, however, did not consider queries on these histograms, but rather, they took a holistic approach to analyzing the error over the entire histogram.
+Our approach differs from this work in that we do not estimate query results directly from a sample. Instead, we use samples to learn how updates affect the query results and then compensate for those differences. 
 We use the sample to learn how the updates affect the query results and then compensate for those changes.
 Our experiments suggest that our approach is more accurate than SAQP when updates are sparse and the maintenance batch is small compared to the base data.
 
-There are a variety of other works proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which are similar to materialized views. Furthermore, there is a close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
-Srinivasan and Carey studied related problem to query correction which they called compensation-based query processing \cite{srinivasanC92}.
+There are a variety of other efforts proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which are similar to materialized views. Furthermore, there is a close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
+Srinivasan and Carey studied a problem related to query correction which they called compensation-based query processing \cite{srinivasanC92}.
 This work was applied in the context of concurrency control and did not consider sampling or materialization.
 
 %\vspace{-.5em}
@@ -41,7 +41,7 @@ with orders of magnitude less cost than full incremental maintenance.
 Our results are promising and suggest many avenues for future work.
 In particular, we are interested in deeper exploration of the multiple view setting.
 Here, given a storage constraint and throughput demands, we can optimize sampling ratios over all views.
-We are also interested in the possiblity of sharing computation between materialized views and maintenance on views derived from other views.
+We are also interested in the possibility of sharing computation between materialized views and maintenance on views derived from other views.
 This work also has applications in machine learning.
 We believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied
 to build fast, approximate streaming machine learning applications.
