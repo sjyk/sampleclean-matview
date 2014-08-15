@@ -84,7 +84,7 @@
 %\newcommand{\reminder}[1] {}
 \pagestyle{plain}
 
-\title{Sample-View-Clean: A Data Cleaning Approach for Fresh Query Answers from Stale Materialized Views}
+\title{Sample-View-Clean: A Data Cleaning Approach for\\Fresh Query Answers from Stale Materialized Views}
 
 \maketitle
 \iffalse
@@ -105,8 +105,8 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 
 \begin{abstract}
 Materialized views, stored pre-computed query results, are widely used to facilitate fast queries on large datasets. 
-In the Big Data era when new data arrives at an increasingly fast rate, updating materialized views can be costly.
-Stale views can lead to inaccurate query results.
+In the Big Data era when new data arrives at an increasingly fast rate, maintaining materialized views can be costly.
+Due to this cost maintenance is often deferred to a later time, however stale views can lead to inaccurate query results.
 In \emph{Sample-View-Clean}, we address this problem from a data cleaning perspective and model staleness as a type of data error.
 We take inspiration from recent data cleaning results that greatly improve query accuracy by cleaning a only sample of dirty data.
 To complement existing deferred maintenance approaches, we use a sample of up-to-date data to improve accuracy between updates without the cost of full maintenance. 
