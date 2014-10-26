@@ -4,7 +4,8 @@
 \reminder{this is new}
 Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
 We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
-We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$. 
+We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
+In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
 An update to a relation can be modeled as a deletion and then an insertion.
 In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 

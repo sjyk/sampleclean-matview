@@ -84,26 +84,28 @@ record must link to one video in the Video table.
  \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.\label{example-1}}
 \end{figure}
 
-Consider the following example materialized view, which stores a result for each video and the maximum time it took for the server to load that video:
+Consider the following example materialized view, which finds a count of the number of times the video's loading latency was greater than 10\% of the duration of the view:
 
 \vspace{0.5em}
 
 \begin{lstlisting} 
 SELECT videoId, 
-max(responseTime) AS maxResponseTime 
-FROM Log 
+count(1) AS slowResponseTimes 
+FROM Log, Video
+WHERE Log.videoID = Video.videoID and
+	  responseTime > .1*Video.duration
 GROUP BY videoId;
 \end{lstlisting}
 
-The user wants to know how many videos had a max response time of greater than 100ms.
+The user wants to know how many videos repeatedly have slow responses.
 \begin{lstlisting} 
 SELECT COUNT(1)
 FROM AggView
-WHERE maxResponseTime > 100;
+WHERE slowResponseTimes > 100;
 \end{lstlisting}
 Let us suppose the initial query result is $45$.
 There now have been new log records inserted into the Log table making the old result stale.
-For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct videoID's) we refresh stale maxResponseTime if necessary.
-From this sample, we calculate how many new videos changed from a maxResponseTime of less than 100ms to times greater than 100ms; let us suppose this answer is $2$.
+For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct videoID's) we refresh stale slowResponseTimes if necessary.
+From this sample, we calculate how many new videos changed from a slowResponseTimes of less than 100ms to times greater than 100ms; let us suppose this answer is $2$.
 Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
 This means that we should correct the old result by $40$ resulting in the estimate of $85$.

@@ -1,7 +1,35 @@
 
-\section{Correcting Stale Query Results}
+\section{Correction Plan}
 \label{correction}
-In this section, we discuss how to correct stale query results using sample update patterns. We first present our correction query processing in Section~\ref{subsec:correct-principle} and analyze the costs in Section~\ref{subsec-corr-cost}. Then, we discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
+In the previous section, we discussed how to add the hashing operator to a maintenance plan $\mathcal{M}$ and optimize its execution.
+The result of this execution is an up-to-date sampled materialized view $\hat{S'} \subset S'$.
+In this section, we discuss how to correct stale query results using $\hat{S'}$. 
+We first present our correction query processing in Section~\ref{subsec:correct-principle} and analyze the costs in Section~\ref{subsec-corr-cost}. Then, we discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
+
+\subsection{General Case: Aggregate Queries}
+Suppose, we have an aggregate query $q$ and we apply the query to the stale view $S$.
+Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
+The query result is stale by a factor of $c$ if:
+\[ c = q(S') - q(S)\] 
+\begin{lemma}
+If there exists an unbiased sample estimator for q then there exists an unbiased sample estimator for c.
+\end{lemma}
+
+\emph{Proof.} Suppose, we have an unbiased sample estimator $\bar{q}$ of $q$. 
+Then, it follows that \[\mathbb{E}(\bar{q}(\hat{S'})) = q(S')\]
+If we substitute in this expression:
+\[ c = \mathbb{E}(\bar{q}(\hat{S'})) -q(s) \] 
+Applying the linearity of expectation:
+\[ c = \mathbb{E}(\bar{q}(\hat{S'}) - q(s)) \blacksquare \]
+
+\subsubsection{Mean-like Aggregates}
+
+\subsubsection{Biased Aggregates}
+
+\begin{corollary}
+If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
+\end{corollary}
+
 
 
 \subsection{\Cqp}\label{subsec:correct-principle}
