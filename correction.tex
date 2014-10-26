@@ -1,5 +1,44 @@
-\section{Sampling Update Patterns}
+\section{Sampling a Maintenance Plan}
 \label{sampling}
+In this section, we discuss how to efficiently execute sampled maintenance plan $\eta(\mathcal{M})$ and under what conditions the time-complexity of executing $\eta(\mathcal{M})$ is less than that of executing $\mathcal{M}$.
+The intuition is straight-forward, if we sample the maintenance plan and we have some way of keep track of which tuples are in our sample, we only have to do as much work as neccessary to maintain those tuples. 
+However, this is not nuance as it requires us to formalize the notion of tuple ``lineage".
+
+\subsection{Tuple Lineage}
+Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
+In our case, when we sample a maintenance plan, we need a way of identifying all the intermediate results that affect a sampled tuple.
+
+\begin{definition}
+(LINEAGE CONDITION). All views $S$ and maintenance plans $\mathcal{M}$ must satisfy the lineage condition which is defined inductively on a query tree:
+\begin{itemize}\vspace{-.45em}
+\item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key.\vspace{-.45em}
+\item $\sigma_{\phi}(R)$: Always preserves lineage of R \vspace{-.45em}
+\item $\Pi_{p,\[a_2,...,a_k\]}(R)$: Preserves lineage of R if it includes $p$ \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$.
+\item $\gamma_{e}(R)$: Resets lineage. The primary key of the result is the group by expression $e(R)$.\vspace{-.45em}
+\item $R_1 \dot{\cup} R_2$: Always preserves lineage
+\item $R_1 \dot{\cap} R_2$: Always preserves lineage 
+\item $R_1 \dot{-} R_2$: Always preserves lineage 
+\end{itemize}
+\end{definition}
+
+The above definition is also constructive; that is, if a view or a maintainance plan does not satisfy the Lineage Condition we can modify the plan so that it does.
+We modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the query tree.
+
+\subsection{Hashing Operator}
+Now, we analyze the sampling operator $\eta_{a, m}(R)$. 
+The sampling applies a hash function to the attribute a $h:\mathbb{A} \mapsto \[0,1\]$.
+If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
+This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $\[0,1\]$.
+We apply the sampling operator to the top of the maintenance plan query tree.
+Since the maintenance plan satisfies the Lineage Condition, we can apply it the primary key of the maintenance plan's query tree.
+
+For reasons that will be clear in the subsequent sub-sections, hashing as opposed to random sampling allows us to push down the operator through some types of joins and aggregates. 
+It enforces that tuples in the result relation are either correct (fully joined or aggregated) or missing altogether.
+
+\subsection{Pushdown Of The Hashing Operator}
+To achieve the performance benefits of sampling, we can now push down the sampling operator through the query tree.
+
 Updates can affect the three classes of materialized views in different ways, making sampling challenging. 
 %and our sample should represent how the update will affect the materialized view.
 %We describe this process as sampling the ``update pattern".

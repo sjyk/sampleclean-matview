@@ -1,38 +1,50 @@
-\section{Background}\label{sec-background}
+\section{Background and Definitions}\label{sec-background}
 \vspace{-.5em}
-\subsection{Incremental Maintenance}\label{subsec-inc}
-Incremental maintenance of materialized views is well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
-Most incremental maintenance algorithms consists of two steps: calculating a ``delta" view,
-and ``refreshing" the materialized view with the delta.
-More formally, given a base table $T$, a set of updates $U$,
-and a view $\textbf{V}_{T}$.
-For the ``delta view" step, we apply the view definition to the updates $U$ and we call
-the intermediate result a ``delta'' view $\Delta\textbf{V}$.
-For the refresh step, given the ``delta'' view, we merge the results with the existing
-view $\textbf{V}_{T}^{'}=refresh(\textbf{V}_{T},\Delta\textbf{V})$.
-The details of the refresh operation depend on the view definition
-(See \cite{chirkova2011materialized}).
+\subsection{Notation}
+\reminder{this is new}
+Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
+We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
+We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$. 
+An update to a relation can be modeled as a deletion and then an insertion.
+In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 
-%Remove this to save some space
-%This is also called a \emph{change propagation formula} in some literature, 
-%especially on algebraic representations of incremental view maintenance.\reminder{refs?}
+We look at relation expressions for the view $S_{def}$ composed of the following operators:
+\begin{itemize}\vspace{-.45em}
+\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satify the restriction $\phi (r)$ \vspace{-.45em}
+\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
+\item $\gamma_{e}(R)$: Aggregation of R grouped by the relational expression $e(R)$.\vspace{-.45em}
+\item $R_1 \dot{\cup} R_2$: Multiset union take a union of the two sets incrementing multiplicities.
+\item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
+\item $R_1 \dot{-} R_2$: Multiset set difference.
+\end{itemize}
+We add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash mod} operator.
+For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
+We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
+Finally, we use the \emph{query tree} representation to analyze $S_{def}$ where we unravel composed relational operators into a tree of expressions.
+Each leaf of the tree is a relation and each node is an operator.
 
-%In this work, we address three types of materialized views: Select-Project, Aggregation, and
-%Foreign-Key Join views; and four common aggregation queries on these
-%views: SUM, COUNT, AVG, and VAR. We further analyze 
-%only insertions into the database and defer analysis of updates
-%and deletions for future work.
+\subsection{Algebraic View of Incremental Maintenance}\label{subsec-inc}
+Incremental maintenance of materialized views in multiset algebras has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
+At a high-level, almost all incremental maintenance algorithms consist of the following steps: for each leaf (relation) of the query tree of $S_{def}$ propagate $\Delta$ and $\nabla$ up the tree using composibility rules of delta relations, derive a \emph{change propagation formula} for $S$ in terms of deltas of subexpressions, and join this formula with the view to apply the changes.
+These rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
 
-\subsection{Maintenance Strategies}
-There are two principal incremental maintenance strategies: immediate and deferred. 
-In immediate maintenance, as soon as the base table is updated, 
-any derived materialized view is also updated.
-Immediate maintenance has an advantage that queries on the materialized view are always up-to-date, 
-however it can be very expensive.
-This scheduling strategy places a bottleneck on updates to the base table.
-Furthermore, especially in a distributed setting, record-by-record 
-maintenance cannot take advantage of the benefits of consolidating communication overheads by batching.
+However, even for the set of operators defined in the earlier section, there are some views for which full incremental maintenance is not possible and subexpressions have to recomputed. Consider the relation R(employeeid,country,salary) and view $S$ that calculates the \maxfunc salary of employees grouped by country. Under only insertions $\Delta R$, it is clear that the view can be maintained incrementally. 
+However, if we allow deletions $\nabla R$ then it is unclear how to update a view if an employee with a maximal salary is deleted since we do not know the salary of the next highest employee. 
 
+In cases like this, some recomputation is inevitable.
+However, it turns out that SVC is general enough to handle both views that can be fully incrementally maintained and views that require partial or full recomputation.
+In short, we say there is a \emph{maintenance strategy} $\mathcal{M}$ which is a relational expression that is a function of the database $\mathcal{D}$ and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ that updates the view.
+SVC takes the query tree of $\mathcal{M}$ as input and outputs a sampling plan and a query correction plan (Section ??).
+
+\subsection{A Practical View of Incremental Maintenance}
+The algebraic analysis of incremental maintenance informs us which views can be incrementally maintained.
+However, there are many practical considerations of excuting these operations in real database systems and it may not always be feasible to immediately apply updates.
+For example, in distributed systems record-at-a-time maintenance may be excessively affected by overheads and batching updates together can allows for amortization.
+In other systems, such as Apache Spark, the immutability of data structures means that updates can sometimes incur overheads on the order of magnitude of recomputation (see experiments ??).
+Finally, immediate scheduling of maintenance can place a bottleneck on updates to the base table which may result in degraded performance or worse having to drop updates to cope with load.
+
+The main problem is that while immediate incremental maintenance has many advantages, the particulars of the database system and available resources often dictate how updates are propagated.
 To address these challenges, deferred maintenance is an alternative solution.
 The main insight of deferral is to avoid maintaining the view immediately and to schedule an update at a more convenient time either in a pre-set way or adaptively.
 In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
@@ -41,36 +53,20 @@ However, this also means that during the day the materialized view becomes incre
 
 These costs can also be deferred to query execution time.
 In particular, we highlight a technique called lazy maintenance which applies updates to the view only when a user's query requires a row \cite{zhou2007lazy}.
-Both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates making these approaches impractical.
+While always fresh, both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates, and this results increasingly degraded performance if a user wants to query a view.
+The alternative is potentially unbounded staleness between maintenance cycles with deferred maintenance.
+SVC addresses this problem from a new perspective, namely, can we accept some degree of bounded inaccuracy for increased performance.
 
+\subsection{SampleClean: Bounded Queries on Dirty Data}
+In our prior work on the SampleClean project, we proposed a framework for scalable data cleaning.
+One of the algorithms in SampleClean, NormalizedSC, was focused on correcting aggregate query results on dirty data.
+Takes a random sample of dirty records, applies a data cleaning operation, and based on the changes learns how to correct a query applied to the dirty data.
+A key property of this algorithm was even under arbitrary data error that the corrected query result was unbiased and bounded in confidence intervals.
 
-%While it ensures that query results are never stale, lazy maintenance potentially shifts much of the computational cost to query execution time.
-
-%It is during this period of staleness we see an opportunity to apply our approach.
-%Sampling gives the user an additional parameter that allows them to scale the maintenance cost to meet system resource constraints.
-%Instead of stale query results during the day, the user can maintain as much their system allows them to do so, and for aggregation queries
-%get results that are approximately up-to-date.
-%This process is reset during the normal view maintenance cycle.
-
-
-
-%Immediate maintenance introduces a bottleneck on updates to the base table and lazy maintenance introduces a bottleneck during query execution,
-%and rapid updates can make these approaches impractical.
-%As a consequence, periodic maintenance or recalculation is often the most feasible solution.
-
-\subsection{Data Cleaning}
-Much of data cleaning research focuses on improving query accuracy on dirty datasets.
-For example, designing rules or algorithms to remove or correct erroneous records \cite{rahm2000data}.
-Recent work has begun to consider the costs of data cleaning as well as how to budget data cleaning effort.
-%The Data Wrangler project argues that rules to correct the entire dataset can be learned from a small set of training examples \cite{kandel2011wrangler}.
-The SampleClean project framework cleans a sample of data, and then bounds the results of aggregate queries on dirty datasets with respect to the clean data \cite{wang1999sample}.
-
-One of the algorithms in SampleClean, takes a random sample of dirty records, applies data cleaning, and learns how to correct a query applied to the dirty data.
-Instead of modeling data error on the base table, SampleClean considers how dirtiness affects queries on the data.
 In SVC, we look at queries on stale materialized views from this perspective.
-As materialized views are different problem setting, there are new challenges such as sampling from changing base tables, correction queries on a view, and considering the effects of outliers.
+If we model a stale row in a view as dirty data and an up-to-date sample as clean data, we can apply a similar correction to acheive an unbiased result.
+However, this application introduces many new contributions not considered in SampleClean: (1) we consider the effect of missing rows, (2) we generalize our sample procedure to sample from derived relations not just the base relation as in SampleClean, (3) we explicitly consider the effects of outliers on sampling, (4) we extend the work to handle \textbf{SELECT} queries, and (5) we explore optimality of NormalizedSC.
 
-\subsection{SAQP}
 Estimating the results of aggregate queries from samples has been
 well studied in a field called Sample-based Approximate Query Processing
 (SAQP) \cite{OlkenR86,AgarwalMPMMS13}.
@@ -80,5 +76,6 @@ estimate the result directly from the maintained sample \cite{joshi2008materiali
 We found that estimating
 a correction and leveraging an existing deterministic result led
 to lower variance results on real datasets (see Section \ref{exp}). 
+
 
 

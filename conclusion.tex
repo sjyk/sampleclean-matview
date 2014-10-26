@@ -1,7 +1,7 @@
 \vspace{-.75em}
 \section{Related Work}\label{related}
 \vspace{-.25em}
-Addressing the cost of materialized view maintenance is the subject of many recent works, which
+Addressing the cost of materialized view maintenance is the subject of many recent papers, which
 focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transactions~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
 The streaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting, KrishnamurthyFDFGLT10}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
@@ -30,7 +30,7 @@ This work was applied in the context of concurrency control and did not consider
 
 \vspace{-1em}
 \section{Conclusion and Future Work}\label{conclusion}
-\vspace{-.5em}
+\vspace{-.3em}
 In this paper, we propose a new approach to the staleness problem in materialized views.
 We demonstrate how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
 allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. 
