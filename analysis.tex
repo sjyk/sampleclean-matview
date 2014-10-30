@@ -43,7 +43,15 @@ This is a tradeoff that is an interesting avenue for future work.
 
 \subsection{Multi-View Setting}
 In a production environment, the database system might have many materialized views. 
-SVC gives the database administrator an additional degree of freedom to adjust throughput, storage, and accuracy.
+With the sampling ratio, SVC gives the database administrator an additional degree of freedom to adjust throughput, storage, and accuracy.
+The sampling ratio of each view can be adpatively adjusted to suit the workload.
+
+We can pose minimizing the expected estimation error as a Geometric Convex Program.
+In one time period, if view $i$ has a expected cardinality of $N_i$, an average query variance of $\alpha_i$, a sampling ratio of $m_i$, there is a total space budget of $B$, the cost for update is $C_i$ secs/Record and throughput demand of $D$ latency:
+\[\arg \min_{m_i} \sum_i \frac{\alpha_i}{m_i \cdot N_i}\]
+\[\text{subject to:} \sum_i m_i \cdot N_i \le B \]
+\[\sum_i m_i\cdot N_i \cdot C_i \le D \]
+
 
 
 
