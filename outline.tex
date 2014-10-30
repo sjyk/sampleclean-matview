@@ -88,6 +88,12 @@
 \newcommand{\specialcell}[2][c]{%
   \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
 
+\def\ojoin{\setbox0=\hbox{$\bowtie$}%
+  \rule[-.02ex]{.25em}{.4pt}\llap{\rule[\ht0]{.25em}{.4pt}}}
+\def\leftouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie}}
+\def\rightouterjoin{\mathbin{\bowtie\mkern-5.8mu\ojoin}}
+\def\fullouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie\mkern-5.8mu\ojoin}}
+
 %\newcommand{\reminder}[1] {}
 \pagestyle{plain}
 
@@ -130,8 +136,9 @@ We evaluate our method on real and synthetic datasets and results suggest that w
 \input{problem_statement.tex}
 \input{architecture.tex}
 \input{correction.tex}
-\input{delta.tex}
+%\input{delta.tex}
 \input{sampling.tex}
+\input{correction2.tex}
 \input{outlier.tex}
 \input{analysis.tex}
 \input{experiments.tex}

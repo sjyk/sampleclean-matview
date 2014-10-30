@@ -7,11 +7,18 @@ Let $S$ be a materialized view defined by the relational expression $S_{def}$ a 
 Now suppose the relations in $\mathcal{D}$ have been updated with the correponding set of delta relations $U = \{\Delta R_i\} \cup \{\nabla R_i\}$.
 Let $\mathcal{D}'$ be the updated database and let $S'$ be the up-to-date view ($S_{def}$ applied to $\mathcal{D}'$).
 
-\textbf{Sampled Maintenance Plan: }
-Define $\mathcal{M}(\mathcal{D},S_{def},S,U)$ a maintenance strategy (be it incremental maintenance, full recomputation, or a mix) parametrized by the database, the view definition, the stale view, and the set of updates that is a relational expression the execution of which returns $S'$. The only pre-condition on the maintenance plan is that it is composed of only the operations defined in the previous section. Given the expression $\mathcal{M}(\mathcal{D},S_{def},S,U)$, we apply the sampling operator $\eta(\mathcal{M})$ and maintain only a subset of the multiset. The algorithmic challenge to minimize computation during the execution of $\eta(\mathcal{M})$, by pushing the sampling operation down the query tree of $\mathcal{M}$. The result is a sampled maintenance plan which updates only a sample of the materialized view $\hat{S'} = \eta(\mathcal{M})$.
+\subsubsection{Problem 1. Sampling the Maintenance Plan: }
+Define $\mathcal{M}(\mathcal{D},S_{def},S,U)$ \footnote{For brevity, we will drop the parameters when not ambiguous.} a maintenance strategy (be it incremental maintenance, full recomputation, or a mix) parametrized by the database, the view definition, the stale view, and the set of updates.
+A maintenance is a relational expression the execution of which returns $S'$.
+The only pre-condition on the maintenance plan is that it is composed of only the operations defined in the previous section. 
 
-\textbf{Correction Plan: }
-Given a query $q$ on the view $S$ and an up-to-date sample created by the previous procedure $\hat{S'}$, we return a relational expression $C(q, S, \hat{S'}, O)$ which is a function of the query, the old view, the sampled up-to-date view, and the outlier index $O$. When the relational expression $C$ is executed the result $\hat{r}$ is an estimate of the true value $r$ which is defined as the limit of sampling operator to a 100\% sample.
+Given the relational expression $\mathcal{M}$, we apply the hash-sampling operator $\eta(\mathcal{M})$ and to maintain only a subset of the multiset $S'$.
+With $\eta(\mathcal{M})$ as input, we return an optimized the execution of the sampled maintenance plan $\eta(\mathcal{M})^*$ to minimize computation.
+This is achieved by a set of rules to pushing the sampling operation down the query tree of $\mathcal{M}$ allowing more operators to take advantage of the sampling. 
+The result is a sampled maintenance plan which updates only a sample of the materialized view $\hat{S'} = \eta(\mathcal{M})$.
+
+\subsubsection{Problem 2. Correction Plan: }
+Given a query $q$ and an up-to-date sample created by the previous procedure $\hat{S'}$, we return a relational expression $C(q, S, \hat{S'}, O)$\footnotemark[2] which is a function of the query, the old view, the sampled up-to-date view, and the outlier index $O$. When the relational expression $C$ is executed the result $\hat{r}$ is an estimate of the true value $r$ which is defined as the limit of sampling operator to a 100\% sample.
 
 Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
 In this work, we primarily consider non-nested aggregate queries with simple predicates on a single view:
@@ -26,6 +33,26 @@ WHERE Condition(A);
 \end{lstlisting}
 As with all sample estimates, for the estimates to be meaningful, the predicate should not be too selective.
 
+\begin{table*}[ht!]
+\caption{Query Result Semantics} % title of Table
+\centering % used for centering table
+\begin{tabular}{c c c c} % centered columns (4 columns)
+\hline\hline %inserts double horizontal lines
+Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table 
+%heading
+\hline % inserts single horizontal line
+\sumfunc, \countfunc, \avgfunc & Yes & - & Optimal Analytical Via CLT \\ % inserting body of the table
+\histfunc, \corrfunc, \varfunc, \covfunc & Yes & - & Empirical Via Bootstrap \\
+\medfunc, \percfunc & No & Yes & Empirical Via Bootstrap \\
+\maxfunc, \minfunc & No & No & Loose Probability Bound via Cantelli's Inequality \\
+\texttt{f(DISTINCT)} & No & No & None in general \\ [1ex] % [1ex] adds vertical space
+\hline %inserts single line
+\hline
+\texttt{SELECT *} & Yes & Yes & Optimal bound on result size 
+\end{tabular}
+\label{table:nonlin} % is used to refer this table in the text
+\end{table*}
+
 \subsection{Semantics of Query Results}
 We should note that there is an implicit design tradeoff in the way we formulated this problem.
 By sampling the maintenance plans, our approach is very general with respect to supported views.
@@ -36,25 +63,6 @@ We have a further discussion about this subtlty in Section ??.
 A important concern of users is what are the semantics and guarantees on their corrected query results.
 In Table ??, we list all of the aggregate queries supported by Apache HiveQL present a taxonomy of result semantics for these queries.
 We will detail the corrections to these queries in Section \ref{correction}.
-\begin{table*}[ht]
-\caption{Query Result Semantics} % title of Table
-\centering % used for centering table
-\begin{tabular}{c c c c} % centered columns (4 columns)
-\hline\hline %inserts double horizontal lines
-Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table 
-%heading
-\hline % inserts single horizontal line
-\sumfunc, \countfunc, \avgfunc, \varfunc, \covfunc & Yes & - & Optimal Analytical Via CLT \\ % inserting body of the table
-\histfunc, \corrfunc & Yes & - & Empirical Via Bootstrap \\
-\medfunc, \percfunc & No & Yes & Empirical Via Bootstrap \\
-\maxfunc, \minfunc & No & No & Loose Probability Bound via Chebyshev Inequality \\
-\texttt{f(DISTINCT)} & No & No & None in general \\ [1ex] % [1ex] adds vertical space
-\hline %inserts single line
-\hline
-\texttt{SELECT *} & Yes & Yes & Optimal bound on result size 
-\end{tabular}
-\label{table:nonlin} % is used to refer this table in the text
-\end{table*}
 
 \subsection{Pratical Use and Implementation}
 In implementation, SVC will work in conjunction with existing defered maintenance or re-calculation approaches.

@@ -1,12 +1,21 @@
-
 \section{Correction Plan}
 \label{correction}
 In the previous section, we discussed how to add the hashing operator to a maintenance plan $\mathcal{M}$ and optimize its execution.
 The result of this execution is an up-to-date sampled materialized view $\hat{S'} \subset S'$.
 In this section, we discuss how to correct stale query results using $\hat{S'}$. 
+
+The main idea to compare $\hat{S'}$ to a corresponding sample $\hat{S}$, a sample of the stale view with the same hashing operator applied.
+This gives us a uniform sample of the differences between the stale view and a hypothetical up-to-date view, and allows us to test how query results can be affected by the updates.
+The key challenge is that even though the hashing operator is consistent and lineage is maintained through the updates; rows may be missing from either side due to the effects of updates.
 We first present our correction query processing in Section~\ref{subsec:correct-principle} and analyze the costs in Section~\ref{subsec-corr-cost}. Then, we discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
 
-\subsection{General Case: Aggregate Queries}
+\subsection{ Aggregate Queries}
+First, let us consider single-attribute, non-nested aggregate queries with simple predicates on a single view:
+\begin{lstlisting} [mathescape]
+SELECT $f(a)$ FROM View 
+WHERE Condition(A);
+\end{lstlisting}
+
 Suppose, we have an aggregate query $q$ and we apply the query to the stale view $S$.
 Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
 The query result is stale by a factor of $c$ if:
@@ -22,276 +31,155 @@ If we substitute in this expression:
 Applying the linearity of expectation:
 \[ c = \mathbb{E}(\bar{q}(\hat{S'}) - q(s)) \blacksquare \]
 
-\subsubsection{Mean-like Aggregates}
+\subsection{Mean-like Aggregates}
+We call the first class of queries,  \sumfunc, \countfunc, and \avgfunc, mean-like queries.
+That is, these queries behave like a sample mean, and we can see that \sumfunc is a mean multiplied by the dataset size and \countfunc is the mean of the indicator function multipled by the dataset size.
+A sample mean is an unbiased estimator of a population mean for all data distributions and sample sizes.
+Furthermore, the Central Limit Theorem states that asymptotically this mean approaches a normal distribution giving very tight bounds on the error.
 
-\subsubsection{Biased Aggregates}
+However, it is important to note, we are not trying to estimate \sumfunc, \countfunc, and \avgfunc but rather this correction factor $c$, the important question is how do we reformulate the problem to estimate $c$ as a sample mean.
+This problem would be solved if we could somehow bring the subtraction inside the query:
+\[ c = q(\hat{S'} - S)\] 
+However, it is possible that there are tuples in the new view and the old view that do not exist in the other.
 
+We define a new operator $\check{-}$, which we call correspondence subtract, which handles this problem.
+\begin{definition} (CORRESPONDENCE SUBTRACT). For two relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where 
+$a_2$ is a numerical attribute. $\check{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_2$: \[ \Pi_{R_1.a_2 - R_1.a_2} ( R_1 \fullouterjoin R_2 ) \]
+ If $R_1.a_2$ or $R_2.a_2$ is $\emptyset$ then they are respectively represented as a $0$.
+\end{definition}
+Using this definition, we can write:
+\[ c = q(\hat{S'} \check{-} \hat{S})\] 
+The definition of this new operator allows us to be agnostic to both insertions $\Delta$ and $\nabla$ which can result missing records.
+
+To make this clear in SQL, let use $\cond(\hat{S'})=1$ ($\cond(\hat{S})=1$) be \textbf{case} statments to denote that its old (new) record satisfies the query condition; otherwise, $\cond(\hat{S'})=0$ ($\cond(\hat{S})=0$). 
+For a sampling ratio $m$, to obtain the correction result, we apply the query to the sample update patterns as follows:
+%\begin{lstlisting}[mathescape,basicstyle={\scriptsize}] 
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+$\dans_{sum} = $ SELECT $ \sumfunc\big(S'*\textrm{Cond}(S') \check{-} S*\textrm{Cond}(S)\big)$ 
+$~~~~~~~~~~~~~~~~~$ FROM $\hat{S'}, \hat{S}$ ;
+$\sumfunc(S') \approx \sumfunc(S) + \dans_{sum}/m$
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+$\dans_{cnt} = $ SELECT $ \sumfunc\big(\textrm{Cond}(S') \check{-} \textrm{Cond}(S)\big)$ 
+$~~~~~~~~~~~~~~~~~$FROM $\hat{S'}, \hat{S}$;
+$\countfunc(S') \approx \countfunc(S) + \dans_{cnt}/m$
+\end{lstlisting}
+
+
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+$\dans_{avg} = \frac{\dans_{sum}}{\dans_{cnt}}$;
+$\avgfunc(S') \approx \avgfunc(S) + \dans_{avg}$
+\end{lstlisting}
+
+In each of these formulas, all of the $\dans$ terms correspond to estimates, and these estimates need to be bounded.
+To find these bounds, we can rewrite the terms $\dans$ as a mean value of random variables.
+By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
+\[
+\bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
+\]
+where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.\footnote{\scriptsize For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparison to k making this term insignificant.}
+We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$; refer to our prior work \cite{wang1999sample} for futher details.
+
+We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
+\begin{proposition}
+An estimator is called a minimum variance unbiased estimator (MVUE) of a parameter if it is unbiased and the variance of the parameter estimate is less than or equal to that of any other unbiased estimator of the parameter.
+\end{proposition}
+The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
+Unbiased estimators are ones that, in expectation, are correct.
+However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
+For example, if we simply pick a random element from a set, it is still an unbiased estimate of the mean of the set.
+The variance of the estimate determines the size of our confidence intervals thus is important to consider.
+
+The \sumfunc, \countfunc, and \avgfunc queries are linear functions of their input rows.
+We explored whether our estimate was optimal for linear estimates, for example, should we weight our functions when applied to the sample.
+It turns out that the proposed corrections are the optimal strategy when nothing is known about the data distribution a priori.
+
+\begin{theorem}
+For \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correction is optimal over the class of linear estimators when no other information is known about the distribution. 
+In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
+\end{theorem}
+\begin{proof}[Sketch]
+As discussed before, we reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. We prove the theorem by induction. 
+Suppose, we have two independent unbiased estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
+Since both estimates are unbiased, $c_1 + c_2 = 1$ to ensure the merged estimate is also unbiased, and now we consider the variance of the merged estimate.
+The variance of the estimate is $var(\bar{X}) = c_1^2var(\bar{X}_1) + c_2^2var(\bar{X}_2)$.
+Since, we don't know anything about the distribution of the data, by symmetry $var(\bar{X}_1) = var(\bar{X}_2)$.
+Consequently, the optimal choice is $c_1=c_2=0.5$. 
+We can recursively induct, and we find that if we do not know the variance of data, as is impossible with new updates, then equally weighting all input rows is optimal. 
+\end{proof}
+The implication of this proof is that there does not exist any other weighted average that gives better estimate (for any distribution or sample size).
+
+\subsection{Other Unbiased Aggregates}
+There is further a class of aggregate queries that is also unbiased but does not satisfy the optimality conditions of the previous section.
+The reason is that the subtraction-trick applied in the previous section will not work in general for possibly correlated variables.
+These queries include: \histfunc, \corrfunc, \varfunc, \covfunc, and the estimation approach is different.
+We apply the query to stale view, and then we apply the sample estimate of the query to up-to-date sample.
+
+The question is how can we bound this estimate.
+We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13}.
+In this approach, we repeatedly subsample with replacement from our sample and apply the sample estimator.
+We use these repeat executions to build a distribution of values that the correction can take allowing us to bound the result.
+The conditions under which this technique is valid are nuanced, and detecting when it is valid is a subject of \cite{agarwalknowing}.
+
+\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an unbiased aggregate query, and let $\hat{S}$ and $\hat{S'}$.
+One sample of the bootstrap estimator $s$ is defined as the difference of q applied to random subsample of size $b_1$ (with replacment) of $q(\hat{S'}_sub) - q(\hat{S}_sub)$.
+To build the confidence interval, we repeatedly apply this procedure $b_2$ times.
+\end{proposition}
+
+It is true that bootstrap is more computationally expensive than the analytical derivations for the ``Mean-like" queries, and it is also sensitive to the choice of parameters $b_1$ and $b_2$.
+There has been recent research in using techniques such as Poissonized resampling \cite{agarwalknowing}, and bagging \cite{DBLP:conf/kdd/KleinerTASJ13} to make this algorithm better suited for latency-senstive query processing application.
+As the bootstrap estimator is empirical and asymptotically consistent, its bound when it applies. 
+In fact, in practice, the bootstrap estimator often gives tighter confidence intervals than the CLT for smaller data sizes (a further note in the Discussion Section ??).
+
+\subsection{Bounded Bias Aggregates}
+A corollary to Proposition ??, is that if we can bound the bias for our estimator then we can acheive a bounded bias for $c$ as well.
 \begin{corollary}
 If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
 \end{corollary}
+Example queries include: \medfunc, \percfunc.
 
+What this means for a user is that the error bars are asymmetric with increased error in the direction of the bias (often in the direction of skew in the dataset).
+Functionally, we can apply the same technique discussed in Section ??. 
 
+\subsection{MIN and MAX}
+\minfunc and \maxfunc fall into their own category since there does not exist any unbiased sample estimator nor can that bias be bounded.
+We can, however, give weak bounds on the results using Cantelli's Inequality:
+\[
+\mathbb{P}(X \ge a + \mu_x )) \le \frac{var(x)}{var(x) + a^2}
+\]
+Therefore, if we set $a$ to be the max value, we can calculate the probability that we will see a higher value. The same logic can be reversed for \minfunc.
+\[
+\mathbb{P}(X \le \mu_x - a )) \le \frac{var(x)}{var(x) + a^2}
+\]
 
-\subsection{\Cqp}\label{subsec:correct-principle}
-Given a stale view and a query on the view, let \ans denote the stale query result. The goal of \cqp is to use the sample update patterns w.r.t the view to correct \ans. We first obtain a \emph{delta query result} (denoted by $\dans$), by applying the query to the sample update patterns, and then combine \ans and $\dans$ into a corrected query result. We apply our corrections to aggregate queries of the following form: ``SELECT $\sumfunc(a)/\countfunc(a)/\avgfunc(a)$ FROM View WHERE Condition(A);".
-%For ease of presentation, we assume the query does not have a group-by clause.
-%But our methods can be easily extended to a group-by query by treating each group key as an additional condition of the query. 
-
-%where \texttt{f} is an aggregation function (i.e., $\avgfunc$, $\sumfunc$, $\countfunc$), \texttt{a} is an attribute, and \texttt{A} is a set of attributes. 
-
-
-
-
-
-%formulation
-
-%basic idea
-
-\subsubsection{Select-Project and Foreign-Key Join Views} \label{subsubsec:correct-spfj}
-Since both of the update patterns of \spview and \fjview only consist of inserted records, we can obtain corrections in the same way. Given the above query, to obtain its delta query result, we rewrite the query and run it on the sample update patterns as follows.  
-
-\vspace{-.25em}
-
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{sum} = $ SELECT $\sumfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ 
-$~~~~~~~~~~~~~~~$ WHERE Condition(A);
+\subsection{Select Queries}
+We can correct stale Select queries with SVC.
+Suppose, we have a Select query with a simple predicate:
+\begin{lstlisting} [mathescape]
+SELECT $*$ FROM View 
+WHERE Condition(A);
 \end{lstlisting}
 
-\vspace{-.25em}
+We can first run the Select on the stale view, and the result of this is a multiset.
+First, we must define what it means to ``correct" this stale result.
+This result has three types of data error: rows that are missing, rows that are falsely included, and rows whose values are incorrect.
 
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{cnt} = $ SELECT $\countfunc(a)$ FROM $\textrm{sample\_update\_patterns}$ $~~~~~~~~~$WHERE Condition(A);
-\end{lstlisting}
+As in the aggregate query case, we can apply the query to the sample of the up-to-date view.
+From this sample, using our lineage defined earlier, we can quickly identify which rows were added, updated, and deleted.
+For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
+For the new rows, we take a union of the sampled selection and the updated stale selection.
+For the missing rows, we remove them from the stale selection.
+To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of number of rows that were not updates, added, or deleted (thus three ``confidence" intervals).
 
-\vspace{-.25em}
+\subsection{Query Execution Cost}
+It is true that SVC adds to the query execution time by issuing a correction, and we can quantify this overhead. Let $m$ be the sampling ratio, $\mid S \mid$ be the cardinality stale view, and $\mid S' \mid$ be the cardinality  of the up-to-date view. Also, let $\textbf{join}$ be the cost of the one-to-one join of the sampled up-to-date view and the sampled stale view. Since the expensive step is a one-to-one join of two samples, we assume that this can be executed fairly quickly (eg. via hash table lookup).
 
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{avg}, \dans_{cnt} = $ SELECT $\avgfunc(a)$, $\countfunc(a)$ 
-$~~~~~~~~~~~~~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$
-$~~~~~~~~~~~~~~~~~~~~~~~~~~$ WHERE Condition(A);
-\end{lstlisting}
+\subsubsection{Mean-like queries and Select}
+In the worst case, when executing the query requires a full scan, the correction plan requires:
+ \[O(\mid S \mid + m \cdot \mid S' \mid + \textbf{join})\]
 
-\vspace{-.25em}
+ \subsubsection{Bootstrap Queries}
+When executing queries that require bootstrap for error estimation, there are additional costs $b$ to the bootstrap error estimate which are on the order of the sample size:
+ \[O(\mid S \mid + b\cdot m \cdot \mid S' \mid + \textbf{join})\]
 
-For the \sumfunc and \countfunc queries, we only need to compute $\dans_{sum}$ and $\dans_{count}$, respectively. But for the \avgfunc query, in addition to $\dans_{avg}$, we also need to compute $\dans_{cnt}$ for query correction.
-In Table~\ref{tbl:query-correct}, we show how to use the delta query result to correct a stale query result. 
-
-
-To correct a \sumfunc query result, we have to scale the delta query result according to the sampling ratio and correct the stale query result by adding the re-scaled value, i.e., $\ans_{sum}+\dans_{sum}/\ratio$. 
-
-To correct a \countfunc query result, we can use the same idea as above since a \countfunc query can be thought as the special case of a \sumfunc query when aggregate attribute values are all equal to one. Thus, the corrected \countfunc query result is $\ans_{count}+\dans_{count}/\ratio$.
-
-To correct an \avgfunc query result, we can treat it as computing a weighted average between a stale view and update patterns. In a stale view, $\ans_{avg}$ represents the average value of $\ans_{cnt}$ rows\footnote{\small $\ans_{cnt}$ denotes the number of rows that satisfy the \avgfunc query's condition, which can be easily obtained when computing $\ans_{avg}$}, thus its weight is $\ans_{cnt}$; In the sample update patterns, $\dans_{avg}$ represents the average value of $\dans_{cnt}$ rows. Since this is computed on a sample, the weight w.r.t the full update patterns is  $\dans_{cnt}/\ratio$. Therefore, the corrected \avgfunc query result is computed as a weighted average between $\ans_{avg}$ and $\dans_{avg}$, i.e., $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$.
-
-
-\begin{table}[t]\renewcommand{\arraystretch}{1.5}\vspace{-0.5em}
-\caption{Correcting a stale query result}\label{tbl:query-correct} \scriptsize \centering
-%\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
-%\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
-\hspace*{-1em}\begin{tabular}[t]{|l||c|c|c|}
-  %\multicolumn{4}{c}{\normalsize {(a) $\ars$}} \\ \hline
-  %\multicolumn{4}{|c|}{A set $\Lambda$ of $\ar$s} \\ \hline\hline
-   \hline
-                & \bf{\specialcell{\spview \& \fjview}} & \bf{\aggview} \\ \hline \hline
-   \sumfunc     &  $\ans_{sum}+\dans_{sum}/\ratio$ &   $\ans_{sum}+\dans_{sum}/\ratio$        \\ \hline 
-   \countfunc   &  $\ans_{cnt}+\dans_{cnt}/\ratio$ &   $\ans_{cnt}+\dans_{cnt}/\ratio$       \\ \hline 
-   \avgfunc     &  $\frac{\ans_{cnt}\cdot\ans_{avg}+(\dans_{cnt}/\ratio)\cdot\dans_{avg}}{\ans_{cnt}+(\dans_{cnt}/\ratio)}$                                &     $\ans_{avg}+\dans_{avg}$     \\ \hline 
-\end{tabular}\vspace{-1.5em}
-\end{table}
-
-
-\subsubsection{Aggregation View}\label{subsubsec:correct-agg}
-
-\sloppy
-
-The update patterns of \aggview contain the information that how every old record in the view should be changed to a new one. Given the query as shown in Section~\ref{subsec:correct-principle}, let $a_{old}$ ($a_{new}$) denote the old (new) attribute in the update patterns corresponding to $a$; let $A_{old}$ ($A_{new}$) denote the set of old (new) attributes in the update patterns corresponding to $A$.
-In an update pattern, we use $\cond(A_{old})=1$ ($\cond(A_{new})=1$) to denote that its old (new) record satisfies the query condition; otherwise, $\cond({A_{old}})=0$ ($\cond({A_{new}})=0$). 
-To obtain the delta query result, we apply the query to the sample update patterns as follows:
-
-\fussy
-
-%\begin{lstlisting}[mathescape,basicstyle={\scriptsize}] 
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{sum} = $ SELECT $ \sumfunc\big(a_{new}*\textrm{Cond}(A_{new})-a_{old}*\textrm{Cond}(A_{old})\big)$ 
-$~~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
-\end{lstlisting}
-
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{cnt} = $ SELECT $ \sumfunc\big(\textrm{Cond}(A_{new})-\textrm{Cond}(A_{old})\big)$ 
-$~~~~~~~~~~~~~~$ FROM $\textrm{sample\_update\_patterns}$;
-\end{lstlisting}
-
-
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\dans_{avg} = $ SELECT $
-\frac{\sumfunc\big(a_{new}*\textrm{Cond}(A_{new})\big)}{\sumfunc\big(\textrm{Cond}(A_{new})\big)}- \frac{\sumfunc\big(a_{old}*\textrm{Cond}(A_{old})\big)}{\sumfunc\big(\textrm{Cond}(A_{old})\big)}$ 
-$~~~~~~~~~~~~~~~~$FROM $\textrm{sample\_update\_patterns}$;
-\end{lstlisting}
-
-A delta query result tells us how data updates will affect the query result on an old (i.e., a stale) sample \aggview. Thus, it is computed as the difference between the query results on a stale sample \aggview and an updated sample \aggview. To use it to correct a stale query result (as shown in Table~\ref{tbl:query-correct}), for the \sumfunc query, since the \sumfunc difference is computed on a sample, we need to scale it to the full data, and add the rescaled value to the old query result, i.e., $\ans_{sum}+\dans_{sum}/\ratio$; for the \countfunc query, since a \countfunc query can be taken a special case of a \sumfunc query, similar to the \sumfunc query, we have $\ans_{count}+\dans_{count}/\ratio$; for the \avgfunc query, since the \avgfunc difference on a sample is an unbiased estimation of the \avgfunc difference on the full data, we add the delta query result to the old query result directly, i.e., $\ans_{avg}+\dans_{avg}$.
-
-
-\subsection{Cost Analysis}\label{subsec-corr-cost}
-We analyze the costs of query correction in SVC.
-The cost of query execution has two components: we first apply the query to the stale view, and then correct the result by processing the update pattern sample.
-Therefore, the cost is proportional to the size of the stale view and update pattern sample in comparision to the size of the up-to-date view.
-For \fjview and \spview, if the only updates to the base table are insertions, the combined size of the update pattern sample and stale view are guaranteed to be less than the size of the fully maintained view, thus our query execution time is guaranteed to be smaller than full maintenance.
-
-We cannot make such a guarantee for \aggview.
-In \aggview, our update pattern sample also contains a sample of existing rows from the view.
-Thus, the combined size of the stale view and the update pattern sample may be larger than up-to-date view.
-Since our sample size is often small, for example 1\%, the additional query execution time is often small as well.
-Furthermore, if the insertions to the base table result in many new groups added to \aggview, then similar to the analysis 
-for \fjview and \spview our query execution cost can be less than full maintenance.
-
-\input{practical-subsec.tex}
-
-
-\iffalse
-\section{Sampling for Approximate Corrections}
-In the previous section, we described how to do the correction using the full delta view.
-However, this is just as expensive as incremental view maintenance.
-In this section, we describe how we can couple sampling with the correction calculation to
-save on I/O and communication costs. 
-
-\subsection{Sampling for Select-Project and Foreign-Key Join Views}
-We can extend our deterministic corrections to approximate corrections from a 
-simple random sample $S_{\Delta V}$ of the delta view $S_{\Delta V}\subseteq\Delta\textbf{V}$. 
-Recall that a simple random sample is uniform sample where every row $r\in\Delta V$
-is in $S_{\Delta V}$ with equal probability $p$. For Select-Project
-and Foreign-Key Join Views, this means we have to take a sample of
-the updates and then apply the view definition to the sample of the
-updates. Formally, for every record u inserted into the table, with
-probability $p$, we include it in the sample $S$. Then, we take
-the sample updates $S$ and apply the view definition forming $S_{\Delta V}$.
-Therefore,
-\[
-c\cdot f(S_{\Delta V})\approx\epsilon
-\]
-The scaling constant $c$ for the SUM and COUNT queries
-depends on the sample size and is $c = \frac{K}{N}$.
-This estimate is guaranteed to be unbiased, that is, in expectation the answer is $\epsilon$.
-
-\subsection{Cost Analysis for Select-Project and Foreign-Key Join Views}
-Let $n$ be the number of inserted records, $v$ be the cardinality of the old view, $v'$ be the cardinality of the new view, $\delta_v$ be the cardinality of the delta view, and $p$ be the sampling ratio.  
-
-\textbf{Scan of Updates: }
-Both incremental maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can
-load the updates into memory once and amortize that I/O cost over all views. 
-
-\textbf{Delta View: } For Select-project and foreign-key join views, incremental maintenance has processing cost of $n$ records where the predicate or the join has to be evaluated for each inserted record. Our approach has a cost of $np$ as we have to evaluate this only on our sample. 
-
-\textbf{Refresh: } For Select-project and foreign-key join views, incremental maintenance has to insert $\delta_v$ rows while we have to insert only $p\delta_v$ records. If there is an outlier index, this cost increases to $p\delta_v + l$. 
-
-\textbf{Query: } As incremental maintenance completely refreshes the view, the cost of processing a query on the view is at most $v'$. For Select-project and foreign-key join views, the processing cost is $v + p\delta_v$ and this is guaranteed to be less than $v'$. 
-
-\subsection{Accuracy Analysis For Select-Project and Foreign-Key Join Views}
-By the Central Limit Theorem, means of independent random variables converge 
-to a Gaussian distribution.
-We can apply this theorem to bound the approximation error in the correction $\epsilon$.
-For $\epsilon = c\cdot f(S_{\Delta V})$, and a sampling ratio of $p$.
-Recall, from the previous section that $f$ can be expressed as a sum of the function $\phi$ applied to each row.
-Let $\phi(S_{\Delta V})$ be set of $\phi$ applied to each of rows in the sample delta view.
-Then variance of the estimate is:
-\[
-c^2\frac{var(\phi(S_{\Delta V}))}{p|\Delta V|}
-\] 
-Since there is asymptotic convergence to a normal distribution, we can use this variance to bound the distance the true $\epsilon$:   
-\[
-\epsilon \pm \gamma \cdot c\frac{std(\phi(S_{\Delta V}))}{p|\Delta V|}
-\]
-We can set $\gamma$ to our desired normal confidence level (eg. 1.96 for 95\% confidence).
-In other words, the accuracy of the estimate depends on the variance of the inserted records.
-
-\subsection{Sampling for Aggregation Views}
-In the previous section, we discussed how the delta view did not contain enough
-information to calculate a correction.
-Similarly, sampling to estimate the correction for queries on Aggregation Views
-is more challenging.
-We notice that in the refreshed view each GROUP BY key is unique, and
-thus, to sample the refreshed view we have to sample by GROUP BY keys
-in the inserted records. For each inserted record we apply a hash
-to the cols in the GROUP BY clause, and then we take the result of
-the hash modulo a sampling ratio to sample the table. The result is
-that we ensure that every record with the same group by key is either
-fully in the sample or not, thus none of the rows in the delta view
-are approximate. 
-Then, we refresh this sample delta view instead of the full view.
-We can then join this delta view with the old view to approximate $\epsilon$.
-
-Unlike before this is not a sample of a delta view, it is a sample of the entire view joined with the stale resuts.
-Thus, we denote this sample as $S_{V}$.
-Also, recall that unlike the other views, Aggregation Views did not have 
-an additional proportionality constant for a full correction.
-\[
-f(S_{V})\approx\epsilon
-\]
-However, when we introduce sampling a scaling constant is now necessary.
-The scaling constant $c$ for the SUM and COUNT queries depends on the sample size and is $c = \frac{K}{N}$, 
-but $c = 1$ for the AVG query.
-For SUM, COUNT, AVG, and VAR, this estimate of $\epsilon$ is unbiased as before.
-
-\subsection{Cost Analysis for Aggregation Views}
-Let $n$ be the number of inserted records, $v$ be the cardinality of the old view, $v'$ be the cardinality of the new view, $\delta_v$ be the cardinality of the delta view, and $p$ be the sampling ratio.  
-
-\textbf{Scan of Updates: }
-As in the Select-Project and Foreign-Key Join views, both incremental maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. 
-
-\textbf{Delta View: }  For aggregation views, incremental maintenance has the processing cost of $n$ and in addition an aggregation cost of $\delta_v$ where aggregates for each of the groups have to be maintained. In contrast, for aggregation views, our approach has a cost of $p\delta_v$ as we sample the group by keys and an expected processing cost of $np$. 
-For aggregation views, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group by key.
-
-\textbf{Refresh: } For aggregation views, the cost is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
-Incremental maintenance has to refresh $\delta_v$ rows while we have to refresh $p\delta_v$ rows. 
-If there is a join index, in constant time, we can determine which rows are new insertions and which correspond to rows already in the view.
-
-The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
-For aggregation views, we want to partition the data by the group by key.
-This allows a partitioned join which only requires communication (a shuffle operation) of the delta table.
-Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $p\delta_v$ rows.
-
-\textbf{Query: } For aggregation views, the cost is $v + pv'$ where we calculate a correction by processing $pv'$ rows and correct an existing aggregation of $v$ records.
-
-\subsection{Accuracy Analysis For Aggregation Views}
-As in the Select-Project and Foreign-Key views the Central Limit Theorem can
-be used to bound the approximation.
-However, there are two cases with aggregation views: (1) updates to existing rows and (2) insertions into the view.
-Let $S_{V}^{(i)}$ be the set differences for those rows in the sample materialized view that are updated; that is, represents how much each attribute 
-changes, and let $S_{V}^{(i)}$ be the sample materialized view that correspond to inserted records.
-Let $w_u$ by the fraction of the delta view which are updates to existing rows and $w_i$ be the fraction insertions into the view.
-
-Recall, from the previous section that an aggregation function on the view $f$ can be expressed as mean of the function $\phi$ applied to each row.
-Let $\phi(S_{V}^{(i)})$ be set of $\phi$ applied to each of rows that inserted, $\phi(S_{V}^{(i)})$ be the set of $\phi$ applied to the update differences, and $\phi(S_{V})$ be the union of the two sets.
-As before, we can use the Central Limit Theorem to calculate the variance of the estimate and bound the approximation error.
-The variance of a mixture of two distributions is:
-\[
-\sigma^2 = w_1((\mu_1-\mu)^2 + \sigma^2_1) + w_2((\mu_2-\mu)^2 + \sigma^2_2)
-\]
-Applying this in our setting, let us define the following values:
-\[
-\mu^{(i)}_{diff} = mean(\phi(S_{V}^{(i)})) - mean(\phi(S_{V}))
-\]
-\[
-\mu^{(u)}_{diff} = mean(\phi(S_{V}^{(i)})) - mean(\phi(S_{V}))
-\]
-\[
-\sigma^2_{(i)} = var(\phi(S_{V}^{(i)}))
-\]
-\[
-\sigma^2_{(u)} = var(\phi(S_{V}^{(u)}))
-\]
-\[
-\sigma^2_{diff} = w_i((\mu^{(i)}_{diff})^2 + \sigma_{(i)}) + w_u((\mu^{(u)}_{diff})^2 + \sigma_{(u)})
-\] 
-Therefore, the estimate variance is:
-\[
-c^2\frac{\sigma^2_{diff}}{|S_{V}|}
-\]
-And as before there is asymptotic convergence to a normal distribution, we can use this variance to bound the distance the true $\epsilon$:   
-\[
-\epsilon \pm \gamma \cdot c\frac{\sigma^2_{diff}}{|S_{V}|}
-\]
-We can set $\gamma$ to our desired normal confidence level (eg. 1.96 for 95\% confidence).
-
-To interpret $\sigma^2_{diff}$, it not only has dependence on the variance of the inserted records, but also on the variance of the updates and the relative difference between the updates and inserted records. 
-A worst case, would be if there is a 50-50 split between updates and insertions and changes to existing rows are in distribution very different than the new inserted rows in the materialized view. 
-\fi

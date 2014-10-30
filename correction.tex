@@ -1,8 +1,10 @@
 \section{Sampling a Maintenance Plan}
 \label{sampling}
-In this section, we discuss how to efficiently execute sampled maintenance plan $\eta(\mathcal{M})$ and under what conditions the time-complexity of executing $\eta(\mathcal{M})$ is less than that of executing $\mathcal{M}$.
+In this section, we discuss how to efficiently optimize the sampled maintenance plan $\eta(\mathcal{M})$ and under what conditions the time-complexity of executing $\eta(\mathcal{M})$ is less than that of executing $\mathcal{M}$.
+Let the result of this execution is an up-to-date sampled materialized view $\hat{S'}$ which is a uniformly sampled subset of $S'$.
+
 The intuition is straight-forward, if we sample the maintenance plan and we have some way of keep track of which tuples are in our sample, we only have to do as much work as neccessary to maintain those tuples. 
-However, this is not nuance as it requires us to formalize the notion of tuple ``lineage".
+However, this is nuanced as it requires us to formalize the notion of tuple ``lineage"; ie. the conditions under which we can trace a tuple in a materialized view to its base relation.
 
 \subsection{Tuple Lineage}
 Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
@@ -39,6 +41,7 @@ It enforces that tuples in the result relation are either correct (fully joined 
 \subsection{Pushdown Of The Hashing Operator}
 To achieve the performance benefits of sampling, we can now push down the hashing operator through the query tree.
 The further than we can push $\eta$ down the query tree, the more operators can benefit from the sampling.
+We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
 
 \begin{proposition}
 (HASH PUSHDOWN). Assuming the query tree satisfies the Lineage Condition, then the following rules can be applied to push $\eta(a)$ down the query tree. 
@@ -75,6 +78,8 @@ However, in special cases, we can achieve even further pushdown of the hashing o
 
 \textbf{(Semi/Anti)-Join: } We can always push $\eta$ down on Semi-joins. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 \dot{-} (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
+\subsection{Maintenance Savings}
+\reminder{TODO}
 
 \subsection{Running Example: Log Analysis}
 Recall the example view ``LogView" in the previous section:

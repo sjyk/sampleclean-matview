@@ -1,13 +1,12 @@
 \section{Background and Definitions}\label{sec-background}
 \vspace{-.5em}
 \subsection{Notation}
-\reminder{this is new}
 Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
 We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
 We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
 An update to a relation can be modeled as a deletion and then an insertion.
-In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
+%In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 
 We look at relation expressions for the view $S_{def}$ composed of the following operators:
 \begin{itemize}\vspace{-.45em}
@@ -19,15 +18,15 @@ We look at relation expressions for the view $S_{def}$ composed of the following
 \item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
 \item $R_1 \dot{-} R_2$: Multiset set difference.
 \end{itemize}
-We add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash mod} operator.
+We add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator.
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
-We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
+%We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
 Finally, we use the \emph{query tree} representation to analyze $S_{def}$ where we unravel composed relational operators into a tree of expressions.
 Each leaf of the tree is a relation and each node is an operator.
 
 \subsection{Algebraic View of Incremental Maintenance}\label{subsec-inc}
 Incremental maintenance of materialized views in multiset algebras has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
-At a high-level, almost all incremental maintenance algorithms consist of the following steps: for each leaf (relation) of the query tree of $S_{def}$ propagate $\Delta$ and $\nabla$ up the tree using composibility rules of delta relations, derive a \emph{change propagation formula} for $S$ in terms of deltas of subexpressions, and join this formula with the view to apply the changes.
+At a high-level, almost all incremental maintenance algorithms consist of the following steps: for each leaf (relation) of the query tree of $S_{def}$ propagate $\Delta$ and $\nabla$ up the tree using composibility rules of delta relations, derive a \emph{change propagation formula} for $S$ in terms of deltas of subexpressions, and join this formula with the view to apply the changes. 
 These rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
 
 However, even for the set of operators defined in the earlier section, there are some views for which full incremental maintenance is not possible and subexpressions have to recomputed. Consider the relation R(employeeid,country,salary) and view $S$ that calculates the \maxfunc salary of employees grouped by country. Under only insertions $\Delta R$, it is clear that the view can be maintained incrementally. 
