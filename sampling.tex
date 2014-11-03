@@ -1,13 +1,33 @@
-\section{Correction Plan}
+\section{Correction Query Processing}
 \label{correction}
-In the previous section, we discussed how to add the hashing operator to a maintenance plan $\mathcal{M}$ and optimize its execution.
+In the previous section, we discussed how to efficiently find $\hat{S'}$ by applying the hashing operator to the maintenance plan $\eta(\mathcal{M})$. 
 The result of this execution is an up-to-date sampled materialized view $\hat{S'} \subset S'$.
-In this section, we discuss how to correct stale query results using $\hat{S'}$. 
+In this section, we discuss how to correct stale query results using the two corresponding samples $\hat{S}$ and $\hat{S'}$. 
 
-The main idea to compare $\hat{S'}$ to a corresponding sample $\hat{S}$, a sample of the stale view with the same hashing operator applied.
+The main idea to compare $\hat{S'}$ to $\hat{S}$.
 This gives us a uniform sample of the differences between the stale view and a hypothetical up-to-date view, and allows us to test how query results can be affected by the updates.
 The key challenge is that even though the hashing operator is consistent and lineage is maintained through the updates; rows may be missing from either side due to the effects of updates.
 We first present our correction query processing in Section~\ref{subsec:correct-principle} and analyze the costs in Section~\ref{subsec-corr-cost}. Then, we discuss the error bars and optimality of query corrections in Section~\ref{subsec:correct-practical}.
+
+\begin{table*}[ht!]
+\caption{Query Result Semantics} % title of Table
+\centering % used for centering table
+\begin{tabular}{c c c c} % centered columns (4 columns)
+\hline\hline %inserts double horizontal lines
+Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table 
+%heading
+\hline % inserts single horizontal line
+\sumfunc, \countfunc, \avgfunc & Yes & - & Optimal Analytical Via CLT \\ % inserting body of the table
+\histfunc, \corrfunc, \varfunc, \covfunc & Yes & - & Empirical Via Bootstrap \\
+\medfunc, \percfunc & No & Yes & Empirical Via Bootstrap \\
+\maxfunc, \minfunc & No & No & Loose Probability Bound via Cantelli's Inequality \\
+\texttt{f(DISTINCT)} & No & No & None in general \\ [1ex] % [1ex] adds vertical space
+\hline %inserts single line
+\hline
+\texttt{SELECT *} & Yes & Yes & Optimal bound on result size 
+\end{tabular}
+\label{table:nonlin} % is used to refer this table in the text
+\end{table*}
 
 \subsection{ Aggregate Queries}
 First, let us consider single-attribute, non-nested aggregate queries with simple predicates on a single view:
@@ -15,6 +35,10 @@ First, let us consider single-attribute, non-nested aggregate queries with simpl
 SELECT $f(a)$ FROM View 
 WHERE Condition(A);
 \end{lstlisting}
+
+In SampleClean, we proposed the \textbf{NormalizedSC} algorithm to give unbiased corrections to \sumfunc, \countfunc, and \avgfunc.
+In this work, we found that these queries are a special case of a broader class of aggregate queries; namely if a query has an unbiased sample estimate there also exists an unbiased correction.
+The implications of this are that any query that can be answered in prior work with SAQP in an unbiased way can also be answered with our approach.
 
 Suppose, we have an aggregate query $q$ and we apply the query to the stale view $S$.
 Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
@@ -32,7 +56,8 @@ Applying the linearity of expectation:
 \[ c = \mathbb{E}(\bar{q}(\hat{S'}) - q(s)) \blacksquare \]
 
 \subsection{Mean-like Aggregates}
-We call the first class of queries,  \sumfunc, \countfunc, and \avgfunc, mean-like queries.
+NormalizedSC considered \sumfunc, \countfunc, and \avgfunc.
+We call this first class of queries,  \sumfunc, \countfunc, and \avgfunc, mean-like queries.
 That is, these queries behave like a sample mean, and we can see that \sumfunc is a mean multiplied by the dataset size and \countfunc is the mean of the indicator function multipled by the dataset size.
 A sample mean is an unbiased estimator of a population mean for all data distributions and sample sizes.
 Furthermore, the Central Limit Theorem states that asymptotically this mean approaches a normal distribution giving very tight bounds on the error.
@@ -40,6 +65,7 @@ Furthermore, the Central Limit Theorem states that asymptotically this mean appr
 However, it is important to note, we are not trying to estimate \sumfunc, \countfunc, and \avgfunc but rather this correction factor $c$, the important question is how do we reformulate the problem to estimate $c$ as a sample mean.
 This problem would be solved if we could somehow bring the subtraction inside the query:
 \[ c = q(\hat{S'} - S)\] 
+In NormalizedSC, we simply used the fact that these queries were commutative and associative and moved the subtraction into the summation.
 However, it is possible that there are tuples in the new view and the old view that do not exist in the other.
 
 We define a new operator $\check{-}$, which we call correspondence subtract, which handles this problem.
@@ -81,6 +107,7 @@ By the Central Limit Theorem, the mean value of numbers drawn by uniform random 
 where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.\footnote{\scriptsize For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparison to k making this term insignificant.}
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$; refer to our prior work \cite{wang1999sample} for futher details.
 
+\subsection{Optimality Mean-like Aggregates}
 We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
 \begin{proposition}
 An estimator is called a minimum variance unbiased estimator (MVUE) of a parameter if it is unbiased and the variance of the parameter estimate is less than or equal to that of any other unbiased estimator of the parameter.

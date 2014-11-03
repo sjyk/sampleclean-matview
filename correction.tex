@@ -1,10 +1,26 @@
-\section{Sampling a Maintenance Plan}
-\label{sampling}
-In this section, we discuss how to efficiently optimize the sampled maintenance plan $\eta(\mathcal{M})$ and under what conditions the time-complexity of executing $\eta(\mathcal{M})$ is less than that of executing $\mathcal{M}$.
-Let the result of this execution is an up-to-date sampled materialized view $\hat{S'}$ which is a uniformly sampled subset of $S'$.
-
-The intuition is straight-forward, if we sample the maintenance plan and we have some way of keep track of which tuples are in our sample, we only have to do as much work as neccessary to maintain those tuples. 
+\section{Efficient Sampling}
+We are given a stale sample view $\hat{S}$ and we want to find $\hat{S'}$.
+In this section, we discuss how to efficiently derive $\hat{S'}$ from $\hat{S}$.
+The intuition is straight-forward, if we have some way of keep track of which tuples are in our sample, we only have to do as much work as neccessary to maintain those tuples. 
 However, this is nuanced as it requires us to formalize the notion of tuple ``lineage"; ie. the conditions under which we can trace a tuple in a materialized view to its base relation.
+
+\subsection{Hashing Operator}
+The first challenge is \emph{correspondence}. 
+For example, if we take a random sample of the stale view and a random sample of the updates independently; the rows in $\hat{S}$ and $\hat{S'}$ will not match up.
+Alternatively, we could sample $\hat{S}$ and trace back through the view and try to figure out the correct changes.
+However, without expensive indexing this will be infeasible.
+
+The address this challenge, without the use of lookup tables, we add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator.
+For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
+If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
+This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$.
+
+Suppose we have a technique to ensure that an attribute (e.g. a primary key) is consistent between $S$ and $S'$, then this hash operator is sufficient to ensure that $\hat{S}$ and $\hat{S'}$ correspond.
+Given a maintenance plan $\mathcal{M}$, if we add this operator to the top of the maintenance plan's query tree $\eta(\mathcal{M})$,
+the result is two samples that correspond to each other. 
+In fact, this achieves the ``data cleaning" discussed in the previous section.
+
+The only pre-condition is that we have an attribute that is consistent, and we will formalize that in the next section.
 
 \subsection{Tuple Lineage}
 Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
@@ -26,17 +42,6 @@ In our case, when we sample a maintenance plan, we need a way of identifying all
 
 The above definition is also constructive; that is, if a view or a maintainance plan does not satisfy the Lineage Condition we can modify the plan so that it does.
 We modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the query tree.
-
-\subsection{Hashing Operator}
-Now, we analyze the sampling operator $\eta_{a, m}(R)$. 
-The sampling applies a hash function to the attribute a $h:\mathbb{A} \mapsto [0,1]$.
-If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
-This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$.
-We apply the sampling operator to the top of the maintenance plan query tree.
-Since the maintenance plan satisfies the Lineage Condition, we can apply it the primary key of the maintenance plan's query tree.
-
-For reasons that will be clear in the subsequent sub-sections, hashing as opposed to random sampling allows us to push down the operator through some types of joins and aggregates. 
-It enforces that tuples in the result relation are either correct (fully joined or aggregated) or missing altogether.
 
 \subsection{Pushdown Of The Hashing Operator}
 To achieve the performance benefits of sampling, we can now push down the hashing operator through the query tree.

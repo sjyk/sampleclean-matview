@@ -1,30 +1,30 @@
 \section{Background and Definitions}\label{sec-background}
-\vspace{-.5em}
-\subsection{Notation}
-Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
-We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
-We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
-In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
-An update to a relation can be modeled as a deletion and then an insertion.
-%In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 
-We look at relation expressions for the view $S_{def}$ composed of the following operators:
-\begin{itemize}\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satify the restriction $\phi (r)$ \vspace{-.45em}
-\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{e}(R)$: Aggregation of R grouped by the relational expression $e(R)$.\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Multiset union take a union of the two sets incrementing multiplicities.
-\item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
-\item $R_1 \dot{-} R_2$: Multiset set difference.
-\end{itemize}
-We add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator.
-For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
-%We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
-Finally, we use the \emph{query tree} representation to analyze $S_{def}$ where we unravel composed relational operators into a tree of expressions.
-Each leaf of the tree is a relation and each node is an operator.
+\subsection{SampleClean: Bounded Queries on Dirty Data}
+In our prior work on the SampleClean project, we proposed a framework for scalable data cleaning.
+Traditionally, data cleaning has explored cleaning entire datasets for increased query accuracy.
+SampleClean, however, applies a data cleaning algorithm to a random sample of dirty data and uses this information to extrapolate approximately clean query results on the entire datasets.
+One of the algorithms in SampleClean, \textbf{NormalizedSC}, used information of how data cleaning changed a record and issued a correction to \sumfunc, \avgfunc, and \countfunc queries.
+A key property of this algorithm was even under arbitrary data error that the corrected query result was unbiased and bounded in confidence intervals.
 
-\subsection{Algebraic View of Incremental Maintenance}\label{subsec-inc}
+\begin{figure}[t] \vspace{-2em}
+\centering
+ \includegraphics[scale=0.30]{figs/sys-arch2.pdf} \vspace{-.25em}
+ \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.}\vspace{-1.75em}
+\end{figure}
+
+In SVC, we look at queries on stale materialized views from this perspective.
+We can model a stale row in a view as dirty data.
+For the data cleaning, there is some procedure (using the updates) to update this row.
+For a random sample of stale data, we can apply the updates and measure how the updates change a query result and then issue a correction to acheive a result that in expectation is up-to-date.
+This model gives the user access to a new tradeoff space: (1) sampling allows for reduced update costs in comparison to a full update, (2) gives better accuracy than no view maintenance.   
+
+However, as mentioned in the introduction, this metaphor only goes so far.
+Staleness can result in rows in the stale sample that are missing in the up-to-date sample.
+Or, it can result in new rows in the up-to-date sample that could not possibly be in the stale sample.
+In this work, we add many new contributions not considered in SampleClean: (1) we consider the effect of missing rows by using a hashing-based lineage technique, (2) we generalize our sample procedure to sample from derived relations not just the base relation as in SampleClean, (3) we explicitly consider the effects of outliers on sampling, (4) we extend the work to handle \textbf{SELECT} queries, and (5) we explore optimality of NormalizedSC.
+
+\subsection{The Data Cleaning: Incremental Maintenance}\label{subsec-inc}
 Incremental maintenance of materialized views in multiset algebras has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
 At a high-level, almost all incremental maintenance algorithms consist of the following steps: for each leaf (relation) of the query tree of $S_{def}$ propagate $\Delta$ and $\nabla$ up the tree using composibility rules of delta relations, derive a \emph{change propagation formula} for $S$ in terms of deltas of subexpressions, and join this formula with the view to apply the changes. 
 These rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
@@ -37,7 +37,7 @@ However, it turns out that SVC is general enough to handle both views that can b
 In short, we say there is a \emph{maintenance strategy} $\mathcal{M}$ which is a relational expression that is a function of the database $\mathcal{D}$ and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ that updates the view.
 SVC takes the query tree of $\mathcal{M}$ as input and outputs a sampling plan and a query correction plan (Section ??).
 
-\subsection{A Practical View of Incremental Maintenance}
+\subsection{Why Materialized Views Go Stale}
 The algebraic analysis of incremental maintenance informs us which views can be incrementally maintained.
 However, there are many practical considerations of excuting these operations in real database systems and it may not always be feasible to immediately apply updates.
 For example, in distributed systems record-at-a-time maintenance may be excessively affected by overheads and batching updates together can allows for amortization.
@@ -57,16 +57,7 @@ While always fresh, both lazy maintenance and immediate maintenance hit a bottle
 The alternative is potentially unbounded staleness between maintenance cycles with deferred maintenance.
 SVC addresses this problem from a new perspective, namely, can we accept some degree of bounded inaccuracy for increased performance.
 
-\subsection{SampleClean: Bounded Queries on Dirty Data}
-In our prior work on the SampleClean project, we proposed a framework for scalable data cleaning.
-One of the algorithms in SampleClean, NormalizedSC, was focused on correcting aggregate query results on dirty data.
-Takes a random sample of dirty records, applies a data cleaning operation, and based on the changes learns how to correct a query applied to the dirty data.
-A key property of this algorithm was even under arbitrary data error that the corrected query result was unbiased and bounded in confidence intervals.
-
-In SVC, we look at queries on stale materialized views from this perspective.
-If we model a stale row in a view as dirty data and an up-to-date sample as clean data, we can apply a similar correction to acheive an unbiased result.
-However, this application introduces many new contributions not considered in SampleClean: (1) we consider the effect of missing rows, (2) we generalize our sample procedure to sample from derived relations not just the base relation as in SampleClean, (3) we explicitly consider the effects of outliers on sampling, (4) we extend the work to handle \textbf{SELECT} queries, and (5) we explore optimality of NormalizedSC.
-
+\subsection{Relationship to SAQP}
 Estimating the results of aggregate queries from samples has been
 well studied in a field called Sample-based Approximate Query Processing
 (SAQP) \cite{OlkenR86,AgarwalMPMMS13}.
@@ -76,6 +67,7 @@ estimate the result directly from the maintained sample \cite{joshi2008materiali
 We found that estimating
 a correction and leveraging an existing deterministic result led
 to lower variance results on real datasets (see Section \ref{exp}). 
+
 
 
 

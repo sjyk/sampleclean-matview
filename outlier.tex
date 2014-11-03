@@ -1,15 +1,18 @@
 \section{Outlier Indexing}\label{outlier}
-\reminder{I think the section is ok just update patterns term needs to be changed}
-
-Sampling update patterns may be sensitive to power-laws and other long-tailed distributions which are common in large datasets\cite{clauset2009power}.
-Sampling may also hide any outliers, records with abnormally large or small attribute values.
+Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2001overcoming}.
+SVC may be sensitive to power-laws and other long-tailed distributions which are common in large datasets\cite{clauset2009power}.
 Since outliers may occur very rarely, they are unlikely to be represented in a small sample. 
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records and ensure that these records are included in the sample.
+However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
-\subsection{Building The Outlier Index}
-The first step is that the user selects an attribute of the base table to index and specifies a threshold $t$ and a size limit $k$.
-In a single pass of updates, the index is built storing references to the records with attributes greater than $t$.
+\subsection{Indices on the Base Relations}
+In SVC, we cannot index the sample in the same way as \cite{chaudhuri2001overcoming}. 
+This is because we only materialize the sample view and we have no idea about outliers outside of this sample.
+Instead, we propose building indices on the base relations.
+
+The first step is that the user selects an attribute of any base relation to index and specifies a threshold $t$ and a size limit $k$.
+In a single pass of updates (without maintaining the view), the index is built storing references to the records with attributes greater than $t$.
 If the size limit is reached, the incoming record is compared to the smallest indexed record and if it is greater then we evict the smallest record.
 The same approach can be extended to attributes that have tails in both directions by making the threshold $t$ a range, which takes the highest and the lowest values.
 However, in this section, we present the technique as a threshold for clarity.
@@ -21,24 +24,12 @@ If our size limit is $k$, we can find the records with the top $k$ attributes in
 Then, the attribute value of the lowest record becomes the threshold $t$.
 
 \subsection{Adding Outliers to the Sample}
-Since we index the base table, all of the materialized views in the system share a common set of these outlier indices.
-We discuss how to ensure that these records are added to the sample and what overhead this introduces.
-For \spview and \fjview, we sample the records that are inserted into the view.
-In the same pass as the sample, we can test each record against the outlier indices. 
-If the record exists in any of the indices it is added to the sample with a flag indicating that it is an outlier.
+Given this index, the next question is how we can use this information in our materialized views.
+We ensure that any row in a materialized view that derives from an indexed record is guaranteed to be in the sample.
+This problem is sort of an inverse to the efficient sampling problem.
+We need to propagate the indices upwards through the query tree.
 
-For \aggview, we sample the update pattern by taking a hash of the group keys.
-If a record is in the outlier index, we must ensure that all records with its group key are also added to the sample.
-To achieve this, we have to select all of the distinct group keys in the outlier index and add those aggregates to the sample.
-As before, these records are marked with a flag denoting they are outliers.
-
-We check the outlier index prior to sampling to ensure that rows added due to the outlier index are not double counted from the sample.
-The flags ensure that we always know which records were sampled and which come from the outlier index.
-
-Outlier indexing adds additional overhead since for \spview and \fjview it adds the overhead of a hash table lookup for each record, and for \aggview it further requires a single initial scan of the entire outlier index. 
-However, we envision that in most datasets the outlier index will be very small making this overhead negligible.
-In our experiments, we show that even a very small outlier index (less than .01\% of records) is sufficient to greatly improve the accuracy of
-correction estimates.
+\reminder{TODO}
 
 \subsection{Query Processing with the Outlier Index} 
 The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
