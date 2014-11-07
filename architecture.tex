@@ -14,7 +14,7 @@ We look at relation expressions for the view $S_{def}$ composed of the following
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satify the restriction $\phi (r)$ \vspace{-.45em}
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{e}(R)$: Aggregation of R grouped by the relational expression $e(R)$.\vspace{-.45em}
+\item $\gamma_{e}(R)$\footnote{A special case of this operator is $\delta$ the deduplication operator.}: Aggregation of R grouped by the relational expression $e(R)$.\vspace{-.45em}
 \item $R_1 \dot{\cup} R_2$: Multiset union take a union of the two sets incrementing multiplicities.
 \item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
 \item $R_1 \dot{-} R_2$: Multiset set difference.
@@ -142,25 +142,7 @@ For all tuples in R, this operator applies a hash function whose range is $[0,1]
 Finally, we use the \emph{query tree} representation to analyze $S_{def}$ where we unravel composed relational operators into a tree of expressions.
 Each leaf of the tree is a relation and each node is an operator.
 
-\begin{table*}[ht!]
-\caption{Query Result Semantics} % title of Table
-\centering % used for centering table
-\begin{tabular}{c c c c} % centered columns (4 columns)
-\hline\hline %inserts double horizontal lines
-Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table 
-%heading
-\hline % inserts single horizontal line
-\sumfunc, \countfunc, \avgfunc & Yes & - & Optimal Analytical Via CLT \\ % inserting body of the table
-\histfunc, \corrfunc, \varfunc, \covfunc & Yes & - & Empirical Via Bootstrap \\
-\medfunc, \percfunc & No & Yes & Empirical Via Bootstrap \\
-\maxfunc, \minfunc & No & No & Loose Probability Bound via Cantelli's Inequality \\
-\texttt{f(DISTINCT)} & No & No & None in general \\ [1ex] % [1ex] adds vertical space
-\hline %inserts single line
-\hline
-\texttt{SELECT *} & Yes & Yes & Optimal bound on result size 
-\end{tabular}
-\label{table:nonlin} % is used to refer this table in the text
-\end{table*}
+
 
 \subsection{Semantics of Query Results}
 We should note that there is an implicit design tradeoff in the way we formulated this problem.
