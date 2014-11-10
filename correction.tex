@@ -1,21 +1,25 @@
 \section{Efficient Sampling}
 We are given a stale sample view $\hat{S}$ and we want to find $\hat{S'}$.
 In this section, we discuss how to efficiently derive $\hat{S'}$ from $\hat{S}$.
-The intuition is straight-forward, if we have some way of keep track of which tuples are in our sample, we only have to do as much work as neccessary to maintain those tuples. 
-However, this is nuanced as it requires us to formalize the notion of tuple ``lineage"; ie. the conditions under which we can trace a tuple in a materialized view to its base relation.
+The intuition is straight-forward\reminder{This sounds that our approach is trivial.}, if we have some way of keep track of which tuples are in our sample, we only have to do as much work as necessary to maintain those tuples. \reminder{The intuition is not very clear. }
+However, this is nuanced as it requires us to formalize the notion of tuple ``lineage"; i.e. the conditions under which we can trace a tuple in a materialized view to its base relation.
 
 \subsection{Hashing Operator}
-The first challenge is \emph{correspondence}. 
-For example, if we take a random sample of the stale view and a random sample of the updates independently; the rows in $\hat{S}$ and $\hat{S'}$ will not match up.
-Alternatively, we could sample $\hat{S}$ and trace back through the view and try to figure out the correct changes.
+
+
+The first challenge is \emph{correspondence}\reminder{not well defined}.  
+For example, if we take a random sample of the stale view and a random sample of the updates \reminder{what is ``updates"?} independently; the rows in $\hat{S}$ and $\hat{S'}$ will not match up. 
+Alternatively, we could sample $\hat{S}$ \reminder{syntax error?} and trace back through the view and try to figure out the correct changes.
 However, without expensive indexing this will be infeasible.
 
-The address this challenge, without the use of lookup tables, we add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator.
+
+\reminder{Think about how you come up with this hashing idea, and add it before this paragraph.}
+To address this challenge, without the use of lookup tables\reminder{what is ``lookup tables"?}, we add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
 If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
-This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$.
+This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. \reminder{We can discuss these implementation details in the experiment}
 
-Suppose we have a technique to ensure that an attribute (e.g. a primary key) is consistent between $S$ and $S'$, then this hash operator is sufficient to ensure that $\hat{S}$ and $\hat{S'}$ correspond.
+Suppose we have a technique to ensure that an attribute (e.g. a primary key) is consistent \reminder{not well defined} between $S$ and $S'$, then this hash operator is sufficient to ensure that $\hat{S}$ and $\hat{S'}$ correspond.
 Given a maintenance plan $\mathcal{M}$, if we add this operator to the top of the maintenance plan's query tree $\eta(\mathcal{M})$,
 the result is two samples that correspond to each other. 
 In fact, this achieves the ``data cleaning" discussed in the previous section.
@@ -31,8 +35,8 @@ In our case, when we sample a maintenance plan, we need a way of identifying all
 \begin{itemize}\vspace{-.45em}
 \item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key.\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Always preserves lineage of R \vspace{-.45em}
-\item $\Pi_{p,(a_2,...,a_k)}(R)$: Preserves lineage of R if it includes $p$ \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$.
+\item $\Pi_{p,(a_2,...,a_k)}(R)$: Preserves lineage of R if it includes $p$ \reminder{This is different from the notation in Sec 2.1.1. } \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$. \reminder{What is $p$?}
 \item $\gamma_{e}(R)$: Resets lineage. The primary key of the result is the group by expression $e(R)$.\vspace{-.45em}
 \item $R_1 \dot{\cup} R_2$: Always preserves lineage
 \item $R_1 \dot{\cap} R_2$: Always preserves lineage 
@@ -43,7 +47,7 @@ In our case, when we sample a maintenance plan, we need a way of identifying all
 The above definition is also constructive; that is, if a view or a maintainance plan does not satisfy the Lineage Condition we can modify the plan so that it does.
 We modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the query tree.
 
-\subsection{Pushdown Of The Hashing Operator}
+\subsection{Pushdown of the Hashing Operator}
 To achieve the performance benefits of sampling, we can now push down the hashing operator through the query tree.
 The further than we can push $\eta$ down the query tree, the more operators can benefit from the sampling.
 We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
@@ -73,7 +77,7 @@ To formalize, the proposed pushdown rules preserve the following property:
 \end{proposition}
 In other words, every tuple (of every subexpression) in the sampled maintenance plan is found in the unsampled plan. 
 
-\subsection{More About Joins}
+\subsection{More About Joins} \reminder{merge this section to sec 4.3.}
 The rules preserve sample completeness for the general operators. 
 However, in special cases, we can achieve even further pushdown of the hashing operator. 
 
