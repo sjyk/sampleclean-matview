@@ -1,51 +1,60 @@
-\section{Efficient Sampling}
-We are given a stale sample view $\hat{S}$ and we want to find $\hat{S'}$.
-In this section, we discuss how to efficiently derive $\hat{S'}$ from $\hat{S}$.
-The intuition is straight-forward\reminder{This sounds that our approach is trivial.}, if we have some way of keep track of which tuples are in our sample, we only have to do as much work as necessary to maintain those tuples. \reminder{The intuition is not very clear. }
-However, this is nuanced as it requires us to formalize the notion of tuple ``lineage"; i.e. the conditions under which we can trace a tuple in a materialized view to its base relation.
+\section{Efficient Maintenance With Sampling}
+In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
+maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
-\subsection{Hashing Operator}
+\subsection{Desired Properties and Challenges}
+We formalized the update procedure to transform $S$ into $S'$ as a maintenance strategy $\mathcal{M}$.
+This maintenance strategy is itself a relational expression.
+To derive a sample $\hat{S'}$, we could just apply the maintenance strategy and then sample.
+However, this does not make the maintenance of the sample any more efficent.
 
+Thus, ideally, we want to integrate the sampling into the maintenance expression $\mathcal{M}$ so that expensive operators
+need not operate on the full data.
+We can model this process as a ``push-down"\cite{??} on an operator tree of the relational expression.
+An important challenge is that we want every relation above the sampling to still be a uniform sample.
 
-The first challenge is \emph{correspondence}\reminder{not well defined}.  
-For example, if we take a random sample of the stale view and a random sample of the updates \reminder{what is ``updates"?} independently; the rows in $\hat{S}$ and $\hat{S'}$ will not match up. 
-Alternatively, we could sample $\hat{S}$ \reminder{syntax error?} and trace back through the view and try to figure out the correct changes.
-However, without expensive indexing this will be infeasible.
+We further desire a stronger property, which we call Sample Completeness:
+\begin{definition} (SAMPLE COMPLETENESS) At every node in the operator tree of sampled maintenance strategy, we say the relation $\hat{R}$ at the node is \emph{sample complete} if at every corresponding node $R$ in the unsampled maintenance strategy:
+\[ \forall r_s \in R_s : r_s \in R \]
+\end{definition}
+To illustrate this property imagine a group by aggregation.
+A sample of this expression that satisfies the property is a uniform sample of the fully aggregated groups.
+A sample that does not satisfy this property is a sample where some groups are partially aggregated.
 
+However, it is known that uniform sampling commutes very poorly many relational operations such as joins and aggregates \cite{??}.
+Furthermore, a ``coin-flip" algorithm to sample the relations would not achieve Sample Completeness in general.
+The problem is that our sampling technique needs to include all of the rows in relations lower in the tree that could possibly contribute to a row.
+Our approach to this problem will use a specific type of traceable unique identification for rows and then applying a deterministic hashing operator to ensure all of the relevant rows are processed.
 
-\reminder{Think about how you come up with this hashing idea, and add it before this paragraph.}
-To address this challenge, without the use of lookup tables\reminder{what is ``lookup tables"?}, we add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator. 
-For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
-If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
-This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. \reminder{We can discuss these implementation details in the experiment}
-
-Suppose we have a technique to ensure that an attribute (e.g. a primary key) is consistent \reminder{not well defined} between $S$ and $S'$, then this hash operator is sufficient to ensure that $\hat{S}$ and $\hat{S'}$ correspond.
-Given a maintenance plan $\mathcal{M}$, if we add this operator to the top of the maintenance plan's query tree $\eta(\mathcal{M})$,
-the result is two samples that correspond to each other. 
-In fact, this achieves the ``data cleaning" discussed in the previous section.
-
-The only pre-condition is that we have an attribute that is consistent, and we will formalize that in the next section.
-
-\subsection{Tuple Lineage}
+\subsection{Identification With Row Lineage}
 Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
-In our case, when we sample a maintenance plan, we need a way of identifying all the intermediate results that affect a sampled tuple.
-
+If we want to be able to push our sampling operation through the operator tree, we need to ensure that every subexpression has consistent identifying information.
+We recursively define these identifying attributes:
 \begin{definition}
 (LINEAGE CONDITION). All views $S$ and maintenance plans $\mathcal{M}$ must satisfy the lineage condition which is defined inductively on a query tree:
 \begin{itemize}\vspace{-.45em}
 \item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key.\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Always preserves lineage of R \vspace{-.45em}
-\item $\Pi_{p,(a_2,...,a_k)}(R)$: Preserves lineage of R if it includes $p$ \reminder{This is different from the notation in Sec 2.1.1. } \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$. \reminder{What is $p$?}
+\item $\Pi_{(a_1,...,a_k)}(R)$: Preserves lineage of R if the projection includes $p$ \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$. 
 \item $\gamma_{e}(R)$: Resets lineage. The primary key of the result is the group by expression $e(R)$.\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Always preserves lineage
-\item $R_1 \dot{\cap} R_2$: Always preserves lineage 
-\item $R_1 \dot{-} R_2$: Always preserves lineage 
+\item $R_1 \dot{\cup} R_2$: Always preserves lineage attribute $p$
+\item $R_1 \dot{\cap} R_2$: Always preserves lineage attribute $p$
+\item $R_1 \dot{-} R_2$: Always preserves lineage attribute $p$
 \end{itemize}
 \end{definition}
+The above definition is also constructive; that is, if a view does not satisfy the Lineage Condition we can modify the plan so that it does.
+We can add a primary key to the base relations, and then we modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the tree.
+Given this definition of lineage, we see that we can trace through all the rows that contribute to an expression higher up in the tree.
+That is if we have a deterministic way of mapping $p$ to a sample we can also ensure that all contributing expressions are also sampled. 
+However, it is important to note that for some of the expressions, notably joins and aggregates, the lineage gets reset.
+It turns out in general we cannot push down even a deterministic sample through those expressions.
 
-The above definition is also constructive; that is, if a view or a maintainance plan does not satisfy the Lineage Condition we can modify the plan so that it does.
-We modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the query tree.
+\subsection{Hashing Operator}
+Let us denote the hashing operator $\eta_{a_1, m}(R)$. 
+For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
+If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
+This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
 \subsection{Pushdown of the Hashing Operator}
 To achieve the performance benefits of sampling, we can now push down the hashing operator through the query tree.
@@ -65,19 +74,7 @@ We make two assumptions on this hash operator: (1) \emph{independence} there is 
 \end{itemize}
 \end{proposition}
 
-The key property that we exploit is that hashing gives us a deterministic sample.
-By hashing only on certain keys, we can further ensure \emph{sample completeness} of $\bowtie$.
-That is, for all $r_1\in R_1$ if $(r_1,r_2)$ satisfies the join condition and $(r_1,r_2')$ satisfies the join condition; they are both inside the sample or both excluded from the sample. 
-Hashing allows us to enforce this condition without having to check a table.
-The same logic extends to $\gamma$, in the sample, either all rows satisfying the group condition are aggregated or none are.
-
-To formalize, the proposed pushdown rules preserve the following property:
-\begin{proposition} (SAMPLE COMPLETENESS) At every node in the query tree of sampled maintenance plan $\eta_{(a,m)}(\mathcal{M})$, we say the relation $R_s$ at the node is \emph{sample complete} if at every corresponding node $R$ in the unsampled maintenance plan $\eta_{(a,1)}(\mathcal{M})$:
-\[ \forall r_s \in R_s : r_s \in R \]
-\end{proposition}
-In other words, every tuple (of every subexpression) in the sampled maintenance plan is found in the unsampled plan. 
-
-\subsection{More About Joins} \reminder{merge this section to sec 4.3.}
+\subsubsection{More About Joins} 
 The rules preserve sample completeness for the general operators. 
 However, in special cases, we can achieve even further pushdown of the hashing operator. 
 

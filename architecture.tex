@@ -1,78 +1,107 @@
-\section{System Overview}\label{sec-arch}
-In this section, we give an overview of the entire architecture of SVC. \reminder{Add a system architecture in this section.}
+\section{Framework Overview}\label{sec-arch}
+The basic structure of SVC is: (1) given a query and a stale view, we construct a sample of the view, (2) from this sample we can estimate how updates affect the query result and compensate the result, and (3) we incorporate an index of outlier base table records to improve the accuracy of the results.
+These three points map to the three main problems we address in this work, (1) formalizing this process as a data cleaning problem with the SampleClean framework, (2) defining a notion of row correspondence to link rows in the stale and updated views, and (3) outlier index.
+In this section, we formalize these three problems and overview the architecture of SVC.
 
+\subsection{Notation}
+Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
+We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
+We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
+In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
+An update to a relation can be modeled as a deletion and then an insertion.
+%In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 
-\subsection{Formalizing View Maintenance as Data Cleaning}
-\reminder{I move some text into this section, but have not revised text. I think the basic flow is that 1) you say you want to use SampleClean to solve MV problem, and say what benefits of doing that; 2) you say in order to do that, you have to model view maintenance problem as data cleaning problem, and then formalize this idea; 3) you say three limitations of SampleClean that you have to overcome to address MV problem. }
-
-In SVC, we look at queries on stale materialized views from the perspective of SampleClean.
-We can model a stale row in a view as dirty data. \reminder{Should it be a stale row as dirty data or a stale materialized view as dirty data?}
-For the data cleaning, there is some procedure (using the updates) to update this row. \reminder{update is not well defined. does it include insertion or deletion?}
-For a random sample of stale data \reminder{stale MV?}, we can apply the updates and measure how the updates change a query result and then issue a correction to achieve a result that in expectation is up-to-date. \reminder{since you have already introduced SampleClean in the last paragraph, you can explain this correction idea from the SampleClean perspective}
-This model gives the user access to a new tradeoff space: (1) sampling allows for reduced update costs in comparison to a full update, (2) gives better accuracy than no view maintenance.   
-
-
-To apply the algorithms \reminder{I would not say NormalizedSC is an algorithm. It is more like a query processing method} proposed in SampleClean, we need to formalize this problem as a data cleaning problem.
-Using the notation defined in the previous section. 
-Let $S$ be a materialized view defined by the relational expression $S_{def}$ a composition of operators defined in Section ?? applied to the database $\mathcal{D}$.
-Now suppose the relations in $\mathcal{D}$ have been updated with the correponding set of delta relations $U = \{\Delta R_i\} \cup \{\nabla R_i\}$. \reminder{$R_i$ ?}
-
-$S$ is now \emph{dirty} data, and every query $q$ applied to $S$ will give a dirty result.
-As in SampleClean, we take a uniform random sample of ratio $m$ of the dirty data which we call $\hat{S}$.
-Based on the operators that we have defined, there are three types of errors that affect $\hat{S}$:
-\begin{itemize}
-\item A row in $\hat{S}$ needs to be updated.
-\item A row in $\hat{S}$ needs to be deleted.
-\item To maintain the uniform random sample of ratio $m$ rows need to be added to $\hat{S}$. \reminder{no clear}
+We look at relation expressions for the view $S_{def}$ composed of the following operators:
+\begin{itemize}\vspace{-.45em}
+\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
+\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
+\item $\gamma_{e}(R)$: Aggregation of R grouped by the relational expression $e(R)$.\footnote{A special case of this operator is $\delta$ the deduplication operator.}\vspace{-.45em}
+\item $R_1 \dot{\cup} R_2$: Multiset union take a union of the two sets incrementing multiplicities.
+\item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
+\item $R_1 \dot{-} R_2$: Multiset set difference.
 \end{itemize}
 
-Based on these data errors, we can define three data cleaning operations to get a cleaned sample of data $\hat{S'}$ (a uniform random sample of ratio $m$ of the up-to-date view $S'$):
+We denote the updated materialized view as $S'$, which is result of applying a maintenance strategy $\mathcal{M}$ defined in the previous section.
+
+\subsection{Sampling}
+In this work, we focus on uniform samples.
+We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probablity $m$.
+Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP which find a uniform
+sample of \emph{size} $k\le \mid S \mid$.
+To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$.
+
+\subsection{Staleness and Freshness}
+Given a materialized view $S$ and an updated materialized view $S'$.
+In the deterministic case with no sampling, we call a query result $r = q(S)$ stale if:
+\[r \ne q(S')\]
+When there is sampling, this definition has to be made probabilistic.
+\begin{definition} PROBABILISTIC STALENESS.
+Let $\hat{S}$ be a uniform sample of $S$ with a sampling ratio of $m$,
+and let $r_m$ be the result of applying $q$ to $\hat{S}$.
+$r_m$ is \emph{stale} if and only if:
+\[\lim_{m\rightarrow 1} r_m \ne q(S') \text{  a.s}\]
+
+Conversely $r_m$ is \emph{fresh} for all values of $m$ if:
+\[\lim_{m\rightarrow 1} r_m == q(S') \text{  a.s}\]
+\end{definition}
+
+\subsection{View Maintenance as Data Cleaning}
+In SVC, we model this definition of staleness as a type of data error.
+Materialized views whose base relations have been updated potentially give stale query results.
+We formalize the problem of correcting staleness as a data cleaning operation.
+
+If we are given a materialized view $S$ and we know the base relations have had insertions and deletions $U$, then given the operators defined earlier there are three possible types of error:
+\begin{itemize}
+\item A row in $S$ needs to be updated.
+\item A row in $S$ needs to be deleted.
+\item A new row needs to be inserted into $S$.
+\end{itemize}
+
+In this case, it is clear that simply executing the maintenance strategy $\mathcal{M}$ will acheive the necessary results and udpate the view $S$ to view $S'$.
+However, now suppose we have a sampled view $\hat{S}$, and we want to do just enough effort to update only the rows in the that sample.
+This problem is challenging since the errors are not just updates to rows in the views, as there might be new insertions needed.
+Thus, we define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$ with sampling ratio $m$, we want to find an up-to-date uniform sample $\hat{S'}$.
+We define the cleaning procedure as preserving the uniformity of sampling, so after cleaning $\hat{S'}$ is a uniform sample of $S'$:
 \begin{itemize}
 \item If an update is needed, update the row.
 \item If the row needs to be deleted, delete the row.
-\item Add a random sample of ratio $m$ of rows that need to be inserted.
+\item For all new rows that need to be inserted into the view $S'$ insert a random sample of ratio $m$.
 \end{itemize}
 
-\reminder{Add an example}
+It is important to note that the way we defined data cleaning on a sample does not neccessary give a unique $\hat{S'}$. 
+In this paper, we take advantage of this property and propose a technique that analyzes $\mathcal{M}$ and can find a particular $\hat{S'}$
+efficiently.
 
-\iffalse
-The key contribution of this work is efficiently materializing $\hat{S'}$, and using the comparison between $\hat{S}$ and $\hat{S'}$ to correct stale queries on the view.
-Of course, in some cases, materializing the sample may require equivalent work to updating the entire view, and we explore the cases in which this technique leads to savings in maintenance costs. 
-\fi
+\subsection{Efficient Maintenance of a Sample}
+The input of this component is $S$ a stale view, a maintenance strategy $\mathcal{M}$, and the output is $\hat{S'}$.
+The maintenance strategy is a relational expression the execution of which updates $S$.
+The relational expression can be represented as a tree of relational operations. 
+We add a sampling operator $\eta$, which uniformly samples rows from a relation, to the top of this tree.
 
+We can see that this sampled maintenance strategy gives us the desired cleaning operation defined before.
+However, as is, it is a naive implementation.
+Placed at the top of the tree it would materialize $S'$ entirely then select those rows that happen to be in the sample.
+In Section \ref{correction}, address this challenge by defining a set of push down rules for $\eta$ to maximize the operators that benefit from the sampling.
 
+\subsection{Query Correction}
+Given a query $q$ which has been applied to the stale view $q(S)$; thus the result is stale.
+We want to calculate a $c$ such that $q(S)+c$ is fresh using the defition described previously.
+The procedure to maintain a sample $\hat{S'}$ was described in the previous sub-section.
+The correction $c$ is an estimate of how $\hat{S'}$ changed from $\hat{S}$.
+The challenge is that we cannot use any uniform sample $\hat{S'}$ and uniform sample $\hat{S}$.
+These samples must satisfy the following property, which we call \emph{correspondence}, and is a sort of an inverse to the 
+data cleaning formalism defined earlier:
 
-However, as mentioned in the introduction, this metaphor only goes so far.
-Staleness can result in rows in the stale sample that are missing in the up-to-date sample.
-Or, it can result in new rows in the up-to-date sample that could not possibly be in the stale sample.
-In this work, we add many new contributions not considered in SampleClean: (1) we consider the effect of missing rows by using a hashing-based lineage technique, (2) we generalize our sample procedure to sample from derived relations not just the base relation as in SampleClean, (3) we explicitly consider the effects of outliers on sampling, (4) we extend the work to handle \textbf{SELECT} queries, and (5) we explore optimality of NormalizedSC.
+\begin{definition} CORRESPONDENCE.
+The samples $\hat{S'}$ and $\hat{S}$ correspond if and only if:
+\item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
+\item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
+\end{definition}
 
-\reminder{It's a little hard to understand these constributions without reading the remaining part of the paper. I would suggest to sumarize three limitations that sampleclean have and say SVC overcomes these limitations. 1) cleaning: no data cleaning; 2) querying: restricted aggregation queries and optimality; 3) sampling: no outlier indexing}
-
-\subsection{System Architecture}
-\reminder{I would not call each section as an algorithm, but a component of our system.  }
-
-In this work, we address three distinct problems: (1) query optimization to efficiently find $\hat{S'}$, (2) using $\hat{S}$ and $\hat{S'}$ to calculate an approximate correction for a stale query result, and (3) increased robustness to outliers with outlier indexing.
-
-\subsubsection{Algorithm 1. Efficient Sampling of View Updates \reminder{Have you defined what is ``view updates"?}}
-The input of this algorithm is $\hat{S}$ and the output is $\hat{S'}$.
-Define a maintenance plan $\mathcal{M}(\mathcal{D},S_{def},\hat{S},U)$ \footnote{For brevity, we will drop the parameters when not ambiguous.} a maintenance strategy (be it incremental maintenance, full recomputation, or a mix) parametrized by the database, the view definition, the stale sample view, and the set of updates. \reminder{Move this definition to Sec 2.1.2}
-A maintenance plan is a relational expression the execution of which returns $\hat{S'}$ by appropriately applying the cleaning operations defined in the previous section using information from the view definition and the updates.
-
-A naive, inefficient approach to this problem would be to materialize $S'$ entirely then select those rows that happen to be in the sample.
-Instead, we must exploit the fact that we need not materialize every row and do just enough computation to materialize only the rows in $\hat{S'}$.
-[This problem defining a sampling operator, which we add to the maintenance plan's query tree, and using relational algebra rules to push this operator as far down the tree as possible.] \reminder{I would suggest not give details but a high-level idea and then point to sec 4.}
-
-\reminder{Add an example}
-
-\subsubsection{Algorithm 2. Query Correction }
-Given a query $q$, the stale sample $\hat{S}$, and an up-to-date sample created by the previous procedure $\hat{S'}$.
-When $q$ is applied to the full stale view, it gives a stale result of $r$.
-We define $c$ a correction, which is a function of $\hat{S}$ and $\hat{S'}$, that gives a corrected result $r-c$. \reminder{Say this is new, and old sampleclean work cannot solve it.}
-
-
-Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer.  \reminder{You can first say what kinds of queries that SampleClean consider (see my reminder in the begining of Sec 2.2), and then say in this work, we can support more. }
-In this work, we primarily consider non-nested aggregate queries with simple predicates on a single view:
+Given this property of correspondence, we can apply \textbf{NormalizedSC}.
+Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer.
+In this work, we extend beyond SampleClean's \sumfunc,\countfunc, and \avgfunc queries and consider general non-nested aggregate queries with simple predicates on a single view:
 \begin{lstlisting} [mathescape]
 SELECT $f(a)$ FROM View 
 WHERE Condition(A);
@@ -82,27 +111,30 @@ We also consider correcting stale non-nested select queries of the following for
 SELECT * FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-As with all sample estimates, for the estimates to be meaningful, the predicate should not be too selective.
+As with all sample estimates, for the estimates to be meaningful, the predicate should not be too selective. 
+In this broader context, in Section \ref{sampling}, we discuss the semantics and guarantees for these queries.
 
-\reminder{Add an example}
-
-
-\subsubsection{Algorithm 3. Outlier Indexing}
-We define an outlier index on base relations of the database $\mathcal{D}$.
+\subsection{Outlier Indexing}
+The correction $c$ in the previous subsection is derived from a sample.
+Sampling is known to be senstive to outliers, which we define as records whose values deviate significantly from the mean.
+However, a challenge is that since we do not materialize the entire up-to-date view detecting which records may be outliers is challenging.
+Instead, we define an outlier index on base relations of the database $\mathcal{D}$.
 This index tracks records whose attributes cross some threshold $t$.
-For every row in the view that is derived from a record in the outlier index, we ensure that it is incorporated into the sample.
-We explore the conditions under which we can make this guarantee. \reminder{Explain why we need outlier indexing and why it is challenging. Give a high-level idea and then point to Sec 6. }
+Then, for a given view $S$, this component gives a series of rules to propagate the information from the outlier index upwards.
+Basically, for every row in the view that is derived from a record in the outlier index, we ensure that it is incorporated into the sample.
+We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
 
-\subsubsection{Practical Use and Implementation}
-In implementation, SVC will work in conjunction with existing defered maintenance or re-calculation approaches.
+\subsection{System Architecture}
+In implementation, SVC works in conjunction with existing defered maintenance or re-calculation approaches.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
+We illustrate this setup in Figure \ref{sys-arch}.
+
+
 
 \subsection{Example Application: Log Analysis}
-\reminder{remove this example and merge it into sec 3.1, 3.2.1, 3.2.2.}
-
-Without getting into the formal details, to illustrate our system and justify our argument about performance improvements, we use the following running example which is a 
+Without getting into the specific technical details, to illustrate our system and justify our argument about performance improvements, we use the following running example which is a 
 simplified schema of one of our experimental datasets (Figure~\ref{example-1}).
 Imagine, we are querying logs from a video streaming company. 
 These logs record visits from users as they happen and grow over time.

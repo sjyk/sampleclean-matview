@@ -1,46 +1,35 @@
 \section{Background and Definitions}\label{sec-background}
-\reminder{I know we have discussed to put SampleClean before MVs. But I put SampleClean after MVs because it reads more natural.}
-\subsection{Materialized View}\label{subsec-inc}
 
+In this section, we briefly overview the current challenges with view maintenance and
+our prior work in scalable data cleaning.
 
+\subsection{Materialized View Maintenance}\label{subsec-inc}
+Views define logical tables which can be queried instead of physical base relations.
+Materialized Views are a class of views that are pre-computed and stored (i.e materialized).
+Any form of pre-computed, derived data encounters challenges with staleness when the physical base data changes.
 
-
-\subsubsection{Notation} \reminder{I put this section back to Sec 2 because Sec 2.1.2 uses undefined notations}
-
-Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
-We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
-We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
-In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
-An update to a relation can be modeled as a deletion and then an insertion.
-%In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
-
-We look at relation expressions for the view $S_{def}$ composed of the following operators:
-\begin{itemize}\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
-\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{e}(R)$: Aggregation of R grouped by the relational expression $e(R)$.\footnote{A special case of this operator is $\delta$ the deduplication operator.}\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Multiset union take a union of the two sets incrementing multiplicities.
-\item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
-\item $R_1 \dot{-} R_2$: Multiset set difference.
-\end{itemize}
-
-
-\subsubsection{View Maintenance}
-\reminder{I would suggest you first talk about recomputation that is used to motivate incremental view maintenance, and then talk about how incremental view maintenance works, and finally say incremental view maintenance may not work for all views, thus recomputation is still necessary in some situations. In the end, you define maintenance }
-
+One way to approach this problem is to recompute the materialized view every time there are updates to the base tables.
+However, this approach is very inefficient if updates to the data generally have small or sparse effect on the materialized view. 
+A contrasting approach is incremental view maintenance, where rows in the materialized views are incrementally updated based on the updates to the base table.
 Incremental maintenance of materialized views in multiset algebras has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
-At a high-level, incremental maintenance algorithms typically consist of the following steps: for each leaf (relation) of the query tree of $S_{def}$ propagate $\Delta$ and $\nabla$ up the tree using composibility rules of delta relations, derive a \emph{change propagation formula} for $S$ in terms of deltas of subexpressions, and join this formula with the view to apply the changes. 
-These rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
+At a high-level, incremental maintenance algorithms typically consist of the following steps: (1) maintain a cache of insertions and deletions for each physical base table, then using the view definition derive a \emph{change propagation formula} in terms of the set of insertions and deletions, and finally apply the formula to the materialized view.
+For a variety of view types, these rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
 
-However, even for the set of operators defined in the earlier section, there are some views for which full incremental maintenance is not possible and subexpressions have to recomputed. Consider the relation R(employeeid,country,salary) and view $S$ that calculates the \maxfunc salary of employees grouped by country. Under only insertions $\Delta R$, it is clear that the view can be maintained incrementally. 
-However, if we allow deletions $\nabla R$ then it is unclear how to update a view if an employee with a maximal salary is deleted since we do not know the salary of the next highest employee. 
+Incremental maintenance may not be efficient in all cases.
+Consider the relation R(employeeid,country,salary) and view that calculates the \maxfunc salary of employees grouped by country. 
+However, if we allow deletions then it is unclear how to update a view if an employee with a maximal salary is deleted since we do not know the salary of the next highest employee. 
+In general, to ensure correctness the view has to store the entire set of salaries for each country.
+Along the lines of this example, especially when considering views with non-distributive aggregates and non-monotone operations, there are 
+cases when recomputation may require less storage of state or even less computation.
 
-In cases like this, some recomputation is \underline{inevitable}. \reminder{ There's paper on this issue ``Incremental main- tenance for non-distributive aggregate functions," Try to avoid strong arguments. For example, you can say in this situation, it may be better to ... }
-However, it turns out that SVC is general enough to handle both views that can be fully incrementally maintained and views that require partial or full recomputation.
-In short, we say there is a \emph{maintenance strategy} $\mathcal{M}$ which is a relational expression that is a function of the database $\mathcal{D}$ and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ that updates the view.
-%SVC takes the query tree of $\mathcal{M}$ as input and outputs a sampling plan and a query correction plan (Section ??). 
-\reminder{Formally define the maintenance strategy here. Not }
+It turns out that SVC is general enough to handle both views that can be fully incrementally maintained and views that require partial or full recomputation.
+We formalize this as a \emph{maintenance strategy} $\mathcal{M}$.
+\begin{definition} MAINTENANCE STRATEGY.
+Let, $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$.
+Let, $S$ be a materialized view.
+We denote the insertions to a relation $R_i$ as $\Delta R_i$ and the deletions as $\nabla R_i$.
+A maintenance strategy $\mathcal{M}$ is a function of the database $\mathcal{D}$, $S$, and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ that returns a relational expression the execution of which updates the view.
+\end{definition}
 
 \subsubsection{Why Materialized Views Go Stale}
 The algebraic analysis of incremental maintenance informs us which views can be incrementally maintained.
@@ -62,33 +51,56 @@ While always fresh, both lazy maintenance and immediate maintenance hit a bottle
 The alternative is potentially unbounded staleness between maintenance cycles with deferred maintenance.
 SVC addresses this problem from a new perspective, namely, can we accept some degree of bounded inaccuracy for increased performance.
 
-
 \subsection{SampleClean: Fast and Accurate Query Processing on Dirty Data}
-
-\reminder{Give the queries that SampleClean can support in this section. This makes the argument of Section 3.2.2 become easy. }
-
 In our prior work on the SampleClean project, we proposed a framework for scalable data cleaning.
-Traditionally, data cleaning has explored cleaning entire datasets for increased query accuracy. \reminder{Maybe it is more clear to tell a SampleClean story by saying it has three steps: sampling, cleaning and querying . }
-SampleClean, however, applies a data cleaning algorithm to a random sample of dirty data and uses this information to extrapolate approximately clean query results on the entire datasets. 
-One of the algorithms \reminder{algorithm --> query processing approaches ?} in SampleClean,  \textbf{NormalizedSC}, used information of how data cleaning changed a record and issued a correction to \sumfunc, \avgfunc, and \countfunc queries.  \reminder{Do you think we need introduce RawSC here or somewhere else?}
-[A key property of this algorithm was even under arbitrary data error that the corrected query result was unbiased and bounded in confidence intervals.] \reminder{I would replace this sentence by saying a sentence like "sampleclean can return accurate query results with confidence intervals by only cleaning a small sample of data" }
+Similar to the accuracy-performance contrast between incremental maintenance and periodic maintenance in the materialized view setting, data cleaning also faces a similar challenge.
+Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy, and those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
+We proposed SampleClean to add an additional tradeoff to this design space by using sampling.
+
+SampleClean (Figure \ref{sc}) has three parts: (1) sampling, (2) data cleaning, and (3) query result estimation.
+First, SampleClean creates a sample of dirty data (which are erroneous, missing, or otherwise corrupted records).
+Then, the framework applies a data cleaning operation to the sample.
+Finally, when users query the dataset, the framework uses the clean sample to extrapolate clean query results.
+The key challenge is that data cleaning can potentially change the statistics of a sample and the queries need to compensate for those effects.
+In our initial work, SampleClean focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
+
+In SampleClean, we noticed that there were two contrasting query processing approaches, which we termed: \textbf{RawSC} and \textbf{NormalizedSC}.
+In \textbf{RawSC}, we could apply queries, with some re-weighting, directly to the clean sample of data.
+This approach is very similar to that taken in Sample-based Approximate Query Processing \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}.
+\textbf{NormalizedSC}, on the other hand, processed the changes made by the data cleaning and issued ``corrections" to the query results.
+We found that these two algorithms tradeoff statistical efficiency and robustness to error; as \textbf{RawSC} only depends on clean data it is robust to the magnitude of data error and as \textbf{NormalizedSC} depends on the delta of the data cleaning it performs well when the data cleaning is sparse. 
+In this work, we found that estimating a correction (\textbf{NormalizedSC}) led to lower variance results on real datasets (see Section \ref{exp}). 
 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch2.pdf} \vspace{-.25em}
- \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness. \reminder{You forgot to reference this figure in the text}}\vspace{-1.75em}
+ \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness. \label{sc}}\vspace{-1.75em}
 \end{figure}
 
+\subsection{Contributions}
+Inspired by SampleClean, SVC samples a stale view, cleans this view by restricting the maintenance strategy to just the rows in the sample, and then applies \textbf{NormalizedSC} to correct the results of queries on the view.
+Applying this data cleaning framework to the materialized view setting leads to some interesting theoretical challenges with new insights for both materialized view maintenance and data cleaning.
+In materialized views, unlike the models of error studied in SampleClean, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted.
+This problem poses an important statistical challenge since to calculate a correction with \textbf{NormalizedSC} we need to measure the difference in rows attribute values after cleaning, and this requires us to define this algorithm when rows are missing from either side of the difference.
 
-{\noindent \bf Relationship to SAQP.}
-Estimating the results of aggregate queries from samples has been
-well studied in a field called Sample-based Approximate Query Processing
-(SAQP) \cite{OlkenR86,AgarwalMPMMS13}.
-Our approach differs from SAQP as we use a sample to correct a query rather than directly estimating the query result.
-The SAQP approach to this problem, would be to
-estimate the result directly from the maintained sample \cite{joshi2008materialized}.
-We found that estimating
-a correction and leveraging an existing deterministic result led
-to lower variance results on real datasets (see Section \ref{exp}). 
+In SampleClean, we assumed samples directly from base relations which is straight-forward to implement with a reservoir-style sampling technique.
+However, sampling from materialized views is much more complex.
+This combined with the challenges of missing and superflous stale rows, led us to design a rule-based sampling optimizer that can ``push down" a sampling operator through a maintenance strategy.
+
+We further use this new setting to explore and formalize the class of queries that our frameworks can support.
+It turns out that the framework is more general than the \sumfunc, \avgfunc, and \countfunc queries studied before.
+We show that \textbf{NormalizedSC} actually can give meaningful results for \selectfunc queries.
+Furthermore, a key result is that any query that can be estimated in an unbiased way from a sample can also be corrected using \textbf{NormalizedSC}.
+It turns out that \sumfunc, \avgfunc, and \countfunc are just a special case where optimality with respect to estimate variance holds.
+A further insight is that queries without closed form confidence intervals can also be supported with a statistical bootstrap, and we
+derive an algorithm to achieve empirical confidence intervals for aggregates such as \texttt{median} and \texttt{corr}.
+
+Finally, in this work, we give an explicit treatment of non-erroneous outliers records.
+Sampling is particularly sensitive to variance in the dataset, and large outliers can significantly reduce query accuracy.
+We address this problem with an index of outlier records on base relations.
+However, an important challenge is to propagate this information upwards to the views and to incorporate this information into \textbf{NormalizedSC}.
+
+
+
 
 
