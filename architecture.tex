@@ -5,33 +5,30 @@ In this section, we formalize these three problems and overview the architecture
 
 \subsection{Notation}
 Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
-We use a multiset algebriac model (a set of elements with corresponding multiplicities) to represent the relations in the database $\mathcal{D}$ and the materialized view $S$.
 We denote the multiset of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
 An update to a relation can be modeled as a deletion and then an insertion.
 %In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
-
 We look at relation expressions for the view $S_{def}$ composed of the following operators:
 \begin{itemize}\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
 \item $\gamma_{e}(R)$: Aggregation of R grouped by the relational expression $e(R)$.\footnote{A special case of this operator is $\delta$ the deduplication operator.}\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Multiset union take a union of the two sets incrementing multiplicities.
-\item $R_1 \dot{\cap} R_2$: Multiset intersection take an intersection of the set counting multiplicities.
-\item $R_1 \dot{-} R_2$: Multiset set difference.
+\item $R_1 \cup R_2$: Set union take a union of the two sets incrementing multiplicities.
+\item $R_1 \cap R_2$: Set intersection take an intersection of the set counting multiplicities.
+\item $R_1 - R_2$: Set set difference.
 \end{itemize}
-
 We denote the updated materialized view as $S'$, which is result of applying a maintenance strategy $\mathcal{M}$ defined in the previous section.
 
-\subsection{Sampling}
-In this work, we focus on uniform samples.
+\subsubsection{Sampling}
+In this work, we focus on uniform samples of views.
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probablity $m$.
 Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP which find a uniform
 sample of \emph{size} $k\le \mid S \mid$.
 To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$.
 
-\subsection{Staleness and Freshness}
+\subsubsection{Staleness and Freshness}
 Given a materialized view $S$ and an updated materialized view $S'$.
 In the deterministic case with no sampling, we call a query result $r = q(S)$ stale if:
 \[r \ne q(S')\]
@@ -46,7 +43,8 @@ Conversely $r_m$ is \emph{fresh} for all values of $m$ if:
 \[\lim_{m\rightarrow 1} r_m == q(S') \text{  a.s}\]
 \end{definition}
 
-\subsection{View Maintenance as Data Cleaning}
+\subsection{Problem Statements}
+\subsubsection{View Maintenance as Data Cleaning}
 In SVC, we model this definition of staleness as a type of data error.
 Materialized views whose base relations have been updated potentially give stale query results.
 We formalize the problem of correcting staleness as a data cleaning operation.
@@ -68,12 +66,11 @@ We define the cleaning procedure as preserving the uniformity of sampling, so af
 \item If the row needs to be deleted, delete the row.
 \item For all new rows that need to be inserted into the view $S'$ insert a random sample of ratio $m$.
 \end{itemize}
-
 It is important to note that the way we defined data cleaning on a sample does not neccessary give a unique $\hat{S'}$. 
 In this paper, we take advantage of this property and propose a technique that analyzes $\mathcal{M}$ and can find a particular $\hat{S'}$
 efficiently.
 
-\subsection{Efficient Maintenance of a Sample}
+\subsubsection{Efficient Maintenance of a Sample}
 The input of this component is $S$ a stale view, a maintenance strategy $\mathcal{M}$, and the output is $\hat{S'}$.
 The maintenance strategy is a relational expression the execution of which updates $S$.
 The relational expression can be represented as a tree of relational operations. 
@@ -84,7 +81,7 @@ However, as is, it is a naive implementation.
 Placed at the top of the tree it would materialize $S'$ entirely then select those rows that happen to be in the sample.
 In Section \ref{correction}, address this challenge by defining a set of push down rules for $\eta$ to maximize the operators that benefit from the sampling.
 
-\subsection{Query Correction}
+\subsubsection{Query Correction}
 Given a query $q$ which has been applied to the stale view $q(S)$; thus the result is stale.
 We want to calculate a $c$ such that $q(S)+c$ is fresh using the defition described previously.
 The procedure to maintain a sample $\hat{S'}$ was described in the previous sub-section.
@@ -114,7 +111,7 @@ WHERE Condition(A);
 As with all sample estimates, for the estimates to be meaningful, the predicate should not be too selective. 
 In this broader context, in Section \ref{sampling}, we discuss the semantics and guarantees for these queries.
 
-\subsection{Outlier Indexing}
+\subsubsection{Outlier Indexing}
 The correction $c$ in the previous subsection is derived from a sample.
 Sampling is known to be senstive to outliers, which we define as records whose values deviate significantly from the mean.
 However, a challenge is that since we do not materialize the entire up-to-date view detecting which records may be outliers is challenging.

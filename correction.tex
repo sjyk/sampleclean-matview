@@ -3,14 +3,13 @@ In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditi
 maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
 \subsection{Desired Properties and Challenges}
-We formalized the update procedure to transform $S$ into $S'$ as a maintenance strategy $\mathcal{M}$.
-This maintenance strategy is itself a relational expression.
-To derive a sample $\hat{S'}$, we could just apply the maintenance strategy and then sample.
+In the previous section, we formalized the computation of $\hat{S'}$  as a data cleaning procedure.
+A naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
 However, this does not make the maintenance of the sample any more efficent.
 
-Thus, ideally, we want to integrate the sampling into the maintenance expression $\mathcal{M}$ so that expensive operators
+Thus, ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
 need not operate on the full data.
-We can model this process as a ``push-down"\cite{??} on an operator tree of the relational expression.
+We can model this process as a ``push-down" on an operator tree of the relational expression of $\mathcal{M}$.
 An important challenge is that we want every relation above the sampling to still be a uniform sample.
 
 We further desire a stronger property, which we call Sample Completeness:
@@ -21,7 +20,7 @@ To illustrate this property imagine a group by aggregation.
 A sample of this expression that satisfies the property is a uniform sample of the fully aggregated groups.
 A sample that does not satisfy this property is a sample where some groups are partially aggregated.
 
-However, it is known that uniform sampling commutes very poorly many relational operations such as joins and aggregates \cite{??}.
+However, it is known that uniform sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Furthermore, a ``coin-flip" algorithm to sample the relations would not achieve Sample Completeness in general.
 The problem is that our sampling technique needs to include all of the rows in relations lower in the tree that could possibly contribute to a row.
 Our approach to this problem will use a specific type of traceable unique identification for rows and then applying a deterministic hashing operator to ensure all of the relevant rows are processed.
@@ -38,19 +37,21 @@ We recursively define these identifying attributes:
 \item $\Pi_{(a_1,...,a_k)}(R)$: Preserves lineage of R if the projection includes $p$ \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$. 
 \item $\gamma_{e}(R)$: Resets lineage. The primary key of the result is the group by expression $e(R)$.\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Always preserves lineage attribute $p$
-\item $R_1 \dot{\cap} R_2$: Always preserves lineage attribute $p$
-\item $R_1 \dot{-} R_2$: Always preserves lineage attribute $p$
+\item $R_1 \cup R_2$: Always preserves lineage attribute $p$
+\item $R_1 \cap R_2$: Always preserves lineage attribute $p$
+\item $R_1 - R_2$: Always preserves lineage attribute $p$
 \end{itemize}
 \end{definition}
 The above definition is also constructive; that is, if a view does not satisfy the Lineage Condition we can modify the plan so that it does.
 We can add a primary key to the base relations, and then we modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the tree.
 Given this definition of lineage, we see that we can trace through all the rows that contribute to an expression higher up in the tree.
-That is if we have a deterministic way of mapping $p$ to a sample we can also ensure that all contributing expressions are also sampled. 
+
+\subsection{Hashing Operator}
+If we have a deterministic way of mapping $p$ defined in the previous subsection to a sample we can also ensure that all contributing expressions are also sampled. 
 However, it is important to note that for some of the expressions, notably joins and aggregates, the lineage gets reset.
 It turns out in general we cannot push down even a deterministic sample through those expressions.
 
-\subsection{Hashing Operator}
+To acheive this we using a hashing procedure.
 Let us denote the hashing operator $\eta_{a_1, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
 If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
@@ -67,13 +68,12 @@ We make two assumptions on this hash operator: (1) \emph{independence} there is 
 \item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. See (Section ??) for conditions when push down is possible.
 \item $\gamma_{e}(R)$: Blocks $\eta$ in general. If the group by expression can be decomposed into $e(R) = a, e'(R)$ then pushdown is posible.\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Push $\eta $ through to both $R_1$ and $R_2$
-\item $R_1 \dot{\cap} R_2$: Push $\eta $ through to both $R_1$ and $R_2$
-\item $R_1 \dot{-} R_2$: Push $\eta $ through to both $R_1$ and $R_2$
+\item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
+\item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$
+\item $R_1 - R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \end{itemize}
 \end{proposition}
 
-\subsubsection{More About Joins} 
 The rules preserve sample completeness for the general operators. 
 However, in special cases, we can achieve even further pushdown of the hashing operator. 
 

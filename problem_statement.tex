@@ -1,5 +1,4 @@
-\section{Background and Definitions}\label{sec-background}
-
+\section{Background}\label{sec-background}
 In this section, we briefly overview the current challenges with view maintenance and
 our prior work in scalable data cleaning.
 
@@ -8,10 +7,10 @@ Views define logical tables which can be queried instead of physical base relati
 Materialized Views are a class of views that are pre-computed and stored (i.e materialized).
 Any form of pre-computed, derived data encounters challenges with staleness when the physical base data changes.
 
-One way to approach this problem is to recompute the materialized view every time there are updates to the base tables.
+One approach to this problem is to recompute the materialized view every time there are updates to the base tables.
 However, this approach is very inefficient if updates to the data generally have small or sparse effect on the materialized view. 
-A contrasting approach is incremental view maintenance, where rows in the materialized views are incrementally updated based on the updates to the base table.
-Incremental maintenance of materialized views in multiset algebras has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
+A contrasting approach is incremental view maintenance (IVM), where rows in the materialized views are incrementally updated based on the updates to the base table.
+Incremental maintenance of materialized views has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
 At a high-level, incremental maintenance algorithms typically consist of the following steps: (1) maintain a cache of insertions and deletions for each physical base table, then using the view definition derive a \emph{change propagation formula} in terms of the set of insertions and deletions, and finally apply the formula to the materialized view.
 For a variety of view types, these rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
 
@@ -22,8 +21,8 @@ In general, to ensure correctness the view has to store the entire set of salari
 Along the lines of this example, especially when considering views with non-distributive aggregates and non-monotone operations, there are 
 cases when recomputation may require less storage of state or even less computation.
 
-It turns out that SVC is general enough to handle both views that can be fully incrementally maintained and views that require partial or full recomputation.
-We formalize this as a \emph{maintenance strategy} $\mathcal{M}$.
+So materialized views are maintained either with incremental maintenance, recompution, or a mix.
+We formalize this process as a \emph{maintenance strategy} $\mathcal{M}$.
 \begin{definition} MAINTENANCE STRATEGY.
 Let, $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$.
 Let, $S$ be a materialized view.
@@ -31,25 +30,29 @@ We denote the insertions to a relation $R_i$ as $\Delta R_i$ and the deletions a
 A maintenance strategy $\mathcal{M}$ is a function of the database $\mathcal{D}$, $S$, and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ that returns a relational expression the execution of which updates the view.
 \end{definition}
 
-\subsubsection{Why Materialized Views Go Stale}
-The algebraic analysis of incremental maintenance informs us which views can be incrementally maintained.
-However, there are many practical considerations of excuting these operations in real database systems and it may not always be feasible to immediately apply updates.
-For example, in distributed systems record-at-a-time maintenance may be excessively affected by overheads and batching updates together can allows for amortization.
-In other systems, such as Apache Spark, the immutability of data structures means that updates can sometimes incur overheads on the order of magnitude of recomputation (see experiments ??).
-Finally, immediate scheduling of maintenance can place a bottleneck on updates to the base table which may result in degraded performance or worse having to drop updates to cope with load.
+SVC provides a framework that can analyze a maintenance strategy, and only apply updates to a random sample of the stale view.
+
+\subsubsection{Practical Considerations}
+The algebraic analysis of incremental maintenance \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10} informs us which views can be incrementally maintained.
+However, there are many practical considerations of excuting these operations in real database systems and it may not always be feasible to immediately apply updates; even if theoretically possible.
+For example, in distributed systems record-at-a-time maintenance may be excessively affected by overheads (such as coordination and serialization) and batching updates together can allows for amortization.
+In other systems, such as Apache Spark, the immutability of data structures means that updates must be processed synchronously and old views must be garbage collected further exacerbating this problem.
+Finally, immediate scheduling of maintenance can place a bottleneck on updates to the base table which may result in degraded performance system-wide.
 
 The main problem is that while immediate incremental maintenance has many advantages, the particulars of the database system and available resources often dictate how updates are propagated.
-To address these challenges, deferred maintenance is an alternative solution.
+To address these challenges, deferred maintenance is an alternative solution and often preferred solution.
 The main insight of deferral is to avoid maintaining the view immediately and to schedule an update at a more convenient time either in a pre-set way or adaptively.
 In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
-For example, views can be updated at night when the system can use more resources to process the updates without affecting a critical application.
+For example, views can be updated at night when the system can use more resources to process the maintenance without affecting a critical application.
 However, this also means that during the day the materialized view becomes increasingly stale as it was computed the night before.
 
 These costs can also be deferred to query execution time.
 In particular, we highlight a technique called lazy maintenance which applies updates to the view only when a user's query requires a row \cite{zhou2007lazy}.
 While always fresh, both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates, and this results increasingly degraded performance if a user wants to query a view.
-The alternative is potentially unbounded staleness between maintenance cycles with deferred maintenance.
-SVC addresses this problem from a new perspective, namely, can we accept some degree of bounded inaccuracy for increased performance.
+The alternative is a periodic strategy, but this means that there is unbounded error on queries between maintenance periods.
+
+The data cleaning perspective that SVC offers on this problem is that there is a tradeoff between accuracy and computation.
+By using sampling, we give the user access to a new tradeoff space between immediate (or close to immediate i.e. mini-batch) maintenance and long-periodic maintenance.
 
 \subsection{SampleClean: Fast and Accurate Query Processing on Dirty Data}
 In our prior work on the SampleClean project, we proposed a framework for scalable data cleaning.

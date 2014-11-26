@@ -29,7 +29,7 @@ Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table
 \label{table:nonlin} % is used to refer this table in the text
 \end{table*}
 
-\subsection{ Aggregate Queries}
+\subsection{Aggregate Queries}
 First, let us consider single-attribute, non-nested aggregate queries with simple predicates on a single view:
 \begin{lstlisting} [mathescape]
 SELECT $f(a)$ FROM View 
@@ -56,22 +56,23 @@ Applying the linearity of expectation:
 \[ c = \mathbb{E}(\bar{q}(\hat{S'}) - q(s)) \blacksquare \]
 
 \subsection{Mean-like Aggregates}
-NormalizedSC considered \sumfunc, \countfunc, and \avgfunc.
+In our prior work, NormalizedSC considered \sumfunc, \countfunc, and \avgfunc.
 We call this first class of queries,  \sumfunc, \countfunc, and \avgfunc, mean-like queries.
-That is, these queries behave like a sample mean, and we can see that \sumfunc is a mean multiplied by the dataset size and \countfunc is the mean of the indicator function multipled by the dataset size.
+That is, queries that can be rewritten as a sample mean, and we can see that \sumfunc is a mean multiplied by the dataset size and \countfunc is the mean of the indicator function multipled by the dataset size.
 A sample mean is an unbiased estimator of a population mean for all data distributions and sample sizes.
 Furthermore, the Central Limit Theorem states that asymptotically this mean approaches a normal distribution giving very tight bounds on the error.
+In the statistical literature, this class of aggregate function is formalized as the class of U-statistics, see \cite{hoeffding1948class}.
 
-However, it is important to note, we are not trying to estimate \sumfunc, \countfunc, and \avgfunc but rather this correction factor $c$, the important question is how do we reformulate the problem to estimate $c$ as a sample mean.
+However, it is important to note, we are not trying to estimate \sumfunc, \countfunc, and \avgfunc directly but rather this correction factor $c$, the important question is how do we reformulate the problem to estimate $c$ as a sample mean.
 This problem would be solved if we could somehow bring the subtraction inside the query:
 \[ c = q(\hat{S'} - S)\] 
 In NormalizedSC, we simply used the fact that these queries were commutative and associative and moved the subtraction into the summation.
-However, it is possible that there are tuples in the new view and the old view that do not exist in the other.
+However, in the materialized view setting, it is possible that there are tuples in the new view and the old view that do not exist in the other.
 
 We define a new operator $\check{-}$, which we call correspondence subtract, which handles this problem.
-\begin{definition} (CORRESPONDENCE SUBTRACT). For two relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where 
-$a_2$ is a numerical attribute. $\check{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_2$: \[ \Pi_{R_1.a_2 - R_1.a_2} ( R_1 \fullouterjoin R_2 ) \]
- If $R_1.a_2$ or $R_2.a_2$ is $\emptyset$ then they are respectively represented as a $0$.
+\begin{definition} (CORRESPONDENCE SUBTRACT). For two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where 
+$a_2$ is a numerical attribute. $\check{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_1.a_1} ( R_1 \fullouterjoin R_2 ) \]
+ If $R_1.a_2$ or $R_2.a_1$ is $\emptyset$ then they are respectively represented as a $0$.
 \end{definition}
 Using this definition, we can write:
 \[ c = q(\hat{S'} \check{-} \hat{S})\] 
@@ -107,7 +108,7 @@ By the Central Limit Theorem, the mean value of numbers drawn by uniform random 
 where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.\footnote{\scriptsize For sampling without replacement, there is an additional term of $\sqrt{\frac{N-k}{N-1}}$. We consider estimates where N is large in comparison to k making this term insignificant.}
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$; refer to our prior work \cite{wang1999sample} for futher details.
 
-\subsection{Optimality Mean-like Aggregates}
+\subsection{Optimality for Mean-like Aggregates}
 We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
 \begin{proposition}
 An estimator is called a minimum variance unbiased estimator (MVUE) of a parameter if it is unbiased and the variance of the parameter estimate is less than or equal to that of any other unbiased estimator of the parameter.
