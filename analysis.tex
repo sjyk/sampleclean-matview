@@ -1,6 +1,5 @@
 
 \section{Extensions and Discussion}\label{sec:ext}
-In this section, we present two additional features of the SVC framework, and discuss some additional points.
 
 \subsection{Correction vs. Direct Estimate}
 We argued that in many cases correcting query results approximately is more accurate than an
@@ -30,8 +29,8 @@ For example, sampling on a non-unique key, while unbiased in expectation, hash h
 Happening to hash a large group may lead to decreased performance. 
 Suppose my keys are duplicated $\mu_k$ times on average with variance $\sigma_k^2$, then the variance of the
 sample size is for sampling fraction $m$:
-\[m(1-m)\mu_k^2+(1-m)*\sigma_k^2\]
-In this setting, our optimizer would have to consider this variance against the benefits of pushing the hash operator futher down the query tree. 
+\[m(1-m)\mu_k^2+(1-m)\sigma_k^2\]
+In this setting, our sampling would have to consider this variance against the benefits of pushing the hash operator futher down the query tree. 
 
 \subsection{Sampling Updates vs. Sampling Views}
 In SVC, we sample from views and work backwards through the view definition using relational algebra.
