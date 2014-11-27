@@ -43,9 +43,9 @@ Every relation can have an outlier index which is a set of attributes and a set 
 \item $\Pi_{p,(a_2,...,a_k)}(R)$: Propagates upwards if $A$ is in the projection, otherwise null.\vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: New outlier index where $A=A_{r1} \cup A_{r2}$ and $O = \bowtie_{\phi (r1,r2)}(O_1,O_2)$.
 \item $\gamma_{e}(R)$: New outlier index where $A=\{e\}$ and $O = \gamma_{e}(O)$.\vspace{-.45em}
-\item $R_1 \dot{\cup} R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \dot{\cup} O_2$.
-\item $R_1 \dot{\cap} R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \dot{\cap} O_2$.
-\item $R_1 \dot{-} R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \dot{-} O_2$.
+\item $R_1 \cup R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cup O_2$.
+\item $R_1 \cap R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cap O_2$.
+\item $R_1 - R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 - O_2$.
 \end{itemize}
 \end{definition}
 For all outlier indices that can propagate to the view (ie. the top of the tree), we get a final set $O$ of records. 

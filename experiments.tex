@@ -108,25 +108,25 @@ To illustrate how SVC gives the user access to this new tradeoff space, we will 
 \centering
 \includegraphics[scale=0.15]{exp/msj_1.pdf}
 \includegraphics[scale=0.15]{exp/msj_2.pdf}
- \caption{TODO \label{exp-1-samplesize}}
+ \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of SVC. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for SVC. \label{exp-1-samplesize}}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.16]{exp/msj_3.pdf}
- \caption{TODO \label{exp-1-acc}}
+ \caption{We generate 100 of each TPCD query type and process it using the stale materialized view, SVC, and SAQP. We plot the median relative error for each query type. SVC is more accurate than SAQP and No Maintenance.\label{exp-1-acc}}
 \end{figure}
 
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.16]{exp/msj_4.pdf}
-  \caption{TODO \label{exp-1-total}}
+  \caption{For a fixed sampling ratio of 10\% we vary the update rate and plot the total time (maintenance + query execution) time. While SVC has an increased query execution time in comparison to SAQP, this overhead is small compared to the savings in maintenance time compared to full incremental maintenance. \label{exp-1-total}}
 \end{figure}
 
 \begin{figure}[t]
 \centering
   \includegraphics[scale=0.15]{exp/msj_5.pdf}
- \caption{TODO \label{exp-1-zipf}}
+ \caption{We fix the update size at 1GB and the sampling ratio at 10\% and vary the skew of the dataset. The gap between SAQP and SVC increases in more skew datasets suggesting that corrections are more robust to skew. \label{exp-1-zipf}}
 \end{figure}
 
 In our first experiment, we evaluate how SVC performs on a materialized view of the join of \textbf{lineitem} and \textbf{orders}.
@@ -160,20 +160,20 @@ We can make SVC even more accurate using the outlier indexing which we will eval
  \includegraphics[scale=0.14]{exp/msdc_1.pdf}
  \includegraphics[scale=0.14]{exp/msdc_2.pdf}
   \includegraphics[scale=0.16]{exp/msdc_3.pdf}
-   \caption{TODO \label{exp2-acc-sample}}
+   \caption{(a,b) We repeat the experiments in the previous section with the data cube view. Consistent with the first experiments, we find that sampling can save significant maintenance costs and these savings are more efficent for larger update sizes. (c) We further confirm in this data cube application that SVC with a ratio of 10\% is indeed more accurate than SAQP and No Maintenance. \label{exp2-acc-sample}}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.16]{exp/msdc_4.pdf}
-   \caption{TODO \label{exp2-max}}
+   \caption{For 1GB of updates, we plot the max error as opposed to the median error in the previous experiments. Even though updates are 10\% of the dataset size, some queries are nearly 80\% incorrect. SVC helps significantly mitigate this error. \label{exp2-max}}
 \end{figure}
 
 \begin{figure}[t]
 \centering
   \includegraphics[scale=0.16]{exp/msdc_5.pdf}
   \includegraphics[scale=0.16]{exp/msdc_6.pdf}
- \caption{TODO \label{exp2-median}}
+ \caption{(a) We run the same experiment but replace the \sumfunc query with a median query. We find that similarly SVC is more accurate. (b) However, bounding the median correction with bootstrap is expensive but that overhead is small relative to total savings. \label{exp2-median}}
 \end{figure}
 
 Pre-computed joins are one important use case of materialization. 
@@ -207,7 +207,7 @@ There are techniques to speed up the calcuation of bootstrap using parallelizati
  \includegraphics[scale=0.16]{exp/msqv_1.pdf}
  \includegraphics[scale=0.16]{exp/msqv_2.pdf}
 
- \caption{TODO \label{exp3-acc}}
+ \caption{(a) For 1GB update size, we compare maintenance time and accuracy of SVC with a 10\% sample on different views. V21 and V22 do not benefit as much from SVC due to nested query structures. (b) As before, SVC is more accurate than SAQP and No Maintenance. \label{exp3-acc}}
 \end{figure}
 
 The last two experiments picked fixed views and varied the queries on the views.
@@ -231,7 +231,7 @@ There might be a way to derive an equivalent expression that could be sampled mo
  \includegraphics[scale=0.14]{exp/msoi_1.pdf}
  \includegraphics[scale=0.14]{exp/msoi_2.pdf}
 
- \caption{TODO \label{exp5-oi}}
+ \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \label{exp5-oi}}
 \end{figure}
 We hinted at the sensitivity to dataset skew of sampling-based approaches ealier.
 In our next experiment, we evaluate our outlier indexing.
@@ -252,7 +252,7 @@ While there is an overhead, it is still small compared to the gains made by samp
  \includegraphics[scale=0.14]{exp/mssd_2.pdf}
  \includegraphics[scale=0.14]{exp/mssd_1.pdf}
 
- \caption{TODO \label{exp6-sys}}
+ \caption{(a) When I/O is a bottlenck, SVC is less efficient. (b) However, when CPU is a bottleneck SVC is more effective. \label{exp6-sys}}
 \end{figure}
 
 We also explored how different system characteristics affect the efficiency of SVC.
