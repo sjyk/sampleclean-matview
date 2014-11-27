@@ -32,32 +32,13 @@ We treat the 12 group-by aggregates as queries on the view.
 \textbf{Data Cube: } Another application which is common in industry analytics is data cubing.
 We define the following ``base cube" as a materialized view that calculates the total revenue 
 grouped by distinct customer, nation, region, and part number.
-\begin{lstlisting}
-select
-  sum(l_extendedprice * (1 - l_discount)) as revenue,
-  c_custkey, n_nationkey,
-  r_regionkey, L_PARTKEY
-from
-  lineitem, orders,
-  customer, nation,
-  region
-where
-  l_orderkey = o_orderkey and
-  O_CUSTKEY = c_custkey and
-  c_nationkey = n_nationkey and
-  N_REGIONKEY = r_regionkey
-
-group by
-  c_custkey, n_nationkey, 
-  r_regionkey, L_PARTKEY
-\end{lstlisting}
 The queries on this view are ``rollup" queries that aggregate over 
 subsets of the groups (eg. total of all customers in North America).
-\reminder{todo}
+The specification of this data cube and the queries are listed in the appendix.
 
 \textbf{Queries as Views: } Finally, to test the generality of SVC, we treat each of the 22 queries in TPCD as a materialized view.
-10 out of the 22 can benefit from SVC (see table ??).
-\reminder{todo}
+We take the TPCH schema and denormalize the database, and treat each of the TPCH queries as views of this denormalized schema. 
+10 out of the 22 can benefit from SVC, and the reasons why queries were excluded is listed in the appendix.
 As each of the queries are actually parameterized queries, we generated 10 views for each TPCD query.
 For each of the views, we generated \emph{queries on the views}.
 We generated 100 random aggregate queries for each view.
