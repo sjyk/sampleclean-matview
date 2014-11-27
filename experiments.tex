@@ -290,7 +290,7 @@ We implement SVC on a 10-node Spark cluster.
 \centering
  \includegraphics[scale=0.14]{exp/con_2.pdf}
  \includegraphics[scale=0.14]{exp/con_1.pdf}
- \caption{TODO \label{conv-1}}
+ \caption{(a) We compare the maintenance time of SVC-10 and full incremental maintenance, and find that as with TPCD SVC saves significant maintenance time. (b) We also compare SVC to SAQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive these views from 800GB of base data and add 80GB of updates.
 In Figure \ref{conv-1}, we show that while full maintenance takes nearly 800 seconds for one of the views, a 10\% SVC can complete sample maintenance in less than 100s for all of them.
@@ -303,20 +303,15 @@ These results show consistency with our results on the synthetic datasets.
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/con_3.pdf}
- \caption{TODO \label{conv-2}}
-\end{figure}
-
-\begin{figure}[t]
-\centering
  \includegraphics[scale=0.14]{exp/con_4.pdf}
- \caption{TODO \label{conv-3}}
+ \caption{(a) Spark RDD's are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) The penalty for running maintenance in multiple threads reduces as batch sizes increase. \label{conv-2}}
 \end{figure}
 
 We devised an end-to-end experiment simulating a real integration with periodic maintenance.
 However, unlike the MySQL case, Apache Spark does not support selective updates and insertions as the ``views" are immutable.
 A further point is that the immutability of these views and Spark's fault-tolerance requires that the ``views" are maintained synchronously.
 Thus to avoid these significant overheads, we have to update these views in batches.
-In Figure \ref{conv-2}, we show a tradeoff between batch size and throughput of Spark for V2 and V5.
+In Figure \ref{conv-2} a, we show a tradeoff between batch size and throughput of Spark for V2 and V5.
 Throughputs for small batches are nearly 10x smaller than the throughputs for the larger batches.
 
 We can apply SVC in a batch mode as well.
@@ -328,14 +323,14 @@ Therefore, we can run SVC and a periodic maintenance task in concurrent threads.
 In this model, there are a lot of different parameters: batch size for periodic maintenance, batch size for SVC, sampling ratio for SVC, and the fact that concurrent threads may reduce overall throughput.
 We chose these parameters in the following way.
 First, we measure the reduction in throughput when running multiple threads.
-This is shown in Figure \ref{conv-3}, where we plot the reduction in throughput against batch sizes.
+This is shown in Figure \ref{conv-2} b, where we plot the reduction in throughput against batch sizes.
 Larger batch sizes are more amenable to parallel computation.
 
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/con_5.pdf}
  \includegraphics[scale=0.14]{exp/con_6.pdf}
- \caption{TODO \label{conv-4}} 
+ \caption{For a fixed throughput, SVC+Periodic Maintenance gives more accurate results for V2 and V5. \label{conv-4}} 
 \end{figure}
 
 Using this, we set a throughput demand for both periodic maintenance and svc+periodic maintenance.
@@ -352,7 +347,7 @@ At this sampling point, we find that applying SVC gives results 2.8x more accura
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.14]{exp/con_7.pdf}
- \caption{TODO \label{conv-5}} 
+ \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} 
 \end{figure}
 To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic maintenance and svc+periodic maintenance. 
 We find that SVC takes advantage of the idle times in the system; which are common during shuffle operations in a synchronous parallelism model.
