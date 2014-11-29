@@ -70,6 +70,8 @@ In NormalizedSC, we simply used the fact that these queries were commutative and
 However, in the materialized view setting, it is possible that there are tuples in the new view and the old view that do not exist in the other.
 
 We define a new operator $\check{-}$, which we call correspondence subtract, which handles this problem.
+We 
+
 \begin{definition} (CORRESPONDENCE SUBTRACT). For two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where 
 $a_2$ is a numerical attribute. $\check{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_1.a_1} ( R_1 \fullouterjoin R_2 ) \]
  If $R_1.a_2$ or $R_2.a_1$ is $\emptyset$ then they are respectively represented as a $0$.

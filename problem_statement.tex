@@ -3,9 +3,9 @@ In this section, we briefly overview the current challenges with view maintenanc
 our prior work in scalable data cleaning.
 
 \subsection{Materialized View Maintenance}\label{subsec-inc}
-Views define logical tables which can be queried instead of physical base relations.
+Views define logical relations which can be queried instead of physical base relations.
 Materialized Views are a class of views that are pre-computed and stored (i.e materialized).
-Any form of pre-computed, derived data encounters the problem of staleness when the physical base data changes.
+Any form of pre-computed, derived data encounters the problem of staleness when the physical base relations changes.
 
 One approach to this problem is to recompute the materialized view every time there are updates to the base tables.
 However, this approach is very inefficient if updates to the data generally have small or sparse effect on the materialized view. 
@@ -15,25 +15,24 @@ At a high-level, incremental maintenance algorithms typically consist of the fol
 For a variety of view types, these rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
 
 Incremental maintenance may not be efficient in all cases.
-Consider the relation R(employeeid,country,salary) and view that calculates the \maxfunc salary of employees grouped by country. 
-However, if we allow deletions then it is unclear how to update a view if an employee with a maximal salary is deleted since we do not know the salary of the next highest employee. 
+R(employeeid,country,salary) and view that calculates the median salary of employees grouped by country.  
 In general, to ensure correctness the view has to store the entire set of salaries for each country.
-Along the lines of this example, especially when considering views with non-distributive aggregates and non-monotone operations, there are 
-cases when recomputation may require less storage of state or even less computation.
-
-Thus materialized views are maintained either with incremental maintenance, re-compution, or a mix.
+Along the lines of this example, there are cases when recomputation may require less storage of state or even less computation.
+Thus, materialized views are maintained either with incremental maintenance, recomputation, or a mix.
 We formalize this process as a \emph{maintenance strategy} $\mathcal{M}$.
 \begin{definition} MAINTENANCE STRATEGY.
 Let, $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$.
 Let, $S$ be a materialized view.
 We denote the insertions to a relation $R_i$ as $\Delta R_i$ and the deletions as $\nabla R_i$.
-A maintenance strategy $\mathcal{M}$ is a function of the database $\mathcal{D}$, $S$, and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ that returns a relational expression the execution of which updates the view.
+A maintenance strategy $\mathcal{M}$ is a relational expression the execution of which updates the view.
+It is a function of the database $\mathcal{D}$, $S$, and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
 \end{definition}
-
+\reminder{It may be more helpful to show a maitenance stategy for an example view.}
 SVC provides a framework that can analyze a maintenance strategy, and only apply updates to a random sample of the stale view.
 
 \subsubsection{Practical Considerations}
 The algebraic analysis of incremental maintenance \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10} informs us which views can be incrementally maintained efficiently.
+\reminder{I think it's better to shorten this section. It reads a little repetive with introduction.}
 However, there are many practical considerations of excuting these operations in real database systems and it may not always be feasible to immediately apply updates; even if theoretically possible.
 For example, in distributed systems record-at-a-time maintenance may be excessively affected by overheads (such as coordination and serialization) and batching updates together can allows for amortization.
 In other systems, such as Apache Spark, the immutability of data structures means that updates must be processed synchronously and old views must be garbage collected further increasing overheads.
@@ -51,12 +50,11 @@ In particular, we highlight a technique called lazy maintenance which applies up
 While always fresh, both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates, and this results increasingly degraded performance if a user wants to query a view.
 The alternative is a periodic strategy, but this means that there is unbounded error on queries between maintenance periods.
 
-SVC offers a data cleaning perspective on this problem suggesting that staleness and performance are not dichotomous.
-There is a tradeoff between query accuracy and computation.
-By using sampling, we give the user access to this new tradeoff space between immediate (or close to immediate i.e. mini-batch) maintenance and long-periodic maintenance.
+The data cleaning perspective that SVC offers on this problem is that there is a tradeoff between accuracy and computation.
+By using sampling, we give the user access to a new tradeoff space between immediate (or close to immediate, i.e., mini-batch) maintenance and long-periodic maintenance.
 
 \subsection{SampleClean: Fast and Accurate Query Processing on Dirty Data}
-In our prior work on the SampleClean project, we proposed a framework for scalable data cleaning.
+In our prior work on the SampleClean project \cite{wang1999sample}, we proposed a framework for scalable data cleaning.
 Similar to the accuracy-performance contrast between incremental maintenance and periodic maintenance in the materialized view setting, data cleaning also faces a similar challenge.
 Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy, and those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
 We proposed SampleClean to add an additional tradeoff to this design space by using sampling.
@@ -68,7 +66,7 @@ Finally, when users query the dataset, the framework uses the clean sample to ex
 The key challenge is that data cleaning can potentially change the statistics of a sample and the queries need to compensate for those effects.
 In our initial work, SampleClean focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
 
-In SampleClean, we noticed that there were two contrasting query processing approaches, which we termed: \textbf{RawSC} and \textbf{NormalizedSC}.
+In SampleClean, we noticed that there were two contrasting query processing approaches, which we termed: \textbf{RawSC} \reminder{Define new commands for RawSC and NormarlizedSC. I would suggest to use \textsf{RawSC} instead of \textbf{RawSC}} and \textbf{NormalizedSC}.
 In \textbf{RawSC}, we could apply queries, with some re-weighting, directly to the clean sample of data.
 This approach is very similar to that taken in Sample-based Approximate Query Processing \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}.
 \textbf{NormalizedSC}, on the other hand, processed the changes made by the data cleaning and issued ``corrections" to the query results.
@@ -78,11 +76,12 @@ In this work, we found that estimating a correction (\textbf{NormalizedSC}) led 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch2.pdf} \vspace{-.25em}
- \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness. \label{sc}}\vspace{-1.75em}
+ \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.  \label{sc} \reminder{This only shows NormalizedSC}}\vspace{-1.75em}
 \end{figure}
 
-\subsection{Contributions}
-Inspired by SampleClean, SVC samples a stale view, ``cleans" this sample view by restricting the maintenance strategy to just the rows in the sample, and then applies \textbf{NormalizedSC} to correct the results of queries on the view.
+\subsection{New Challenges}
+\reminder{I changed ``contributions" to ``new challenges" because we have talked about contributions in the Introduction. Another suggest is to reduce details and give high-level ideas about what the new challenges are. }
+Inspired by SampleClean, SVC samples a stale view, cleans this view by restricting the maintenance strategy to just the rows in the sample, and then applies \textbf{NormalizedSC} to correct the results of queries on the view.
 Applying this data cleaning framework to the materialized view setting leads to some interesting theoretical challenges with new insights for both materialized view maintenance and data cleaning.
 In materialized views, unlike the models of error studied in SampleClean, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted.
 This problem poses an important statistical challenge since to calculate a correction with \textbf{NormalizedSC} we need to measure the difference in rows attribute values after cleaning, and this requires us to define this algorithm when rows are missing from either side of the difference.
