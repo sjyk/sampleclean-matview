@@ -10,22 +10,23 @@ However, this does not make the maintenance of the sample any more efficent.
 Thus, ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
 need not operate on the full data.
 We can model this process as a ``push-down" on an operator tree of the relational expression of $\mathcal{M}$.
-An important challenge is that we want every relation above the sampling to still be a uniform sample.
 
-We further desire a stronger property, which we call Sample Completeness:
+An important challenge is that we want every relation ``above" the sampling to still be a uniform sample.
+We formalize this as a property that we call Sample Completeness:
 \begin{definition} (SAMPLE COMPLETENESS) At every node in the operator tree of sampled maintenance strategy, we say the relation $\hat{R}$ at the node is \emph{sample complete} if at every corresponding node $R$ in the unsampled maintenance strategy:
 \[ \forall r_s \in R_s : r_s \in R \]
 \end{definition}
-To illustrate this property imagine a group by aggregation.
+To illustrate this property consider a group by aggregation.
 A sample of this expression that satisfies the property is a uniform sample of the fully aggregated groups.
 A sample that does not satisfy this property is a sample where some groups are partially aggregated.
 
 However, it is known that uniform sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
-Furthermore, a ``coin-flip" algorithm to sample the relations would not achieve Sample Completeness in general.
+Furthermore, a ``coin-flip" algorithm to sample the relations would not achieve Sample Completeness.
 The problem is that our sampling technique needs to include all of the rows in relations lower in the tree that could possibly contribute to a row.
 Our approach to this problem will use a specific type of traceable unique identification for rows and then applying a deterministic hashing operator to ensure all of the relevant rows are processed.
 
 \subsection{Identification With Row Lineage}
+
 Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
 If we want to be able to push our sampling operation through the operator tree, we need to ensure that every subexpression has consistent identifying information.
 We recursively define these identifying attributes:
@@ -66,7 +67,7 @@ We make two assumptions on this hash operator: (1) \emph{independence} there is 
 \begin{itemize}\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Push $\eta$ through \vspace{-.45em}
 \item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. See (Section ??) for conditions when push down is possible.
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general.
 \item $\gamma_{e}(R)$: Blocks $\eta$ in general. If the group by expression can be decomposed into $e(R) = a, e'(R)$ then pushdown is posible.\vspace{-.45em}
 \item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$

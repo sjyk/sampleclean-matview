@@ -126,7 +126,7 @@ In the Big Data era when new data arrives at an increasingly fast rate, maintain
 Due to this cost, maintenance is often deferred to a later time, but at the new cost of returning inaccurate query results on stale views.
 In this paper, we address this problem from a data cleaning perspective and model staleness as a type of data error.
 We take inspiration from recent data cleaning results that greatly improve query accuracy by cleaning only a small sample of dirty data.
-To complement existing deferred maintenance approaches, we use a sample of \emph{update patterns} to correct stale query results between maintenance periods, without the cost of full maintenance. 
+To complement existing deferred maintenance approaches, we maintain a sample of a materialized view to correct stale query results between maintenance periods, without the cost of full maintenance. 
 For common aggregate queries (SUM, COUNT, and AVG), we bound our corrections in analytic confidence intervals, and prove that our technique is optimal with respect to estimate variance. 
 As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. 
 We evaluate our method on real and synthetic datasets and results suggest that we are able to provide more accurate query results without having to maintain the full view. 
