@@ -1,81 +1,74 @@
 \section{Efficient Maintenance With Sampling}
-In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
-maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
-
-\subsection{Desired Properties and Challenges}
 In the previous section, we formalized the computation of $\hat{S'}$  as a data cleaning procedure.
 A naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
 However, this does not make the maintenance of the sample any more efficent.
-
-Thus, ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
+Ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
 need not operate on the full data.
-We can model this process as a ``push-down" on an operator tree of the relational expression of $\mathcal{M}$.
-\reminder{I did not understand the property. Why do you need the property? What's the relationship between the property and the corespondence? }
-We further desire a stronger property, which we call Sample Completeness:
-\begin{definition} (SAMPLE COMPLETENESS) At every node in the operator tree \reminder{Have you defined ``operator tree" anywhere?} of sampled maintenance strategy, we say the relation $\hat{R}$ at the node is \emph{sample complete} if at every corresponding node $R$ in the unsampled maintenance strategy:
-\[ \forall r_s \in R_s : r_s \in R \]
-\end{definition}
-To illustrate this property consider a group by aggregation.
-A sample of this expression that satisfies the property is a uniform sample of the fully aggregated groups.
-A sample that does not satisfy this property is a sample where some groups are partially aggregated.
+In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
+maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
-However, it is known that uniform sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
-Furthermore, a ``coin-flip" algorithm to sample the relations would not achieve Sample Completeness.
-The problem is that our sampling technique needs to include all of the rows in relations lower in the tree that could possibly contribute to a row.
-Our approach to this problem will use a specific type of traceable unique identification for rows and then applying a deterministic hashing operator to ensure all of the relevant rows are processed.
+\subsection{Desired Properties}
+In this work, we focus on result estimation on uniform samples of views.
+We call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
+\begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} if
+\[ \forall s \in \hat{S'} : s \in S' \]
+and
+\[Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) \]
+\end{definition}
+A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
+Recall, the view in our running example \textsf{browserCountView}. 
+If we sampled the base relation the result would have a mix of missing rows from the view and rows with incorrect aggregates.
+The rows with incorrect aggregates appear with probability 0 in the unsampled view.
+
+To get a uniform sample of a view, the main problem is that for every row sampled in the view, our sampling technique needs to include all of the rows in relations lower in the tree that could possibly contribute to its materialization.
+Achieving this requires a definition of lineage; traceable unique identification for rows.
 
 \subsection{Identification With Row Lineage}
-
 Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
-If we want to be able to push our sampling operation through the operator tree, we need to ensure that every subexpression has consistent identifying information. \reminder{why do we need to ensure that?}
 We recursively define these identifying attributes:
 \begin{definition}
-(LINEAGE CONDITION). All views $S$ and maintenance plans \reminder{plan or strategy?} $\mathcal{M}$ must satisfy the lineage condition which is defined inductively on a query tree: \reminder{Is it a definition or a requirement?}
+(Primary Key). For every relational expression $R$, we define the primary key of every subexpression to be:
 \begin{itemize}\vspace{-.45em}
 \item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key.\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Always preserves lineage of R \vspace{-.45em}
-\item $\Pi_{(a_1,...,a_k)}(R)$: Preserves lineage of R if the projection includes $p$ \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Resets lineage. The primary key of the result is the union of the linages of the relations $p= p_1 \cup p_2$. 
-\item $\gamma_{e}(R)$: Resets lineage. The primary key of the result is the group by expression $e(R)$. \reminder{The same issue as before. What do you mean by $e(R)$ }\vspace{-.45em}
-\item $R_1 \cup R_2$: Always preserves lineage attribute $p$
-\item $R_1 \cap R_2$: Always preserves lineage attribute $p$
-\item $R_1 - R_2$: Always preserves lineage attribute $p$
+\item $\sigma_{\phi}(R)$: Primary key is the primary key of R \vspace{-.45em}
+\item $\Pi_{(a_1,...,a_k)}(R)$: If the projection includes the primary key of R then the primary key of the projection is the same as the primary key of R. Otherwise it is \textsf{null}. \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the union of the primary key of $R_1$ and $R_2$. 
+\item $\gamma_{f,e}(R)$: The primary key of the result is the group by expression $e(R)$.\vspace{-.45em}
+\item $R_1 \cup R_2$: Primary key is the primary key of R
+\item $R_1 \cap R_2$: Primary key is the primary key of R
+\item $R_1 - R_2$: Primary key is the primary key of R
 \end{itemize}
 \end{definition}
-The above definition is also constructive; that is, if a view does not satisfy the Lineage Condition we can modify the plan so that it does.
-We can add a primary key to the base relations, and then we modify every projection operation to ensure that primary key of the relation is never projected out of the next level of the tree.
-Given this definition of lineage, we see that we can trace through all the rows that contribute to an expression higher up in the tree.
+This definition of a primary key for a relational expression, allows us to trace the primary key through the expression tree.
+In the subsequent sections, we assume that the Primary Key for all expressions is never null.
+Our definition of the primary key is also constructive; that is, if an expression has a null primary key then we modify every projection operation to ensure that primary key of the subrelation is never projected out.
 
 \subsection{Hashing Operator}
-If we have a deterministic way of mapping $p$ defined in the previous subsection to a sample we can also ensure that all contributing expressions \reminder{expressions or operators?} are also sampled. 
-However, it is important to note that for some of the expressions, notably joins and aggregates, the lineage gets reset.
-It turns out in general we cannot push down even a deterministic sample through those expressions.
-
+If we have a deterministic way of mapping a primary key defined in the previous subsection to a sample we can also ensure that all contributing expressions are also sampled. 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a_1, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ \reminder{Is $a_1$ a set of attributes or a single one?} and selects those records with hash value less than or equal to $m$.
 If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
-\reminder{I don't think you need to get into that details about the implementation of hashing. You only need to cite some paper to say these hash functions can return a unform number.} This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
+%This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
-To achieve the performance benefits of sampling, we can now push down the hashing operator through the query tree.
+To achieve the performance benefits of sampling, we push down the hashing operator through the query tree.
 The further than we can push $\eta$ down the query tree, the more operators can benefit from the sampling.
-\reminder{Maybe you don't need to make the two assumptions here. 1. Based on the definition of hashing operator, indenpendence will always hold. 2. uniformity is an assumption of hash function which has been make above. }We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
-
+However, it is important to note that for some of the expressions, notably joins and aggregates, tracability is more complex.
+It turns out in general we cannot push down even a deterministic sample through those expressions.
+We formalize the push down rules below:
 \begin{proposition}
 (HASH PUSHDOWN). Assuming the query tree satisfies the Lineage Condition, then the following rules can be applied to push $\eta(a)$ down the query tree. 
 \begin{itemize}\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Push $\eta$ through \vspace{-.45em}
 \item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through \vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. See (Section ??) for conditions when push down is possible.
-\item $\gamma_{e}(R)$: Blocks $\eta$ in general.\reminder{Why is it blocked?} If the group by expression can be decomposed into $e(R) = a, e'(R)$ then pushdown is possible.\vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. 
+\item $\gamma_{f,e}(R)$: Blocks $\eta$ in general. If the group by expression can be decomposed into $e(R) = a, e'(R)$ then pushdown is possible.\vspace{-.45em}
 \item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 - R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \end{itemize}
 \end{proposition}
-
-The rules preserve sample completeness for the general operators. 
-However, in special cases, we can achieve even further pushdown of the hashing operator. 
+In special cases, we can push the hashing operator down through joins. 
 
 \textbf{Many-to-one Join: } If we have an join with two relations $R_1$ and $R_2$ and we know that for every $r_1 \in R_1$ there is at most one $r_2$ in $R_2$ that satisfies the join condition, then we push $\eta$ down to $R_1$.
 
@@ -83,50 +76,29 @@ However, in special cases, we can achieve even further pushdown of the hashing o
 
 \textbf{(Semi/Anti)-Join: } We can always push $\eta$ down on Semi-joins. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 \dot{-} (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
-\reminder{Maybe you need to explain why lineage + hash can generate a sample that satsifies the property you require.}
 \subsection{Running Example: Log Analysis}
-\reminder{This example talked more about how to maintain a view. It would be better to add more explanation about how to get linage information for the view and how to push-down hash operator in the view and how to get a sample of the view.}
-Recall the example view ``LogView" in the previous section:
-\begin{lstlisting} 
-CREATE VIEW LogView AS 
-SELECT videoId, 
-count(1) AS slowResponseTimes 
-FROM Log, Video
-WHERE Log.videoID = Video.videoID and
-    responseTime > .1*Video.duration
-GROUP BY videoId;
-\end{lstlisting}
+Recall the running example \textsf{countView}.
+We will describe this example in terms of relational algebra, where the stale view $S$ is \textsf{countView}.
+First, we construct a delta view, applying the view definition to the updates.
+\[
+\delta_{S} = \gamma_{(\countfunc,\Pi_{(\text{videoId})})}(\text{LogInserts} \bowtie_{\text{fk}} \text{Video})
+\]
+Then, we join this delta view to the stale view.
+\[
+  S_{tmp} = S \fullouterjoin_{\text{(1 to 1)}} \delta_{S}
+\]
+Finally, we increment the counts and project the result to get the up-to-date view $S'$.
+\[
+S' = \Pi_{(\text{videoId},S.\text{viewCount} + \delta_{S}.\text{viewCount})}(S_{tmp})
+\]
 
-Assume that insertions have been added to the Log table, and we call the set of insertions LogUpdates.
-To update this view, we need to join the delta-relation LogUpdates with the Video table and then aggregate the counts.
-After that, there are two cases: the video already exists in the stale view (in which case we have to update the count), or
-the video does not exist in which case we insert a new row.
-The following intentionally pedantic SQL maintenance plan can produce the updated view: \reminder{It looks very complex. Maybe you can simplify the view definition (Sec 3.4) and the maintenance strategy (Sec 4.4) with relational algebra.}
-\begin{lstlisting}
- SELECT videoId, 
-       LogView.slowResponseTimes + 
-          deltaView.slowResponseTimes
- FROM LogView,
-  (SELECT videoId, 
-        count(1) AS slowResponseTimes 
-   FROM LogUpdates, Video
-   WHERE Log.videoID = Video.videoID and
-        responseTime > .1*Video.duration
-   GROUP BY videoId ) as deltaView
- WHERE LogView.videoId = deltaView.videoID
-
-UNION 
-
-  SELECT videoId, 
-        count(1) AS slowResponseTimes 
-  FROM LogUpdates, Video
-  WHERE Log.videoID = Video.videoID and
-        responseTime > .1*Video.duration
-        Log.videoID NOT IN 
-            (SELECT videoID FROM LogView)
-  GROUP BY videoId
-
-\end{lstlisting}
-\reminder{figure here for the query tree}
-If we apply the rules listed above and sample this maintenance plan, we find that we can push down the hash operator to LogView (hash on videoId) and LogUpdates (hash on videoId). 
-This reduces the complexity for join between LogUpdates and Video, the subquery aggregation, and the join for deltaView and LogView.
+Based on the defition of the primary key above, (videoId) is the primary key of the view.
+We apply the rules above to push down the hash operator:
+\[
+\eta_{(\text{videoId}), m}(S')
+\]
+This pushes down all the way to the delta view:
+\[
+\hat{\delta_{S}} = \gamma_{(\countfunc,\Pi_{(\text{videoId})})}(\text{LogInserts} \bowtie_{\text{fk}} \eta(\text{Video}))
+\]
+Therefore, both the join and the aggregation ``above" the sampling have to do less computation.
