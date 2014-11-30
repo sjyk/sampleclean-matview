@@ -7,7 +7,7 @@ The basic idea is that we create an index of outlier records and ensure that the
 However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
-In SVC, we cannot index the sample in the same way as \cite{chaudhuri2001overcoming}. 
+In SVC, we cannot index the outliers in the same way as \cite{chaudhuri2001overcoming}. 
 This is because we only materialize the sample view and we have no idea about outliers outside of this sample.
 Instead, we propose building indices on the base relations.
 
@@ -31,19 +31,20 @@ We need to propagate the indices upwards through the query tree.
 
 The next challenge is the outlier index must not require any additional effort to materialize.
 We add the condition that the only eligible indices are ones on base relations that are being sampled (ie. we can push the hash operator down to that relation).
-Therefore, in the same iteration as sampling, we can also test the threshold and add records to the outlier index.
+Therefore, in the same iteration as sampling, we can also test the threshold and add records to the outlier index. 
 We formalize the propagation property recursively. 
 Every relation can have an outlier index which is a set of attributes and a set of records that exceed the threshold value on those attributes.
 
+
 \begin{definition}
-(OUTLIER INDEX PUSHUP). Define an outlier index to be a tuple of a set of attributes, relation, and a set of records $(A,R,O)$. The outlier index propagates upwards with the following rules:
+(OUTLIER INDEX PUSHUP). Define an outlier index to be a triple of a set of attributes, relation, and a set of records $(A,R,O)$. The outlier index propagates upwards with the following rules:
 \begin{itemize}\vspace{-.45em}
 \item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled.\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Always propagates upwards \vspace{-.45em}
-\item $\Pi_{p,(a_2,...,a_k)}(R)$: Propagates upwards if $A$ is in the projection, otherwise null.\vspace{-.45em}
+\item $\Pi_{p,(a_2,...,a_k)}(R)$: \reminder{The project has a different definition than that in Sec 3.1 and 4.2.} Propagates upwards if $A$ is in the projection, otherwise null \reminder{null?}.\vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: New outlier index where $A=A_{r1} \cup A_{r2}$ and $O = \bowtie_{\phi (r1,r2)}(O_1,O_2)$.
-\item $\gamma_{e}(R)$: New outlier index where $A=\{e\}$ and $O = \gamma_{e}(O)$.\vspace{-.45em}
-\item $R_1 \cup R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cup O_2$.
+\item $\gamma_{e}(R)$: New outlier index where $A=\{e\}$ and $O = \gamma_{e}(O)$.\vspace{-.45em} \reminder{Suppose $r\in O$ is an outlier of the base relation. How can you guarantee that $O$ includes all the records that share the same group-by key with $r$.}
+\item $R_1 \cup R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cup O_2$. \reminder{This is not very intuitive. Why do you need the condition of $A_1 = A_2$?}
 \item $R_1 \cap R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cap O_2$.
 \item $R_1 - R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 - O_2$.
 \end{itemize}
@@ -59,7 +60,7 @@ To query the outlier rows, we can select all of the rows in the materialized vie
 We can also incorporate the outliers into our correction estimates.  
 By guaranteeing that certain rows are in the index, we
 have to merge two results: one over the outliers and one over the regular records.
-For a given aggregation query, let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
+For a given aggregation query \reminder{Does it hold for all the aggregation queries that we discussed in Sec 5?}, let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
 Let $v_{reg}$ be the query result for the regular records, and $v_{out}$ is the query result for outliers, then:
 
 \[
