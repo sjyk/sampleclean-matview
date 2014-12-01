@@ -47,7 +47,7 @@ Our definition of the primary key is also constructive; that is, if an expressio
 If we have a deterministic way of mapping a primary key defined in the previous subsection to a sample we can also ensure that all contributing expressions are also sampled. 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a_1, m}(R)$. 
-For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ \reminder{Is $a_1$ a set of attributes or a single one?} and selects those records with hash value less than or equal to $m$.
+For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a_1$ (which may be a set) and selects those records with hash value less than or equal to $m$.
 If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
 %This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
