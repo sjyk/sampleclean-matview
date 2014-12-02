@@ -18,8 +18,8 @@ schema but is modified so that it generates a dataset with values drawn from a Z
 The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribution with a single parameter $z=\{1,2,3,4\}$ which a larger
 value means a more extreme tail.
 $z=1$ corresponds to the basic TPCD benchmark. 
-We implement incremental view maintenance with a \textbf{update...on duplicate key insert} command.
-We implement SVC's sampling operator with a linear hash writter in C that is evoked in MySQL as a stored procedure.
+We implement incremental view maintenance with an ``update...on duplicate key insert" command.
+We implement SVC's sampling operator \reminder{sampling operator or hashing function?} with a linear hash writter in C that is evoked in MySQL as a stored procedure.
 In all of the applications, the updates are kept in memory in a temporary table, and we discount this loading time from our experiments.
 
 Below we describe the view definitions and the queries on the views:
@@ -29,7 +29,7 @@ Out of 22 parameterized queries in the specification, 12 are group-by aggregates
 Therefore, we define a materialized view of the foreign-key join of \textbf{lineitem} and \textbf{orders}, and compare incremental view maintenance and SVC.
 We treat the 12 group-by aggregates as queries on the view.
 
-\textbf{Data Cube: } Another application which is common in industry analytics is data cubing.
+\textbf{Data Cube: } Another application which is common in industry analytics is data cube.
 We define the following ``base cube" as a materialized view that calculates the total revenue 
 grouped by distinct customer, nation, region, and part number.
 The queries on this view are ``rollup" queries that aggregate over 
