@@ -1,15 +1,15 @@
 \section{Outlier Indexing}\label{outlier}
 Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2001overcoming}.
-SVC may be sensitive to power-laws and other long-tailed distributions which are common in large datasets\cite{clauset2009power}.
-Since outliers may occur very rarely, they are unlikely to be represented in a small sample. 
+Power-laws and other long-tailed distributions are common in large datasets\cite{clauset2009power}.
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
-The basic idea is that we create an index of outlier records and ensure that these records are included in the sample.
+The basic idea is that we create an index of outlier records (records whose attributes deviate from the expected value greatly) and ensure that these records are included in the sample.
 However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
-In SVC, we cannot index the outliers in the same way as \cite{chaudhuri2001overcoming}. 
-This is because we only materialize the sample view and we have no idea about outliers outside of this sample.
-Instead, we propose building indices on the base relations.
+In \cite{chaudhuri2001overcoming}, outlier indices are defined on the sampled relation. 
+In SVC, we sample the materialized view and only maintain those rows in the sample.
+Therefore, there is a problem since the outlier records are not materialized.
+To address this problem, we define the outlier index on the base relation.
 
 The first step is that the user selects an attribute of any base relation to index and specifies a threshold $t$ and a size limit $k$.
 In a single pass of updates (without maintaining the view), the index is built storing references to the records with attributes greater than $t$.
@@ -35,38 +35,45 @@ Therefore, in the same iteration as sampling, we can also test the threshold and
 We formalize the propagation property recursively. 
 Every relation can have an outlier index which is a set of attributes and a set of records that exceed the threshold value on those attributes.
 
-
-\begin{definition}
-(OUTLIER INDEX PUSHUP). Define an outlier index to be a triple of a set of attributes, relation, and a set of records $(A,R,O)$. The outlier index propagates upwards with the following rules:
+The main idea is to treat the indexed records as a sub-relation that gets propagated upwards with the maintenance plan.
+\begin{definition}[outlier index pushup]
+Define an outlier index to be a triple of a set of attributes, relation, and a set of records $(A,R,O)$. The outlier index propagates upwards with the following rules:
 \begin{itemize}\vspace{-.45em}
-\item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled.\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Always propagates upwards \vspace{-.45em}
-\item $\Pi_{p,(a_2,...,a_k)}(R)$: \reminder{The project has a different definition than that in Sec 3.1 and 4.2.} Propagates upwards if $A$ is in the projection, otherwise null \reminder{null?}.\vspace{-.45em}
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: New outlier index where $A=A_{r1} \cup A_{r2}$ and $O = \bowtie_{\phi (r1,r2)}(O_1,O_2)$.
-\item $\gamma_{e}(R)$: New outlier index where $A=\{e\}$ and $O = \gamma_{e}(O)$.\vspace{-.45em} \reminder{Suppose $r\in O$ is an outlier of the base relation. How can you guarantee that $O$ includes all the records that share the same group-by key with $r$.}
-\item $R_1 \cup R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cup O_2$. \reminder{This is not very intuitive. Why do you need the condition of $A_1 = A_2$?}
-\item $R_1 \cap R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 \cap O_2$.
-\item $R_1 - R_2$: Propagates if $A_1 = A_2$, in which case $O = O_1 - O_2$.
+\item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled i.e. if the sampling operator can be pushed down to that relation.\vspace{-.45em}
+\item $\sigma_{\phi}(R)$: Push up with a new outlier index $(A,\sigma_{\phi}(R),O)$ \vspace{-.45em}
+\item $\Pi_{(a_1,...,a_k)}(R)$: Push upwards with new outlier index $(A \cap (a_1,...,a_k), R,O)$.\vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Push upwards with new outlier index $(A_{r1} \cup A_{r2}, R_1 \bowtie R_2 ,O_1 \bowtie O_2)$.
+\item $\gamma_{f,e}(R)$: Recall our earlier notation where the resulting schema of the group-by aggregation was $(e_i,f_i)$. For group-by aggregates, we set $A = \{f_i\}$ and $R = \gamma_{f,e}(R)$. For the outlier index, we do the following steps. (1) Apply the aggregation to the outlier index $\gamma_{f,e}(O)$, (2) for all distinct $e_i$ in $O$ select the row in $\gamma_{f,e}(R)$ with the same $e_i$, and (3) this selection is the new set of outliers $O$. 
+\item $R_1 \cup R_2$: Push up with a new outlier index $(A_1 \cap A_2 ,R_1 \cup R_2,O_1 \cup O_2)$. 
+\item $R_1 \cap R_2$: Push up with a new outlier index $(A_1 \cap A_2 ,R_1 \cap R_2,O_1 \cap O_2)$.
+\item $R_1 - R_2$: Push up with a new outlier index $(A_1 \cup A_2 ,R_1 - R_2,O_1 - O_2)$.
 \end{itemize}
 \end{definition}
+
 For all outlier indices that can propagate to the view (ie. the top of the tree), we get a final set $O$ of records. 
-This gives us a deterministic set of records in addition to our sample which we can use in query processing.
+Given these rules, $O$ is, in fact, a subset of our materialized view $S'$.
+Thus, our query processing can take advantage of the theory described in the previous section to incorporate the set $O$ into our results.
+In practice, we implement the outlier index not as distinct relation but we add an additional attribute on our sample with a boolean flag true or false if it is an outlier indexed record.
 
 \subsection{Query Processing with the Outlier Index} 
+For result estimation, we can think of our sample $\hat{S'}$ and our outlier index $O$ as two distinct parts.
+Since $O \subset S'$, our sample is actually a sample restricted to the set $\hat{(S'-O)}$.
 The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
 and (2) we can improve the accuracy of our \emph{aggregation} queries.
 To query the outlier rows, we can select all of the rows in the materialized view that are flagged as outliers, and these rows are guaranteed to be up-to-date.
 
-We can also incorporate the outliers into our correction estimates.  
-By guaranteeing that certain rows are in the index, we
-have to merge two results: one over the outliers and one over the regular records.
-For a given aggregation query \reminder{Does it hold for all the aggregation queries that we discussed in Sec 5?}, let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
-Let $v_{reg}$ be the query result for the regular records, and $v_{out}$ is the query result for outliers, then:
-
+For (2), we can also incorporate the outliers into our correction estimates.  
+For a given query, let $c_{reg}$ be the correction calculated on $\hat{(S'-O)}$ using the technique proposed in the previous section and adjusting the sampling ratio $m$ to account for outliers removed from the sample.
+We can also apply the technique to the outlier set $O$ since this set is deterministic the sampling ratio for this set is $m=1$, and we call this result $c_{out}$.
+Let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
+Then, we can merge these two corrections in the following way:
 \[
- v = \frac{N-l}{N}v_{reg} + \frac{l}{N}v_{out}
+ v = \frac{N-l}{N}c_{reg} + \frac{l}{N}c_{out}
 \]
 
-We can use this method to improve the accuracy of our correction estimates by calculating $\dans$ 
-on the outliers and the regular records separately then averaging them together. 
+For the queries in the previous section that are unbiased, this approach preserves unbiasedness.
+Since we are averaging two unbiased estimates $c_{reg}$ and $c_{out}$, the linearity of the expectation operator preserves this property.
+Furthermore, since $c_{out}$ is deterministic (and in fact its bias/variance is 0), $c_{reg}$ and $c_{out}$ are uncorrelated making the bounds described in the previous section applicable as well.
+%sum of uncorrelated unbiased estimates since one is deterministic.
+
 %See \cite{chaudhuri2001overcoming} for additional query processing details.
