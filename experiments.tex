@@ -24,6 +24,7 @@ In all of the applications, the updates are kept in memory in a temporary table,
 We build an index on the primary keys of the view, the base data, but not on the updates.
 
 Below we describe the view definitions and the queries on the views:
+
 \textbf{Join View: } In the TPCD specification, two tables recieve insertions and updates: \textbf{lineitem} and \textbf{orders}.
 Out of 22 parameterized queries in the specification, 12 are group-by aggregates of the join of \textbf{lineitem} and \textbf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
 Therefore, we define a materialized view of the foreign-key join of \textbf{lineitem} and \textbf{orders}, and compare incremental view maintenance and SVC.
