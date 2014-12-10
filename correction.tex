@@ -16,7 +16,7 @@ and
 \[Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) \]
 \end{definition}
 A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
-Recall, the view in our running example \textsf{browserCountView}. 
+Recall, the view in our example \textsf{countView}. 
 If we sampled the base relation the result would have a mix of missing rows from the view and rows with incorrect aggregates.
 The rows with incorrect aggregates appear with probability 0 in the unsampled view.
 
@@ -76,9 +76,9 @@ In special cases, we can push the hashing operator down through joins.
 
 \textbf{(Semi/Anti)-Join: } We can always push $\eta$ down on Semi-joins. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 \dot{-} (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
-\subsection{Running Example: Log Analysis}
-Recall the running example \textsf{countView}.
-We will describe this example in terms of relational algebra, where the stale view $S$ is \textsf{countView}.
+\subsection{Example}
+We will describe sampling a maintenance strategy of \textsf{countView} in terms of relational algebra.
+Let the stale view $S$ be \textsf{countView} as defined in the previous section.
 First, we construct a delta view, applying the view definition to the updates.
 \[
 \delta_{S} = \gamma_{(\countfunc,\Pi_{(\text{videoId})})}(\text{LogInserts} \bowtie_{\text{fk}} \text{Video})

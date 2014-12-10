@@ -145,12 +145,13 @@ The query result is stale by a factor of $c$ if:
 If there exists an unbiased sample estimator for q then there exists an unbiased sample estimator for c.
 \end{lemma}
 
-\emph{Proof.} Suppose, we have an unbiased sample estimator $\bar{q}$ of $q$. 
+\begin{proof}[Sketch] Suppose, we have an unbiased sample estimator $\bar{q}$ of $q$. 
 Then, it follows that \[\mathbb{E}(\bar{q}(\hat{S'})) = q(S')\]
 If we substitute in this expression:
 \[ c = \mathbb{E}(\bar{q}(\hat{S'})) -q(s) \] 
 Applying the linearity of expectation:
-\[ c = \mathbb{E}(\bar{q}(\hat{S'}) - q(s)) \blacksquare \]
+\[ c = \mathbb{E}(\bar{q}(\hat{S'}) - q(s)) \]
+\end{proof}
 
 However, in general, these aggregate functions do not satisfy the optimality conditions of the previous section.
 These queries include: \histfunc, \corrfunc, \varfunc, \covfunc, and the estimation approach is different.
@@ -165,8 +166,10 @@ In this approach, we repeatedly subsample with replacement from our sample and a
 We use these repeat executions to build a distribution of values that the correction can take allowing us to bound the result.
 The conditions under which this technique is valid are nuanced, and detecting when it is valid is a subject of \cite{agarwalknowing}.
 
-\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an unbiased aggregate query, and let $\hat{S}$ and $\hat{S'}$.
-One sample of the bootstrap estimator $s$ is defined as the difference of q applied to random subsample of size $b_1$ (with replacment) of $q(\hat{S'}_{sub}) - q(\hat{S}_{sub})$. \reminder{what is $\hat{S'}_{sub}$?}
+\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an unbiased aggregate query, and let $\hat{S}$ and $\hat{S'}$ be sample views as defined before.
+We denote subsamples of the samples as $\hat{S'}_{sub}$ and $\hat{S}_{sub}$ respectively.
+One sample of the bootstrap estimator $s$ is defined as the difference of q applied to random subsample of size $b_1$ (with replacment) of $\hat{S}$ and $\hat{S'}$.
+\[q(\hat{S'}_{sub}) - q(\hat{S}_{sub})\]
 To build the confidence interval, we repeatedly apply this procedure $b_2$ times.
 \end{proposition}
 
@@ -185,15 +188,17 @@ Functionally, we can apply the same technique discussed in the previous section 
 
 \subsection{MIN and MAX}
 \minfunc and \maxfunc fall into their own category since there does not exist any unbiased sample estimator nor can that bias be bounded.
-We can, however, give weak bounds on the results using Cantelli's Inequality:
-\reminder{I think you need to explain the ineuality more. What are $X$, $\mu_x$, and $a$?}
+We can, however, give weak bounds on the results using Cantelli's Inequality.
+If $X$ is a random variable with mean $\mu_x$ and variance $var(X)$, then the probability that $X$ is larger than a constant $a$ plus the mean is:
 \[
-\mathbb{P}(X \ge a + \mu_x ) \le \frac{var(x)}{var(x) + a^2}
+\mathbb{P}(X \ge a + \mu_x ) \le \frac{var(X)}{var(X) + a^2}
 \]
-Therefore, if we set $a$ to be the max value, we can calculate the probability that we will see a higher value.\reminder{It seems that the bound has a different meaning than what we defined for other queries?} The same logic can be reversed for \minfunc.
+Therefore, if we set $a$ to be the max value, we can calculate the probability that we will see a higher value. The same logic can be reversed for \minfunc.
 \[
 \mathbb{P}(X \le \mu_x - a )) \le \frac{var(x)}{var(x) + a^2}
 \]
+This bound has a slightly different interpretation than the confidence intervals seen before.
+This gives the probability that a larger (or smaller) element exists in the unsampled view.
 
 \subsection{Select Queries}
 We can correct stale Select queries with SVC.

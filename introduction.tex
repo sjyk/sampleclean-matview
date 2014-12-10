@@ -6,7 +6,7 @@ In a world of ever-increasing data sizes, MVs are becoming even more important, 
  \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history} and for more advanced analytics based on linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
 However, when the underlying data is changed MVs can become \emph{stale} and all queries that use a stale MV can give incorrect answers. 
-One solution would be to recompute the MV when the data updates, however, in many cases, it is more efficent to incrementally update the MV instead of recomputing the query.
+One solution would be to recompute the MV every time a change occurs, however, in many cases, it is more efficent to incrementally update the MV instead of recomputing the query.
 There has been substantial work in deriving these incremental updates (incremental maintenance algorithms) for different classes of MVs and optimizing their execution \cite{gupta1995maintenance, DBLP:conf/sigmod/GriffinL95, griffin1997improved, samtani1999self, DBLP:conf/sac/TrutaC07, DBLP:journals/vldb/KochAKNNLS14, chirkova2011materialized}.
 
 For frequently changing tables even incremental maintenance can be expensive; every update to the underlying data requires updating all the dependent views.  
@@ -20,12 +20,12 @@ The observation that stale MVs are a type of dirty data leads us to the key insi
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch.png} \vspace{-.25em}
- \caption{(1) A materialized view $S$ becomes stale, (2) we sample rows from a hypothetical up-to-date view $S'$ and only do the optimized computation $M$ to materialize those rows, and (3) for queries on the view $S$ that would normally be stale we can compensate for the staleness with a correction  \label{sys-arch}}\vspace{-1.75em}
+ \caption{If a view is being periodically maintained, in the interim, query results may be stale. Sample-View-Clean sits above an existing view maintenance architecture, and provides an interface for approximately up-to-date query results by maintaining a sample. The user can tune the sampling ratio to meet the resource constraints of the system \label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes and arrival rates have led to development of new, efficient sampling-based approaches for coping with dirty data.   
 In our prior work, we developed the SampleClean framework to greatly improve query accuracy while cleaning only a small sample of dirty records \cite{wang1999sample}.  
-We proposed an algorithm called \textbf{NormalizedSC} that corrects dirty query results by using a sample of clean data to learn how the dirtiness affects that query and then calculates a correction.  
+We proposed an algorithm called \nsc that corrects dirty query results by using a sample of clean data to learn how the dirtiness affects that query and then calculates a correction.  
 This perspective raises a new possibility for MVs: we can use a sample of clean (up-to-date) data to return more accurate query results without incurring the cost of full view maintenance.
 Of course, the metaphor of stale MVs as dirty data only goes so far. 
 View staleness is a different type of error than typical dirty data, which raises interesting new challenges in sampling, cleaning, and efficient query processing.
@@ -50,7 +50,7 @@ In this work, we explore these classes from both a theoretical perspective (i.e.
 To summarize, our contributions are as follows:
 \begin{itemize}\vspace{-.45em}
 \item We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{-.45em}
-\item We show how sampling with a \textbf{hash} operation can reduce computation during maintenance. \vspace{-.45em}
+\item We show how sampling with a \hashop operation can reduce computation during maintenance. \vspace{-.45em}
 \item We derive a correction for aggregate queries using the sample and show that, in fact, our correction is optimal for \sumfunc, \countfunc, and \avgfunc. \vspace{-.45em}
 \item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{-.45em}
 \item We evaluate our approach on a single-node MySQL database with a 10GB skewed TPCD benchmark dataset and on a 20-node Apache Spark cluster with a 1TB log dataset from a video streaming company. Our results show that sampling is significantly faster than full view maintenance, and also can give highly accurate results for a variety of queries and views.\vspace{-.45em}

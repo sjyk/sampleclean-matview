@@ -1,10 +1,10 @@
 
 \section{Extensions and Discussion}\label{sec:ext}
-\reminder{The content of the section is not very easy to follow. Since we may not include this section into our VLDB paper, it should be fine.  }
 \subsection{Correction vs. Direct Estimate}
 We argued that in many cases correcting query results approximately is more accurate than an
 AQP-style direct estimate. 
-We can provide some more rigorous mathematical intuition for this.
+We can provide some back-of-the-envelope mathematical intuition for this.
+
 For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
 proportional to the variance of the \emph{change} and inversely proportional to the sample size:
 \[\frac{\sigma_{c}^2}{k}\]
@@ -14,23 +14,24 @@ Since the change is the difference between the stale and up-to-date data, this c
 \[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
 Therefore, a correction will be more precise when:
 \[\sigma_{S}^2 - 2cov(S,S') \le 0 \]
-If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S') \approx \sigma_{S}^2$ and it is clearly less than 0. \reminder{This is not enough to claim that correction is better than AQP in many cases.}
+If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S') \approx \sigma_{S}^2$ and it is clearly less than 0. 
 On the other hand, there is a break even point where changes are significant enough that direct estimates might be more accurate.
 
 \subsection{Hash-Operator}
 We defined a concept of tuple-lineage with primary keys.
-However, a curious property of the deterministic hashing technique is that we can actually hash any key while retain key
+However, a curious property of the deterministic hashing technique is that we can actually hash any attribute while retain the important
 statistical properties.
-This is due to the linearity of expectation operator. \reminder{I did not get this point. What are key
-statistical properties and expectation operator?}
+This is because a uniformly random sample of any attribute (possibly not unique) still includes every individual row with the same probability.  
 A consequence of this is that we can push down the hashing operator through arbitrary equality joins (not just many-to-one) by hashing the join key.
 
 We defer further exploration of this property to future work as it introduces new tradeoffs.
 For example, sampling on a non-unique key, while unbiased in expectation, hash higher variance in the size of the sample.
 Happening to hash a large group may lead to decreased performance. 
+
 Suppose our keys are duplicated $\mu_k$ times on average with variance $\sigma_k^2$, then the variance of the
 sample size is for sampling fraction $m$:
-\[m(1-m)\mu_k^2+(1-m)\sigma_k^2\] \reminder{How did you get the equation?}
+\[m(1-m)\mu_k^2+(1-m)\sigma_k^2\]
+This equation is derived from the formula for the variance of a mixture distribution.
 In this setting, our sampling would have to consider this variance against the benefits of pushing the hash operator further down the query tree. 
 
 \subsection{Sampling Updates vs. Sampling Views}
@@ -38,16 +39,16 @@ In SVC, we sample from views and work backwards through the view definition usin
 An alternative approach is to sample the updates to the view.
 However, this approach quickly leads to some bottlenecks.
 For example, if our view is an aggregate view with a nested selection, we can easily construct a distinct count problem rendering any aggregate query inestimable \cite{DBLP:conf/pods/CharikarCMN00}.
-On the other hand this approach, does allow for better support for very selective queries on the view. \reminder{Why is it better for selective queries?}
-This is a tradeoff that is an interesting avenue for future work.
+
+On the other hand this approach, may allow for better support for selection queries on the view.
+In our model every row in our sample is up-to-date but all the rows outside of the sample are completely missing. 
+In this model, every row is potentially approximate allowing for better support for selection queries.
+This is a tradeoff that is an interesting avenue for future work, especially since this can be modeled as a sampling on primary key of the updates.
 
 \subsection{Multi-View Setting}
-\reminder{Multi-View Setting is an important part. We can discuss some open questions and some possible solutions in the future work section.}
-
 In a production environment, the database system might have many materialized views. 
 With the sampling ratio, SVC gives the database administrator an additional degree of freedom to adjust throughput, storage, and accuracy.
 The sampling ratio of each view can be adaptively adjusted to suit the workload.
-
 
 We can pose minimizing the expected estimation error as a Geometric Convex Program.
 In one time period, if view $i$ has an expected cardinality of $N_i$, an average query variance of $\alpha_i$, a sampling ratio of $m_i$, there is a total space budget of $B$, the cost for update is $C_i$ secs/Record and throughput demand of $D$ latency:

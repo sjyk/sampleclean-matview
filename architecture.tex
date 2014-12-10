@@ -1,16 +1,29 @@
 \section{Framework Overview}\label{sec-arch}
-The basic structure of SVC is: (1) given a query and a stale view, we construct a sample of the view, (2) from this sample we can estimate how updates affect the query result and compensate the result, and (3) we incorporate an index of outlier base table records to improve the accuracy of the results.
-These three points map to the three main problems we address in this work, (1) formalizing this process as a data cleaning problem with the SampleClean framework, (2) defining a notion of row correspondence to link rows in the stale and updated views, and (3) outlier index.
-In this section, we formalize these three problems and overview the architecture of SVC.
+The basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
+The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constained settings where frequent maintenance was once impossible.
+However, an important challenge to use these samples to answer queries accurately.
 
 \subsection{Notation}
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
-Given a database $\mathcal{D}$ which is a collection of relations $\{R_i\}$, a materialized view $S$ is the result of applying the relational expression $S_{def}$ to the database.
+Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$, and let $S$ be a materialized view of this database.
 We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
 An update to a relation can be modeled as a deletion and then an insertion.
+
+When the base relations have been updated (there exists insertions and/or deletions), queries on the view $S$ will be stale.
+We call the procedure to update the view as a \emph{maintenance strategy} $\mathcal{M}$.
+A maintenance strategy is a relational expression the execution of which will update the view $S$, and we call the updated view $S'$.
+
+\begin{definition}[Maintenance Strategy]
+Let, $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$.
+Let, $S$ be a materialized view.
+We denote the insertions to a relation $R_i$ as $\Delta R_i$ and the deletions as $\nabla R_i$.
+A maintenance strategy $\mathcal{M}$ is a relational expression the execution of which updates the view.
+It is a function of the database $\mathcal{D}$, $S$, and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
+\end{definition}
+
 %In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
-We look at relational expressions for the view $S_{def}$ composed of the following operators:
+We look at maintenance strategies composed of the following relational expressions:
 \begin{itemize}\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
@@ -22,21 +35,12 @@ We look at relational expressions for the view $S_{def}$ composed of the followi
 \end{itemize}
 Relational expressions can be expressed in a tree form which we call an \emph{expression tree}.
 
-We formalize the maintenance process as a \emph{maintenance strategy} $\mathcal{M}$.
-\begin{definition}[Maintenance Strategy]
-Let, $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$.
-Let, $S$ be a materialized view.
-We denote the insertions to a relation $R_i$ as $\Delta R_i$ and the deletions as $\nabla R_i$.
-A maintenance strategy $\mathcal{M}$ is a relational expression the execution of which updates the view.
-It is a function of the database $\mathcal{D}$, $S$, and all the delta relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
-\end{definition}
-
 To illustrate the concept of a maintenance strategy, consider the following view that finds view counts for all videos:
 \begin{lstlisting} 
 CREATE VIEW countView
 AS SELECT 
 	videoId, userAgent,
-	count(1) AS viewCount,
+	count(1) AS visitCount,
 FROM 
 	Log, Video
 WHERE 
@@ -45,8 +49,7 @@ WHERE
 GROUP BY 
 	videoId;
 \end{lstlisting}
-If new records have been added to Log and Video, then the maintenance strategy consists of the following expressions: (1) create a ``delta view": apply the view definition to LogInserts, (2) update the view: full outer join of the ``delta view" with browserCountView incrementing viewCount.
-We denote the updated materialized view as $S'$, which is result of applying a maintenance strategy $\mathcal{M}$ defined in the previous section.
+If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogInserts}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}.
 
 \subsection{Sampling}
 In this work, we focus on uniform samples of views.
@@ -127,18 +130,18 @@ In implementation, SVC works in conjunction with existing defered maintenance or
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
-We illustrate this setup in Figure \ref{sys-arch}. %\reminder{Figure 1?}
-
+We illustrate this setup in Figure \ref{sys-arch} in our introduction.
+ 
 \subsection{Example Application: Log Analysis}
-Returning to our running example, suppose a user wants to know how many videos have received more than 100 views.
+Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting} 
 SELECT COUNT(1)
-FROM browserCountView
-WHERE viewCount > 100;
+FROM countView
+WHERE visitCount > 100;
 \end{lstlisting}
 Let us suppose the initial query result is $45$.
 There now have been new log records inserted into the Log table making the old result stale.
-For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct videoID's), we update just the view counts of those videos.
+For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct \tbl{videoID}), we update just the view counts of those videos.
 From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
 Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
 This means that we should correct the old result by $40$ resulting in the estimate of $85$.
