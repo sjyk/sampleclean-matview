@@ -13,29 +13,43 @@ For frequently changing tables even incremental maintenance can be expensive; ev
 This problem is exacerbated in Big Data environments, where new records arrive at an increasingly fast rate and where data are often 
 distributed across multiple machines.  
 As a result, in production environments it is common to defer view maintenance to a later time \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and maintenance work can be scheduled for times of low system utilization.  
-While deferring maintenance has compelling benefits, it unfortunately brings its own costs, as views become increasingly stale in between maintenance periods.   
-The problem of stale MVs parallels the problem of dirty data studied in data cleaning \cite{rahm2000data}; as both staleness and erroneous records lead to inaccurate query anaswers.
-The observation that stale MVs are a type of dirty data leads us to the key insight behind our work; namely, that data cleaning techniques can be used to mitigate the negative impacts of deferred MV maintenance.  
+
+%While deferring maintenance has compelling benefits, it unfortunately brings its own costs, as views become increasingly stale in-between maintenance periods.   
+%The problem of stale MVs parallels the problem of dirty data studied in data cleaning \cite{rahm2000data}; as both staleness and erroneous records lead to inaccurate query answers.
+%The observation that stale MVs are a type of dirty data leads us to the key insight behind our work; namely, that data cleaning techniques can be used to mitigate the negative impacts of deferred MV maintenance.  
+
+While deferring maintenance has compelling benefits, it unfortunately brings its own costs, namely that views become increasingly stale in-between maintenance periods. As a result, queries on those views can return increasingly incorrect answers.
+The problem of stale MVs parallels the problem of dirty data studied in data cleaning~\cite{rahm2000data}; as both staleness and erroneous records lead to inaccurate query answers.
+The observation that stale MVs are a type of dirty data leads us to the key insight behind our work; namely, that data cleaning techniques can be used to mitigate the negative impacts
+of deferred MV maintenance.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch.png} \vspace{-.25em}
- \caption{If a view is being periodically maintained, in the interim, query results may be stale. Sample-View-Clean sits above an existing view maintenance architecture, and provides an interface for approximately up-to-date query results by maintaining a sample. The user can tune the sampling ratio to meet the resource constraints of the system \label{sys-arch}}\vspace{-1.75em}
+ \caption{If a view is being periodically maintained, in the interim, query results may be stale. Sample-View-Clean sits above an existing view maintenance architecture, and provides an interface for approximately up-to-date query results by maintaining a sample. The user can tune the sampling ratio to meet the resource constraints of the system \reminder{You never mention outlier index in the Introduction except for the contributions.}\label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes and arrival rates have led to development of new, efficient sampling-based approaches for coping with dirty data.   
 In our prior work, we developed the SampleClean framework to greatly improve query accuracy while cleaning only a small sample of dirty records \cite{wang1999sample}.  
-We proposed an algorithm called \nsc that corrects dirty query results by using a sample of clean data to learn how the dirtiness affects that query and then calculates a correction.  
+We proposed an approach called \nsc that corrects dirty query results by using a sample of clean data to learn how the dirtiness affects that query and then calculates a correction.  
 This perspective raises a new possibility for MVs: we can use a sample of clean (up-to-date) data to return more accurate query results without incurring the cost of full view maintenance.
 Of course, the metaphor of stale MVs as dirty data only goes so far. 
 View staleness is a different type of error than typical dirty data, which raises interesting new challenges in sampling, cleaning, and efficient query processing.
 
 To address these new challenges, we propose Sample-View-Clean (SVC), a framework that applies sampling to approximately correct query results on stale views.
-SVC takes a sample of up-to-date rows from the view, and extrapolates a correction factor for query answers on the stale view.
-Instead of a binary model of a view being either fully up-to-date (and all queries on it are correct) or stale (and all queries are possibly incorrect), SVC uses sampling to give a tradeoff between the computation required for maintenance and query accuracy.
-Query results from SVC, are in expectation up-to-date, however the results have approximation error.
-This approximation error is more manageable than staleness: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on results, and (2) the error is parameterized by the sample size as opposed to potentially unbounded staleness.
-SVC is complementary to existing deferred maintenance approaches; when the MVs become stale between maintenance cycles, we can apply SVC for query result estimation for a far smaller cost than having to maintain the entire view.
+SVC takes a sample of up-to-date rows from the view, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how SVC can be used as complementary to existing deferred maintenance approaches. When the MVs become stale between maintenance cycles, we apply SVC for query result estimation for a far smaller cost than having to maintain the entire view.
+The query results from SVC are in expectation up-to-date. While they are approximate results, the approximate error is more manageable than staleness: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size as opposed to potentially unbounded staleness.
+
+%The theoretical scope of the SVC is quite general, and our approach can be applied, in principle, to any multiset-valued materialized view.
+In practice, both MVs and queries can be arbitrarily complex.
+Since SVC is based on sampling, there are a subclass of views for which SVC can save significant computation and a subclass of queries on these views for which SVC can give accurate corrections.
+In this work, we explore these classes from both a theoretical perspective (i.e. when is our query correction optimal w.r.t estimate variance) and an empirical perspective for queries that do not satisfy the optimality conditions when is SVC still beneficial.
+
+
+
+%Instead of a binary model of a view being either fully up-to-date (and all queries on it are correct) or stale (and all queries are possibly incorrect), SVC uses sampling to give a tradeoff between the computation required for maintenance and query accuracy.
+
+
 
 %The key technical insight is that instead of randomly sampling the updates to the base relations as is common in the streaming literature \cite{babcock2002sampling, DBLP:journals/pvldb/MankuM12}, we apply a deterministic \textbf{hash} operation to sample the rows in a view.
 %Then, working backwards through relational expression of the view using lineage \cite{DBLP:journals/vldb/CuiW03}, we do just enough work to maintain those rows.
@@ -43,9 +57,7 @@ SVC is complementary to existing deferred maintenance approaches; when the MVs b
 %Since sampling is known to be sensitive to outliers (i.e., rows that have abnormal attribute values), we
 %utilize a technique called outlier indexing \cite{chaudhuri2001overcoming} to ensure that MV rows that are derived from ``outlier" records are accounted for in the sample which we found significantly increases accuracy in skewed data sets.
 
-The theoretical scope of the SVC is quite general, and our approach can be applied, in principle, to any multiset-valued materialized view.
-However, of course, there are a subclass of views for which sampling can save significant computation and a subclass of queries on these views for which our corrections are accurate.
-In this work, we explore these classes from both a theoretical perspective (i.e. when is our query correction optimal w.r.t estimate variance) and an empirical perspective for queries that do not satisfy the optimality conditions when is SVC still beneficial.
+
 
 To summarize, our contributions are as follows:
 \begin{itemize}\vspace{-.45em}

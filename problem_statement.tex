@@ -2,11 +2,11 @@
 In this section, we briefly overview the current challenges with view maintenance and
 our prior work in scalable data cleaning.
 
-\begin{figure}[ht!] 
+\begin{figure}[t] 
 \centering
 \vspace{-0.75em}
  \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}\vspace{-0.25em}
- \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.\label{example-1}}
+ \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.\label{example-1}}\vspace{-1em}
 \end{figure}
 
 \subsection{Running Example: Log Analysis}
@@ -24,14 +24,18 @@ These tables are related with a foreign-key relationship between
 Log and Video.
 Though SVC supports inserts, deletions, and updates, for clarity in our example, we consider insertions
 into Log which is cached in a temporary table:
+
 \begin{lstlisting}[mathescape]
-LogInserts(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
+LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
+
 
 \subsection{Materialized View Maintenance}\label{subsec-inc}
 Views define logical relations which can be queried instead of physical base relations.
-Materialized views are a class of views that are pre-computed and stored (i.e materialized).
+MVs are a class of views that are pre-computed and stored (i.e materialized).
 Any form of pre-computed, derived data encounters the problem of staleness when the physical base relations update.
+
+\reminder{Replace Materialized View with MV in the following text?}
 
 One approach to this problem is to recompute the materialized view every time there are updates to the base tables.
 However, this approach is very inefficient if updates to the data generally have small or sparse effect on the materialized view. 
@@ -46,12 +50,31 @@ In general, to ensure correctness, the view has to store the entire set of \tbl{
 Along the lines of this example, there are cases when recomputation may require less storage of state or even less computation.
 Thus, materialized views are maintained either with incremental maintenance, recomputation, or a mix.
 
+
+
+
+ 
+
+
+\iffalse
+Incremental maintenance may not be efficient in all cases.
+Consider the view that calculates the median \tbl{responseTime} grouped by \tbl{userAgent} on our running example dataset.
+In general, to ensure correctness, the view has to store the entire set of \tbl{responseTime} attributes for each group to allow for incremental maintenance.
+Along the lines of this example, there are cases when recomputation may require less storage of state or even less computation.
+Thus, materialized views are maintained either with incremental maintenance, recomputation, or a mix.
+
+
+
 \subsubsection{Practical Considerations}
 The algebraic analysis of incremental maintenance \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10} informs us which views can be incrementally maintained efficiently.
-However, there are many practical considerations of excuting these operations in real database systems and it may not always be feasible to immediately apply updates; even if theoretically possible.
-The main problem is that while immediate incremental maintenance has many advantages, the particulars of the database system and available resources often dictate how updates are propagated.
+However, there are many practical considerations of executing these operations in real database systems and it may not always be feasible to immediately apply updates; even if theoretically possible.
+The main problem is that while immediate incremental maintenance has many advantages, the particulars of the database system and available resources often dictate how updates are propagated. 
 
-To address these challenges, deferred maintenance is an alternative and often preferred solution.
+\fi
+
+\subsubsection{Practical Considerations}
+
+In real-world systems, for large datasets or fast data update rate, it may not always be feasible to maintain MVs immediately. Therefore, deferred maintenance is an alternative and often preferred solution.
 The main insight of deferral is to avoid maintaining the view immediately and to schedule an update at a more convenient time either in a pre-set way or adaptively.
 In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
 These costs can also be deferred to query execution time.
@@ -64,46 +87,58 @@ By using sampling, we give the user access to a new tradeoff space between immed
 
 \subsection{SampleClean: Fast and Accurate Query Processing on Dirty Data}
 In our prior work on the SampleClean project \cite{wang1999sample}, we proposed a framework for scalable data cleaning.
-Similar to the accuracy-performance contrast between incremental maintenance and periodic maintenance in the materialized view setting, data cleaning also faces a similar challenge.
+Similar to the accuracy-performance contrast between immediate maintenance and periodic maintenance in the materialized view setting, data cleaning also faces a similar challenge.
 Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy, and those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
 We proposed SampleClean to add an additional tradeoff to this design space by using sampling.
 
 SampleClean (Figure \ref{sc}) has three parts: (1) sampling, (2) data cleaning, and (3) query result estimation.
 First, SampleClean creates a sample of dirty data (which are erroneous, missing, or otherwise corrupted records).
-Then, the framework applies a data cleaning operation to the sample.
+Then, the framework applies a data cleaning procedure to the sample.
 Finally, when users query the dataset, the framework uses the clean sample to extrapolate clean query results.
 The key challenge is that data cleaning can potentially change the statistics of a sample and the queries need to compensate for those effects.
-In our initial work, SampleClean focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
+In our initial work, SampleClean mainly focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
 
 In SampleClean, we noticed that there were two contrasting query processing approaches, which we termed: \rsc and \nsc.
 In \rsc, we could apply queries, with some re-weighting, directly to the clean sample of data.
 This approach is very similar to that taken in Sample-based Approximate Query Processing \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}.
-\nsc, on the other hand, processed the changes made by the data cleaning and issued ``corrections" to the query results.
-We found that these two algorithms tradeoff statistical efficiency and robustness to error; as \rsc only depends on clean data it is robust to the magnitude of data error and as \nsc depends on the delta of the data cleaning it performs well when the data cleaning is sparse. 
+\nsc, on the other hand, processed the changes made by the data cleaning and issued ``corrections" to the query results that are obtained from the dirty data.
+%We found that these two approaches tradeoff statistical efficiency and robustness to error; as \rsc only depends on clean data it is robust to the magnitude of data error and as \nsc depends on the delta of the data cleaning it performs well when the data cleaning is sparse. 
+In comparison, as \rsc only depends on clean data, it is robust to the magnitude of data error; as \nsc depends on the changes made by the data cleaning, it performs well when the data is relatively clean.
 In this work, we found that estimating a correction (\nsc) led to lower variance results on real datasets (see Section \ref{exp}). 
 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch2.pdf} \vspace{-.25em}
- \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.\label{sc}}\vspace{-1.75em}
+ \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.\reminder{We need to discuss what's the best way to show this figure.}\label{sc}}\vspace{-1.75em}
 \end{figure}
 
 \subsection{New Challenges}
-Inspired by SampleClean, SVC samples a stale view, cleans the sample view by restricting the maintenance to just the rows in the sample, and then applies \nsc to correct the results of queries on the view.
+Inspired by SampleClean, SVC samples a stale view, cleans the sample view by restricting the maintenance to just the rows in the sample, and then applies \nsc to correct the results of queries on the stale view.
 Applying this data cleaning framework to the materialized view setting leads to some interesting theoretical challenges with new insights for both materialized view maintenance and data cleaning.
-In materialized views, unlike the models of error studied in SampleClean, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted.
-This problem poses an important statistical challenge since to calculate a correction with \nsc we need to measure the difference in rows attribute values after cleaning, and this requires us to define this algorithm when rows are missing from either side of the difference.
-In SampleClean, we also assumed samples were derived directly from base relations.
-However, efficiently sampling from materialized views is much more complex.
 
-We further use this new setting to explore and formalize the class of queries that our frameworks can support.
+\iffalse
+In materialized views, unlike the models of error studied in SampleClean, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted.
+This problem poses an important statistical challenge since to calculate a correction with \nsc we need to measure the difference in rows' attribute values after cleaning, and this requires us to define this algorithm when rows are missing from either side of the difference.
+%In SampleClean, we also assumed samples were derived directly from base relations.
+%However, efficiently sampling from materialized views is much more complex. 
+\fi
+
+
+
+In SampleClean, we simply treated the data cleaning as a black box and did not study how to clean a dirty sample data. However, in SVC, we cannot make such assumption and have to devise efficient data-cleaning techniques to ``clean" a stale sample view. 
+
+
+Staleness is a new type of data error.
+In materialized views, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted. These issues pose new challenges in  query correction. 
+We further explore and formalize the class of queries that SVC can support.
 We extend the generality of the framework to support queries than the \sumfunc, \avgfunc, and \countfunc which studied before.
-We show that \nsc actually can give meaningful results for some \selectfunc queries.
-A further insight is that queries without closed form confidence intervals can also be supported, and we
-derive an algorithm to achieve empirical confidence intervals for aggregates such as \texttt{median} and \texttt{corr}.
+
+%We show that \nsc actually can give meaningful results for some \selectfunc queries.
+%A further insight is that queries without closed form confidence intervals can also be supported, and we
+%derive an algorithm to achieve empirical confidence intervals for aggregates such as \texttt{median} and \texttt{corr}.
 
 Sampling is particularly sensitive to variance in the dataset, and large outliers can significantly reduce query accuracy.
-In this work, we give an explicit treatment of non-erroneous outliers records.
+In this work, we give an explicit treatment of non-erroneous outliers records. \reminder{What do you mean by non-erroneous?}
 
 
 
