@@ -1,8 +1,9 @@
 \section{Framework Overview}\label{sec-arch}
 The basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
-The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constained settings where frequent maintenance was once impossible.
-However, an important challenge to use these samples to answer queries accurately.
+The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
+However, an important challenge to use these samples to answer queries accurately. \reminder{I did not get this challenge.}
 
+\reminder{Give an outline of this section to explain how the subsections are organized.}
 \subsection{Notation}
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$, and let $S$ be a materialized view of this database.
@@ -23,12 +24,12 @@ It is a function of the database $\mathcal{D}$, $S$, and all the delta relations
 \end{definition}
 
 %In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
-We look at maintenance strategies composed of the following relational expressions:
+We look at maintenance strategies composed of the following relational operations:
 \begin{itemize}\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{f,e}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $e(R)$. The output schema is of the result is $e_i, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $e$ is a projection and $f$ always returns null}\vspace{-.45em}
+\item $\gamma_{f,e}(R)$: \reminder{A better notation?}Apply the aggregate function $f$ to the relation R grouped by the distinct values of $e(R)$. The output schema is of the result is $e_i, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $e$ is a projection and $f$ always returns null}\vspace{-.45em} 
 \item $R_1 \cup R_2$: Set union take a union of the two sets.
 \item $R_1 \cap R_2$: Set intersection take an intersection of the set.
 \item $R_1 - R_2$: Set difference.
@@ -49,17 +50,19 @@ WHERE
 GROUP BY 
 	videoId;
 \end{lstlisting}
-If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogInserts}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}.
+If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogInserts}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. \reminder{It's better to denote it use the notations that you defined above and use some figures.}
 
 \subsection{Sampling}
 In this work, we focus on uniform samples of views.
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probablity $m$.
-To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$.
+To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$. \reminder{Why not stratified sampling? You can say it requires to know workload and we defer it to future work. }
 
-Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP which find a uniform
+\reminder{It's an important paragraph. We need to convince reviewers that our sampling strategy makes sense. }
+
+Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP [cite??] which find a uniform
 sample of fixed \emph{size} $k\le \mid S \mid$.
-For large sample sizes, there is little difference between the techniques.
-Furthermore, any ``black-box" uniform sampling algorithm can be amended to make a reservoir sample by oversampling and then randomly removing elements.
+For large sample sizes, there is little difference between the techniques. \reminder{Why?}
+Furthermore, any ``black-box" uniform sampling algorithm can be amended to make a reservoir sample by oversampling and then randomly removing elements. \reminder{How about deletion?}
 The uniform sample model represents our algorithm which uses hashing better and also makes the analysis more clear.
 
 \subsection{Problem Statements}
@@ -76,7 +79,7 @@ If we are given a materialized view $S$ and we know the base relations have had 
 \end{itemize}
 
 In this case, it is clear that simply executing the maintenance strategy $\mathcal{M}$ will achieve the necessary results and update the view $S$ to view $S'$.
-However, now suppose we have a sampled view $\hat{S}$, and we want to do just enough effort to update only the rows in the that sample.
+However, now suppose we have a sampled view $\hat{S}$, and we want to do just enough effort to update only the rows in the sample.
 This problem is challenging since the errors are not just updates to rows in the views, as there might be new insertions needed.
 Thus, we define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$ with sampling ratio $m$, we want to find an up-to-date uniform sample $\hat{S'}$.
 We define the cleaning procedure as preserving the uniformity of sampling, so after cleaning $\hat{S'}$ is a uniform sample of $S'$:
@@ -85,9 +88,9 @@ We define the cleaning procedure as preserving the uniformity of sampling, so af
 \item If the row needs to be deleted, delete the row.
 \item For all new rows that need to be inserted into the view $S'$ insert a random sample of ratio $m$.
 \end{itemize}
-SVC compares two ``corresponding" samples to derive a correction.
+SVC compares two ``corresponding" samples to derive a correction. \reminder{It is not very clear the relationship between the correspondence and the cleaning procedure that you define above.}
 We formalize this property in terms of the data cleaning definitions.
-\begin{definition}[Correspondence]
+\begin{definition}[Correspondence]  \reminder{How about a row that requires two operations (i.e., update+delete)}
 The samples $\hat{S'}$ and $\hat{S}$ correspond if and only if:
 \item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
 \item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
@@ -98,6 +101,7 @@ In this paper, we take advantage of this property and propose a technique that a
 efficiently.
 
 \subsubsection{Query Correction}
+
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
 Our query correction component takes two corresponding samples $\hat{S'}$ and $\hat{S}$, and calulates a correction to $q(S)$.
 Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
@@ -113,11 +117,11 @@ We also consider correcting stale non-nested select queries of the following for
 SELECT * FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results. 
+As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results. \reminder{Say something about group-by clause in this section?}
 
 \subsubsection{Outlier Indexing}
-The corrections in the previous subsection is derived from a sample.
-Sampling is known to be senstive to outliers, which we define as records whose values deviate significantly from the mean.
+The query correction in the previous subsection is derived from a sample.
+Sampling is known to be sensitive to outliers, which we define as records whose values deviate significantly from the mean.
 However, a challenge is that since we do not materialize the entire up-to-date view detecting which records may be outliers is challenging.
 Instead, we define an outlier index on base relations of the database $\mathcal{D}$.
 This index tracks records whose attributes cross some threshold $t$.
@@ -126,7 +130,7 @@ Basically, for every row in the view that is derived from a record in the outlie
 We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
 
 \subsection{System Architecture}
-In implementation, SVC works in conjunction with existing defered maintenance or re-calculation approaches.
+In implementation, SVC works in conjunction with existing defered maintenance or re-calculation approaches \reminder{What are re-calculation approaches?}.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
@@ -141,10 +145,11 @@ WHERE visitCount > 100;
 \end{lstlisting}
 Let us suppose the initial query result is $45$.
 There now have been new log records inserted into the Log table making the old result stale.
-For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct \tbl{videoID}), we update just the view counts of those videos.
-From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
-Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
-This means that we should correct the old result by $40$ resulting in the estimate of $85$.
+For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct \tbl{videoId}), we update just the view counts of those videos.
+%From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
+%Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
+From this sample, we can estimate a correction (e.g., $40$) of the old result.
+This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
 
 \iffalse
 We add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator.
