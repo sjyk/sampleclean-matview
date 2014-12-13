@@ -99,9 +99,9 @@ In our initial work, SampleClean mainly focused on three common aggregates: \sum
 
 The SampleClean project showed that there were two contrasting approaches to query processing on a sample of cleaned data.
 We could (1) clean the sample first and then run the query on the sample, or (2) look at the difference between the clean and dirty samples and calcuate a correction to correct an existing dirty result. 
-Approach (1) is similar to those studied in the Approximate Query Processing (AQP) literature \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}.
-We called approach (2) \nsc, and we found that \nsc was more accurate in mostly clean datasets as it leverages existing deterministic results leading to reduced approximation error.
-In this work, we found that estimating a correction (\nsc) led to more accurate results in our experiments (see Section \ref{exp}). 
+Approach (1) is similar to those studied in the Approximate Query Processing (AQP) literature \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}; however in cases when data errors were small, we found that the approximation error dominated.
+To address this problem, we developed approach (2), which we called \nsc, and we found that \nsc was more accurate in mostly clean datasets as it leverages existing deterministic results leading to reduced approximation error.
+In the materialized view setting, we found that \nsc led to more accurate results in our experiments (see Section \ref{exp}). 
 
 \begin{figure}[t] \vspace{-2em}
 \centering
