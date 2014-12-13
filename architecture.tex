@@ -30,7 +30,7 @@ We look at maintenance strategies composed of the following relational operation
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{f,e}(R)$: \reminder{A better notation?}Apply the aggregate function $f$ to the relation R grouped by the distinct values of $e(R)$. The output schema is of the result is $e_i, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $e$ is a projection and $f$ always returns null}\vspace{-.45em} 
+\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The output schema is of the result is $a, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}\vspace{-.45em} 
 \item $R_1 \cup R_2$: Set union take a union of the two sets.
 \item $R_1 \cap R_2$: Set intersection take an intersection of the set.
 \item $R_1 - R_2$: Set difference.
@@ -51,24 +51,36 @@ WHERE
 GROUP BY 
 	videoId;
 \end{lstlisting}
-If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogInserts}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. \reminder{It's better to denote it use the notations that you defined above and use some figures.}
+If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogIns}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. We illustrate this process with the expression tree in Figure \ref{exexpr}.
+
+\begin{figure}[t] \vspace{-2em}
+\centering
+ \includegraphics[scale=0.30]{figs/example_expression_tree.pdf} \vspace{-.25em}
+ \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.75em}
+\end{figure}
 
 \subsection{Sampling}
 In this work, we focus on uniform samples of views.
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probablity $m$.
-To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$. \reminder{Why not stratified sampling? You can say it requires to know workload and we defer it to future work. }
+To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$. 
 
-\reminder{It's an important paragraph. We need to convince reviewers that our sampling strategy makes sense. }
+While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
+In principle, our framework can be extended to handle stratified samples similar to the BlinkDB project \cite{AgarwalMPMMS13}.
+However, this requires that we know our query workload in advance.  
+In this paper, we do not discuss stratified sampling and will explore this further in future work.
 
-Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP [cite??] which find a uniform
-sample of fixed \emph{size} $k\le \mid S \mid$.
-For large sample sizes, there is little difference between the techniques. \reminder{Why?}
-Furthermore, any ``black-box" uniform sampling algorithm can be amended to make a reservoir sample by oversampling and then randomly removing elements. \reminder{How about deletion?}
-The uniform sample model represents our algorithm which uses hashing better and also makes the analysis more clear.
+Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP \cite{DBLP:journals/toms/Vitter85} which find a uniform sample of fixed \emph{size} $k\le \mid S \mid$.
+Our sampling ratio gives a sample of the size $k$ in expectation, however, the actual size from any given instance may be slightly different.
+For large sample sizes, there is little difference between the techniques since the actual size of using a sample ratio will be close to $k$.
+The uniform sample model represents our algorithm which uses hashing better and also makes the presentation of our analysis more clear.
+
+Furthermore, any ``black-box" uniform sampling algorithm can be used to achieve a reservoir sample.
+The use of one technique over another does not affect the general principles or the statistics of SVC, only the 
+notation in the analysis.
 
 \subsection{Problem Statements}
 \subsubsection{View Maintenance as Data Cleaning}
-In SVC, we model this definition of staleness as a type of data error.
+In SVC, we model staleness in a materialized view as a type of data error.
 Materialized views whose base relations have been updated potentially give stale query results.
 We formalize the problem of correcting staleness as a data cleaning operation.
 
@@ -89,20 +101,46 @@ We define the cleaning procedure as preserving the uniformity of sampling, so af
 \item If the row needs to be deleted, delete the row.
 \item For all new rows that need to be inserted into the view $S'$ insert a random sample of ratio $m$.
 \end{itemize}
-SVC compares two ``corresponding" samples to derive a correction. \reminder{It is not very clear the relationship between the correspondence and the cleaning procedure that you define above.}
-We formalize this property in terms of the data cleaning definitions.
-\begin{definition}[Correspondence]  \reminder{How about a row that requires two operations (i.e., update+delete)}
-The samples $\hat{S'}$ and $\hat{S}$ correspond if and only if:
-\item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
-\item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
-\end{definition}
-
 It is important to note that the way we defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$. 
 In this paper, we take advantage of this property and propose a technique that analyzes $\mathcal{M}$ and can find a particular $\hat{S'}$
 efficiently.
 
-\subsubsection{Query Correction}
+In, SampleClean \cite{wang1999sample}, \nsc query result estimation is done taking a row-by-row difference of the dirty and cleaned data.
+However, in prior work, we did not consider the effect of deletions or insertions so taking this difference was well defined.
+In this application, we have to define a new property to handle this problem, which we call ``correspondence".
+SVC compares two ``corresponding" samples to derive a correction. 
+\begin{definition}[Correspondence]
+The samples $\hat{S'}$ and $\hat{S}$ correspond if and only if:
+\item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
+\item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
+\item For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
+\item For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
+\item For every row $r$ in $S'$ that is newly inserted, $r \not\in \hat{S}$.
+\item If a row $r$ requires an update and then a deletion. The deletion takes precedence and $r \not\in \hat{S'}$.
+\item Rows that are inserted trivially satisfy the conditions since those rows are not contained in $S$ or $\hat{S}$.
+\end{definition}
+This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
+There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
 
+\begin{example}[Correspondence]
+Suppose \tbl{countView} has 4 videos: 
+\begin{lstlisting} [mathescape]
+V1 (visitCount = 4), V2 (visitCount = 6), V3 (visitCount = 1), V4 (visitCount = 1)
+\end{lstlisting}
+We take a sample of \tbl{countView} and call it \tbl{countViewSample} that contains V1 and V2.
+\tbl{LogIns} has new logs of 1 visit for V1 and 1 visit for a new video V5.
+An up-to-date sample that corresponds is:
+\begin{lstlisting} [mathescape]
+V1 (visitCount = 4+1), V2 (visitCount = 6)
+\end{lstlisting}
+An up-to-date sample that does \emph{not} corresponds is: 
+\begin{lstlisting} [mathescape]
+V1 (visitCount = 4+1), V3 (visitCount = 1)
+\end{lstlisting}
+This is because V2 was unchanged and therefore should be included in the sample.
+\end{example}
+
+\subsubsection{Query Correction}
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
 Our query correction component takes two corresponding samples $\hat{S'}$ and $\hat{S}$, and calulates a correction to $q(S)$.
 Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
@@ -118,7 +156,8 @@ We also consider correcting stale non-nested select queries of the following for
 SELECT * FROM View 
 WHERE Condition(A);
 \end{lstlisting}
-As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results. \reminder{Say something about group-by clause in this section?}
+As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
+From these queries, we exclude the group by clause, as we model group by clauses as part of the \textsf{Condition}.
 
 \subsubsection{Outlier Indexing}
 The query correction in the previous subsection is derived from a sample.
@@ -131,7 +170,7 @@ Basically, for every row in the view that is derived from a record in the outlie
 We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
 
 \subsection{System Architecture}
-In implementation, SVC works in conjunction with existing defered maintenance or re-calculation approaches \reminder{What are re-calculation approaches?}.
+In implementation, SVC works in conjunction with existing periodic maintenance or periodic re-calculation.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
