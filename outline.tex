@@ -110,8 +110,8 @@
 Materialized views, stored pre-computed query results, are used to facilitate queries on large datasets.
 Materialized views can become out-date when base tables change and queries will give \emph{stale} results.
 Maintaining materialized views has been well studied but is often very costly.
-In this work, we model the view maintenance problem as a data cleaning problem and treat a stale row in a materialized view as a type of data error.
-In particular, we maintain a small sample of updates to a materialized view and infer how these updates affect a queries on a the stale view.
+In this work, we model the view maintenance problem as a data cleaning problem and treat out-of-date rows materialized views as a type of data error.
+In particular, we analyze the maintenance procedure for the views and infer how these updates affect a queries on a the stale view.
 For common aggregate queries (\sumfunc, \countfunc, and \avgfunc), we can derive a correction factor from the sample to ``clean" the stale query result.
 We bound our corrections in analytic confidence intervals, and in fact, we show that our technique is optimal with respect to estimate variance.
 As sampling can be sensitive to long-tailed distributions, we further consider an outlier indexing technique to give increased accuracy when the data distributions are skewed.

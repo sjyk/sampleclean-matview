@@ -1,9 +1,10 @@
 \section{Framework Overview}\label{sec-arch}
 The basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
 The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
-However, an important challenge to use these samples to answer queries accurately. \reminder{I did not get this challenge.}
+We first define notation, terminology, and the problem setting that we address in this work.
+Then, we formalize the three problems that the different components of SVC address: (1) analyzing a maintenance procedure to efficiently maintain a sample, (2) query processing using the sample, and (3) using an outlier index.
+Finally, we overview the system architecture and discuss a toy numerical example of how this works in practice.
 
-\reminder{Give an outline of this section to explain how the subsections are organized.}
 \subsection{Notation}
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$, and let $S$ be a materialized view of this database.
