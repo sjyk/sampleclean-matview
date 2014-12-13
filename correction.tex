@@ -1,14 +1,15 @@
 \section{Efficient Maintenance With Sampling} \label{sampling}
+\reminder{Make sure that we do a good survey on ``sampling from a view" and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
 In the previous section, we formalized the computation of $\hat{S'}$  as a data cleaning procedure.
 A naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
-However, this does not make the maintenance of the sample any more efficent.
+However, this does not make the maintenance of the sample any more efficient.
 Ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
 need not operate on the full data.
 In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
 maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
 \subsection{Desired Properties}
-In this work, we focus on result estimation on uniform samples of views.
+In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 We call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
 \begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} if
 \[ \forall s \in \hat{S'} : s \in S' \]
@@ -18,20 +19,20 @@ and
 A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Recall, the view in our example \textsf{countView}. 
 If we sampled the base relation the result would have a mix of missing rows from the view and rows with incorrect aggregates.
-The rows with incorrect aggregates appear with probability 0 in the unsampled view.
+The rows with incorrect aggregates appear with probability 0 in the unsampled view \reminder{I did not understand this sentence}. 
 
-To get a uniform sample of a view, the main problem is that for every row sampled in the view, our sampling technique needs to include all of the rows in relations lower in the tree that could possibly contribute to its materialization.
+To get a uniform sample of a view, the main problem is that for every row sampled in the view, our sampling technique needs to include all of the rows in relations lower in the tree \reminder{``lower in the tree" sounds informal.} that could possibly contribute to its materialization.
 Achieving this requires a definition of lineage; traceable unique identification for rows.
 
 \subsection{Identification With Row Lineage}
-Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
+Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}. \reminder{Add Kai into acknownledgement for helping us with problem formulation. }
 We recursively define these identifying attributes:
 \begin{definition}
 (Primary Key). For every relational expression $R$, we define the primary key of every subexpression to be:
 \begin{itemize}\vspace{-.45em}
 \item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key.\vspace{-.45em}
 \item $\sigma_{\phi}(R)$: Primary key is the primary key of R \vspace{-.45em}
-\item $\Pi_{(a_1,...,a_k)}(R)$: If the projection includes the primary key of R then the primary key of the projection is the same as the primary key of R. Otherwise it is \textsf{null}. \vspace{-.45em}
+\item $\Pi_{(a_1,...,a_k)}(R)$: If the projection includes the primary key of R then the primary key of the projection is the same as the primary key of R. Otherwise it is \textsf{null}. \reminder{Why is it null? We should include the primary key even if it is not projected.} \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the union of the primary key of $R_1$ and $R_2$. 
 \item $\gamma_{f,e}(R)$: The primary key of the result is the group by expression $e(R)$.\vspace{-.45em}
 \item $R_1 \cup R_2$: Primary key is the primary key of R
@@ -40,7 +41,7 @@ We recursively define these identifying attributes:
 \end{itemize}
 \end{definition}
 This definition of a primary key for a relational expression, allows us to trace the primary key through the expression tree.
-In the subsequent sections, we assume that the Primary Key for all expressions is never null.
+In the subsequent sections, we assume that the Primary Key for all expressions is never null. \reminder{Why do you need this assumption? You have made this assumption in the Base Case of Def 4.}
 Our definition of the primary key is also constructive; that is, if an expression has a null primary key then we modify every projection operation to ensure that primary key of the subrelation is never projected out.
 
 \subsection{Hashing Operator}
@@ -53,7 +54,7 @@ If the hash function is sufficiently uniform, then $h(a) \le m$ samples on avera
 
 To achieve the performance benefits of sampling, we push down the hashing operator through the query tree.
 The further than we can push $\eta$ down the query tree, the more operators can benefit from the sampling.
-However, it is important to note that for some of the expressions, notably joins and aggregates, tracability is more complex.
+However, it is important to note that for some of the expressions, notably joins and aggregates \reminder{Why do aggregates block pushing down.}, tracability \reminder{traceability?} is more complex.
 It turns out in general we cannot push down even a deterministic sample through those expressions.
 We formalize the push down rules below:
 \begin{proposition}
@@ -62,7 +63,7 @@ We formalize the push down rules below:
 \item $\sigma_{\phi}(R)$: Push $\eta$ through \vspace{-.45em}
 \item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through \vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. 
-\item $\gamma_{f,e}(R)$: Blocks $\eta$ in general. If the group by expression can be decomposed into $e(R) = a, e'(R)$ then pushdown is possible.\vspace{-.45em}
+\item $\gamma_{f,e}(R)$: Blocks $\eta$ in general. If the group by expression can be decomposed into $e(R) = a, e'(R)$ then pushdown is possible. \reminder{Why is it blocked? If we define group-by keys as a set of attributes, it can always be pushed down. }\vspace{-.45em}
 \item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 - R_2$: Push $\eta $ through to both $R_1$ and $R_2$
@@ -77,6 +78,7 @@ In special cases, we can push the hashing operator down through joins.
 \textbf{(Semi/Anti)-Join: } We can always push $\eta$ down on Semi-joins. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 \dot{-} (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
 \subsection{Example}
+\reminder{I think this is a very important example. Here are my suggestions: 1) Explain how to obtain the primary key of the view (step by step) using the rules defined in Sec 4.2; 2) Explain how to push down the hash operator (step by step) using the rules defined in 4.3. 3) Add figures if you think they are necessary. }
 We will describe sampling a maintenance strategy of \textsf{countView} in terms of relational algebra.
 Let the stale view $S$ be \textsf{countView} as defined in the previous section.
 First, we construct a delta view, applying the view definition to the updates.
