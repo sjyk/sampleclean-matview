@@ -55,10 +55,11 @@ Given these rules, $O$ is, in fact, a subset of our materialized view $S'$.
 Thus, our query processing can take advantage of the theory described in the previous section to incorporate the set $O$ into our results.
 We implement the outlier index as an additional attribute on our sample with a boolean flag true or false if it is an outlier indexed record.
 If a row is contained both in the sample and the outlier index, the outlier index takes precedence.
+This ensures that we do not double count the outliers.
 
 \subsection{Query Processing with the Outlier Index} 
 For result estimation, we can think of our sample $\hat{S'}$ and our outlier index $O$ as two distinct parts.
-Since $O \subset S'$, our sample is actually a sample restricted to the set $\widehat{(S'-O)}$. 
+Since $O \subset S'$, and we give membership in our outlier index precedence, our sample is actually a sample restricted to the set $\widehat{(S'-O)}$. 
 The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
 and (2) we can improve the accuracy of our \emph{aggregation} queries.
 To query the outlier rows, we can select all of the rows in the materialized view that are flagged as outliers, and these rows are guaranteed to be up-to-date.
