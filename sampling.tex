@@ -42,7 +42,7 @@ SELECT $f(a)$ FROM View
 WHERE $\cond(A)$
 \end{lstlisting}
 Group-by clauses can be handled as part of the predicate.
-As input \nsc is given a query (\sumfunc, \countfun, or \avgfunc), the result of running this query on the dirty data, and a dirty sample and a cleaned version of the sample.
+As input \nsc is given a query (\sumfunc, \countfunc, or \avgfunc), the result of running this query on the dirty data, and a dirty sample and a cleaned version of the sample.
 We then calculate the row-by-row difference for each row in the sample between dirty and clean.
 Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
 We showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results.
