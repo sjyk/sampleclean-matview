@@ -2,13 +2,13 @@
 \section{Extensions and Discussion}\label{sec:ext}
 \subsection{Correction vs. Direct Estimate}
 We argued that in many cases correcting query results approximately is more accurate than an
-AQP-style direct estimate. 
+SAQP-style direct estimate. 
 We can provide some back-of-the-envelope mathematical intuition for this.
 
 For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
 proportional to the variance of the \emph{change} and inversely proportional to the sample size:
 \[\frac{\sigma_{c}^2}{k}\]
-On the other hand, an AQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
+On the other hand, an SAQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
 \[\frac{\sigma_{S'}^2}{k}\]
 Since the change is the difference between the stale and up-to-date data, this can be rewritten as: 
 \[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
@@ -25,7 +25,7 @@ This is because a uniformly random sample of any attribute (possibly not unique)
 A consequence of this is that we can push down the hashing operator through arbitrary equality joins (not just many-to-one) by hashing the join key.
 
 We defer further exploration of this property to future work as it introduces new tradeoffs.
-For example, sampling on a non-unique key, while unbiased in expectation, hash higher variance in the size of the sample.
+For example, sampling on a non-unique key, while unbiased in expectation, hash\reminder{has?} higher variance in the size of the sample.
 Happening to hash a large group may lead to decreased performance. 
 
 Suppose our keys are duplicated $\mu_k$ times on average with variance $\sigma_k^2$, then the variance of the
@@ -36,10 +36,11 @@ In this setting, our sampling would have to consider this variance against the b
 
 \subsection{Sampling Updates vs. Sampling Views}
 In SVC, we sample from views and work backwards through the view definition using relational algebra.
-An alternative approach is to sample the updates to the view.
+An alternative approach is to sample the updates to the view. \reminder{Is it what we did? Do you mean sampling base tables?}
 However, this approach quickly leads to some bottlenecks.
 For example, if our view is an aggregate view with a nested selection, we can easily construct a distinct count problem rendering any aggregate query inestimable \cite{DBLP:conf/pods/CharikarCMN00}.
 
+\reminder{For this point, I think you can say the former one is just a special case of the latter one?}
 On the other hand this approach, may allow for better support for selection queries on the view.
 In our model every row in our sample is up-to-date but all the rows outside of the sample are completely missing. 
 In this model, every row is potentially approximate allowing for better support for selection queries.
