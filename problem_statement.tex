@@ -36,13 +36,11 @@ Views define logical relations which can be queried instead of physical base rel
 MVs are a class of views that are pre-computed and stored (i.e materialized).
 Any form of pre-computed, derived data encounters the problem of staleness when the physical base relations update.
 
-\reminder{Replace Materialized View with MV in the following text?}
-
 One approach to this problem is to recompute the materialized view every time there are updates to the base tables.
-However, this approach is very inefficient if updates to the data generally have small or sparse effect on the materialized view. 
-A contrasting approach is incremental view maintenance (IVM), where rows in the materialized views are incrementally updated based on the updates to the base table.
-Incremental maintenance of materialized views has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
-At a high-level, incremental maintenance algorithms typically consist of the following steps: (1) maintain a cache of insertions and deletions for each physical base table, then using the view definition derive a \emph{change propagation formula} in terms of the set of insertions and deletions, and finally apply the formula to the materialized view.
+However, this approach is very inefficient if updates to the data generally have small or sparse effect on the MV. 
+A contrasting approach is incremental view maintenance (IVM), where rows in the MV are incrementally updated based on the updates to the base table.
+Incremental maintenance of MVs has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
+At a high-level, incremental maintenance algorithms typically consist of the following steps: (1) maintain a cache of insertions and deletions for each physical base table, then using the view definition derive a \emph{change propagation formula} in terms of the set of insertions and deletions, and finally apply the formula to the view.
 For a variety of view types, these rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
 
 Incremental maintenance may not be efficient in all cases.
@@ -96,50 +94,33 @@ SampleClean (Figure \ref{sc}) has three parts: (1) sampling, (2) data cleaning, 
 First, SampleClean creates a sample of dirty data (which are erroneous, missing, or otherwise corrupted records).
 Then, the framework applies a data cleaning procedure to the sample.
 Finally, when users query the dataset, the framework uses the clean sample to extrapolate clean query results.
-The key challenge is that data cleaning can potentially change the statistics of a sample and the queries need to compensate for those effects.
+In this work, the main challenge was that data cleaning can potentially change the statistics of a sample and the queries need to compensate for those effects.
 In our initial work, SampleClean mainly focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
 
-In SampleClean, we noticed that there were two contrasting query processing approaches, which we termed: \rsc and \nsc.
-In \rsc, we could apply queries, with some re-weighting, directly to the clean sample of data.
-This approach is very similar to that taken in Sample-based Approximate Query Processing \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}.
-\nsc, on the other hand, processed the changes made by the data cleaning and issued ``corrections" to the query results that are obtained from the dirty data.
-%We found that these two approaches tradeoff statistical efficiency and robustness to error; as \rsc only depends on clean data it is robust to the magnitude of data error and as \nsc depends on the delta of the data cleaning it performs well when the data cleaning is sparse. 
-In comparison, as \rsc only depends on clean data, it is robust to the magnitude of data error; as \nsc depends on the changes made by the data cleaning, it performs well when the data is relatively clean.
-In this work, we found that estimating a correction (\nsc) led to lower variance results on real datasets (see Section \ref{exp}). 
+The SampleClean project showed that there were two contrasting approaches to query processing on a sample of cleaned data.
+We could (1) clean the sample first and then run the query on the sample, or (2) look at the difference between the clean and dirty samples and calcuate a correction to correct an existing dirty result. 
+Approach (1) is similar to those studied in the Approximate Query Processing (AQP) literature \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}; however in cases when data errors were small, we found that the approximation error dominated.
+To address this problem, we developed approach (2), which we called \nsc, and we found that \nsc was more accurate in mostly clean datasets as it leverages existing deterministic results leading to reduced approximation error.
+In the materialized view setting, we found that \nsc led to more accurate results in our experiments (see Section \ref{exp}). 
 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.30]{figs/sys-arch2.pdf} \vspace{-.25em}
- \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.\reminder{We need to discuss what's the best way to show this figure.}\label{sc}}\vspace{-1.75em}
+ \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.\label{sc}}\vspace{-1.75em}
 \end{figure}
 
 \subsection{New Challenges}
 Inspired by SampleClean, SVC samples a stale view, cleans the sample view by restricting the maintenance to just the rows in the sample, and then applies \nsc to correct the results of queries on the stale view.
 Applying this data cleaning framework to the materialized view setting leads to some interesting theoretical challenges with new insights for both materialized view maintenance and data cleaning.
-
-\iffalse
-In materialized views, unlike the models of error studied in SampleClean, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted.
-This problem poses an important statistical challenge since to calculate a correction with \nsc we need to measure the difference in rows' attribute values after cleaning, and this requires us to define this algorithm when rows are missing from either side of the difference.
-%In SampleClean, we also assumed samples were derived directly from base relations.
-%However, efficiently sampling from materialized views is much more complex. 
-\fi
-
-
-
 In SampleClean, we simply treated the data cleaning as a black box and did not study how to clean a dirty sample data. However, in SVC, we cannot make such assumption and have to devise efficient data-cleaning techniques to ``clean" a stale sample view. 
-
 
 Staleness is a new type of data error.
 In materialized views, staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted. These issues pose new challenges in  query correction. 
 We further explore and formalize the class of queries that SVC can support.
 We extend the generality of the framework to support queries than the \sumfunc, \avgfunc, and \countfunc which studied before.
 
-%We show that \nsc actually can give meaningful results for some \selectfunc queries.
-%A further insight is that queries without closed form confidence intervals can also be supported, and we
-%derive an algorithm to achieve empirical confidence intervals for aggregates such as \texttt{median} and \texttt{corr}.
-
 Sampling is particularly sensitive to variance in the dataset, and large outliers can significantly reduce query accuracy.
-In this work, we give an explicit treatment of non-erroneous outliers records. \reminder{What do you mean by non-erroneous?}
+In this work, we give an explicit treatment of outliers records. 
 
 
 
