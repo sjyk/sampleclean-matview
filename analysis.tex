@@ -2,13 +2,13 @@
 \section{Extensions and Discussion}\label{sec:ext}
 \subsection{Correction vs. Direct Estimate}
 We argued that in many cases correcting query results approximately is more accurate than an
-SAQP-style direct estimate. 
+AQP-style direct estimate. 
 We can provide some back-of-the-envelope mathematical intuition for this.
 
 For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
 proportional to the variance of the \emph{change} and inversely proportional to the sample size:
 \[\frac{\sigma_{c}^2}{k}\]
-On the other hand, an SAQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
+On the other hand, an AQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
 \[\frac{\sigma_{S'}^2}{k}\]
 Since the change is the difference between the stale and up-to-date data, this can be rewritten as: 
 \[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
