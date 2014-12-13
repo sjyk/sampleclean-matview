@@ -41,7 +41,7 @@ To illustrate the concept of a maintenance strategy, consider the following view
 \begin{lstlisting} 
 CREATE VIEW countView
 AS SELECT 
-	videoId, userAgent,
+	videoId,
 	count(1) AS visitCount,
 FROM 
 	Log, Video
@@ -55,7 +55,7 @@ If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenanc
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.30]{figs/example_expression_tree.pdf} \vspace{-.25em}
+ \includegraphics[scale=0.50]{figs/example_expression_tree.pdf} \vspace{-.25em}
  \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.75em}
 \end{figure}
 
@@ -109,7 +109,7 @@ In, SampleClean \cite{wang1999sample}, \nsc query result estimation is done taki
 However, in prior work, we did not consider the effect of deletions or insertions so taking this difference was well defined.
 In this application, we have to define a new property to handle this problem, which we call ``correspondence".
 SVC compares two ``corresponding" samples to derive a correction. 
-\begin{definition}[Correspondence] \reminder{I swap the order of deletion and updating. I also remove a few items. Please check whether it makes sense or not. }
+\begin{definition}[Correspondence]
 $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\hat{S'}$ and $\hat{S}$ correspond if and only if:
 \item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
 \item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
@@ -118,6 +118,7 @@ $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We 
 %\item For every row $r$ in $S'$ that is newly inserted, $r \not\in \hat{S}$.
 %\item If a row $r$ requires an update and then a deletion. The deletion takes precedence and $r \not\in \hat{S'}$.
 %\item Rows that are inserted trivially satisfy the conditions since those rows are not contained in $S$ or $\hat{S}$.
+\label{correspondence}
 \end{definition}
 This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
 There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
