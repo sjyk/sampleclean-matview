@@ -22,7 +22,7 @@ The sampling in SVC introduces new challenges such as sensitivity to outliers, q
 In the context of materialized view maintenance, sampling has primarly been primarily been studied from the perspective of maintaining samples \cite{DBLP:conf/icde/OlkenR92}.
 Similarly, in~\cite{joshi2008materialized}, Joshi and Jermaine studied indexed materialized views that are amenable to random sampling.
 While similar in spirit (queries on the view are approximate), this work does not consider the cost of maintaining the materialized view only the cost of fast, approximate queries on the view.
-Nirkhiwale et al. \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}, studied an algebra for sampling in aggregate queries.
+Nirkhiwale et al. \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}\reminder{?}, studied an algebra for sampling in aggregate queries.
 They studied how to build query plans for aggregate queries (with nested subqueries and joins) that involved a Generalized Uniform Sampling (GUS) primitive.
 This work did use lineage and similar to our work defined the GUS primitive as a random selection over the primary key.
 This is similar to our model where we have a materialized view and aggregate queries on the materialized view.
@@ -47,7 +47,7 @@ While this line work studies query processing on probabilistic views, it does no
 \vspace{-.3em}
 In this paper, we propose a new approach to the staleness problem in materialized views.
 We demonstrate how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
-allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. 
+allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. \reminder{Add more conclusions we made in our paper. That is, the take-aways from the paper. For example, (1) SVC+periodic maintenance makes sense!; (2) SVC is much more efficient than full maintenance for a variety of views; (3) correction is more accurate than SAQP;   (4) Ourlier Indexing improves query accuracy a lot with little additional overhead, etc.  }
 We evaluate this approach on a single node and in a distributed environment and find that SVC can correct stale query results 
 with orders of magnitude less cost than full incremental maintenance.
 
