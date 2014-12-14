@@ -308,7 +308,7 @@ We implement SVC on a 10-node Spark cluster.
 \centering
  \includegraphics[scale=0.15]{exp/con_3.pdf}
  \includegraphics[scale=0.15]{exp/con_4.pdf}
- \caption{(a) We compare the maintenance time of SVC-10 and full incremental maintenance, and find that as with TPCD SVC saves significant maintenance time. (b) We also compare SVC to SVC+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
+ \caption{(a) We compare the maintenance time of SVC with a 10\% sample and full incremental maintenance, and find that as with TPCD SVC saves significant maintenance time. (b) We also compare SVC+Corr to SVC+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive these views from 800GB of base data and add 80GB of updates.
 In Figure \ref{conv-1}a, we show that while full maintenance takes nearly 800 seconds for one of the views, a 10\% sample SVC can complete sample maintenance in less than 100s for all of them.
