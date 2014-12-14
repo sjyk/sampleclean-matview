@@ -45,17 +45,31 @@ While this line work studies query processing on probabilistic views, it does no
 \vspace{-1em}
 \section{Conclusion and Future Work}\label{conclusion}
 \vspace{-.3em}
-In this paper, we propose a new approach to the staleness problem in materialized views.
-We demonstrate how recent results from data cleaning, namely sampling, query correction, and outlier detection, can
-allow for accurate query processing on stale views for a fraction of the cost of incremental maintenance. \reminder{Add more conclusions we made in our paper. That is, the take-aways from the paper. For example, (1) SVC+periodic maintenance makes sense!; (2) SVC is much more efficient than full maintenance for a variety of views; (3) correction is more accurate than SAQP;   (4) Ourlier Indexing improves query accuracy a lot with little additional overhead, etc.  }
-We evaluate this approach on a single node and in a distributed environment and find that SVC can correct stale query results 
-with orders of magnitude less cost than full incremental maintenance.
+In this paper, we propose a new framework, SVC, to address the staleness problem in materialized views.
+Since view maintenance is expensive, in practice, many prefer periodic maintenance solutions.
+In between these maintenance periods, materialized views become stale and can give incorrect query answers.
+SVC uses sampling to tradeoff computation and accuracy in the materialized view setting.
+This tradeoff allows more frequent maintenance to be applied in settings where before system resource constraints made impossible and the result is that between maintenance periods users can get more accurate query results.
+We acheive this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
+
+Our results suggest insights for both data cleaning and materialized views.
+We greatly expanded the scope of the SampleClean project \cite{wang1999sample} to general aggregate queries, missing data errors, and proved when optimality of the estimates hold.
+For materialized views, we found that our data cleaning approach can significantly reduce the maintenance time for a large class of materialized views, while still providing accurate aggregate query answers.
+The materialized view setting also encouraged us to consider the relational algebra of sampling, and we devised a hash-based approach to efficiently restrict general view maintenance procedures to a sample.
+One concern with sampling is its sensitivity to data skew, and our results suggest that outlier indexing can mitigate these concerns.
+
+We evaluated our approach on real and synthetic datasets.
+We use the TPCD benchmark to illustrate three common use cases of materialized views: joins, data-cube aggregates, and nested queries.
+We also evaluated our approach on an industrial dataset from Conviva, where we demonstrated similar performance and accuracy.
+We simulated a real deployment where we integrate SVC with periodic maintenance, and showed that SVC can exploit idle times in the system to give more accurate query results.
 
 Our results are promising and suggest many avenues for future work.
 In particular, we are interested in deeper exploration of the multiple view setting.
 Here, given a storage constraint and throughput demands, we can optimize sampling ratios over all views.
 We are also interested in the possibility of sharing computation between materialized views and maintenance on views derived from other views.
 We also believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied to build fast, approximate streaming machine learning applications.
+There is also a link to time series analysis and forecasting.
+
 
 
 
