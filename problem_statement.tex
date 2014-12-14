@@ -81,14 +81,14 @@ In particular, we highlight a technique called lazy maintenance which applies up
 While always fresh, both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates, and this results increasingly degraded performance if a user wants to query a view.
 The alternative is a periodic strategy, but this means that there is unbounded error on queries between maintenance periods.
 
-The data cleaning perspective that SVC offers on this problem is that there is a tradeoff between accuracy and computation.
-By using sampling, we give the user access to a new tradeoff space between immediate (or close to immediate, i.e., mini-batch) maintenance and long-periodic maintenance.
+The data cleaning perspective that SVC offers on this problem is that there is a trade-off between accuracy and computation.
+By using sampling, we give the user access to a new trade-off space between immediate (or close to immediate, i.e., mini-batch) maintenance and long-periodic maintenance.
 
 \subsection{SampleClean: Fast and Accurate Query Processing on Dirty Data}
 In our prior work on the SampleClean project \cite{wang1999sample}, we proposed a framework for scalable data cleaning.
 Similar to the accuracy-performance contrast between immediate maintenance and periodic maintenance in the materialized view setting, data cleaning also faces a similar challenge.
 Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy, and those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
-We proposed SampleClean to add an additional tradeoff to this design space by using sampling.
+We proposed SampleClean to add an additional trade-off to this design space by using sampling.
 
 SampleClean (Figure \ref{sc}) has three parts: (1) sampling, (2) data cleaning, and (3) query result estimation.
 First, SampleClean creates a sample of dirty data (which are erroneous, missing, or otherwise corrupted records).
@@ -98,7 +98,7 @@ In this work, the main challenge was that data cleaning can potentially change t
 In our initial work, SampleClean mainly focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
 
 The SampleClean project showed that there were two contrasting approaches to query processing on a sample of cleaned data.
-We could (1) clean the sample first and then run the query on the sample, or (2) look at the difference between the clean and dirty samples and calcuate a correction to correct an existing dirty result. 
+We could (1) clean the sample first and then run the query on the sample, or (2) look at the difference between the clean and dirty samples and calculate a correction to correct an existing dirty result. 
 Approach (1) is similar to those studied in the Approximate Query Processing (AQP) literature \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}; however in cases when data errors were small, we found that the approximation error dominated.
 To address this problem, we developed approach (2), which we called \nsc, and we found that \nsc was more accurate in mostly clean datasets as it leverages existing deterministic results leading to reduced approximation error.
 In the materialized view setting, we found that \nsc led to more accurate results in our experiments (see Section \ref{exp}). 

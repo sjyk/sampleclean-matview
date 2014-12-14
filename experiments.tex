@@ -19,13 +19,13 @@ The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribut
 value means a more extreme tail.
 $z=1$ corresponds to the basic TPCD benchmark. 
 We implement incremental view maintenance with an ``update...on duplicate key insert" command.
-We implement SVC's sampling operator with a linear hash writter in C that is evoked in MySQL as a stored procedure.
+We implement SVC's sampling operator with a linear hash written in C that is evoked in MySQL as a stored procedure.
 In all of the applications, the updates are kept in memory in a temporary table, and we discount this loading time from our experiments.
 We build an index on the primary keys of the view, the base data, but not on the updates.
 
 Below we describe the view definitions and the queries on the views:
 
-\textbf{Join View: } In the TPCD specification, two tables recieve insertions and updates: \textbf{lineitem} and \textbf{orders}.
+\textbf{Join View: } In the TPCD specification, two tables receive insertions and updates: \textbf{lineitem} and \textbf{orders}.
 Out of 22 parameterized queries in the specification, 12 are group-by aggregates of the join of \textbf{lineitem} and \textbf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
 Therefore, we define a materialized view of the foreign-key join of \textbf{lineitem} and \textbf{orders}, and compare incremental view maintenance and SVC.
 We treat the 12 group-by aggregates as queries on the view.
@@ -75,11 +75,11 @@ In this workload, there were annotated summary statistics queries, and we filter
 While, we cannot give the details of the queries, we can present some of the high-level characteristics of 8 summary-statistics type views. 
 \begin{itemize} 
 \item \textbf{V1.} Counts of various error types grouped by resources, users, date
-\item \textbf{V2.} Sum of bytes transfered grouped by resource, users, date
+\item \textbf{V2.} Sum of bytes transferred grouped by resource, users, date
 \item \textbf{V3.} Counts of visits grouped by an expression of resource tags, users, date.
 \item \textbf{V4.} Nested query that groups users from similar regions/service providers together then aggregates statistics
 \item \textbf{V5.} Nested query that groups users from similar regions/service providers together then aggregates error types
-\item \textbf{V6.} Union query that is filtered on a subset of resources and aggregates visits and bytes transfered
+\item \textbf{V6.} Union query that is filtered on a subset of resources and aggregates visits and bytes transferred
 \item \textbf{V7.} Aggregate network statistics group by resources, users, date with many aggregates.
 \item \textbf{V8.} Aggregate visit statistics group by resources, users, date with many aggregates.
 \end{itemize}
@@ -90,7 +90,7 @@ We generalized these queries by turning them into group-by queries over customer
 We generated aggregate random queries over this dataset by taking either random time ranges or random subsets of customers.
 
 \subsubsection{Metrics and Evaluation}
-To illustrate how SVC gives the user access to this new tradeoff space, we will illustrate that SVC is more accurate tham the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
+To illustrate how SVC gives the user access to this new trade-off space, we will illustrate that SVC is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 
 In our evaluation, we separate maintenance from query processing.
 We use the following notation to represent the different approaches:
@@ -125,7 +125,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.16]{exp/msj_3.pdf}
- \caption{We generate 100 of each TPCD parameterized query and aswer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued). Our experiments suggest that on this view, SVC+Corr is more accurate than SVC+AQP and No Maintenance.\label{exp-1-acc}}
+ \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued). Our experiments suggest that on this view, SVC+Corr is more accurate than SVC+AQP and No Maintenance.\label{exp-1-acc}}
 \end{figure}
 
 \begin{figure}[t]
@@ -225,7 +225,7 @@ We generate a 10GB base TPCD dataset with skew $z=1$, and derive the base cube a
 We add 1GB of updates and apply SVC to estimate the results of all of the ``roll-up" dimensions.
 
 \textbf{Performance: }
-We observed the same tradeoff as the previous experiment where sampling significantly reduces the maintenance time (Figure \ref{exp2-acc-sample}(a)).
+We observed the same trade-off as the previous experiment where sampling significantly reduces the maintenance time (Figure \ref{exp2-acc-sample}(a)).
 It takes 186 seconds to maintain the entire view, but a 10\% sample can be maintained in 26 seconds.
 As before, we fix the sample size at 10\% and vary the update size.
 We similarly observe that SVC becomes more efficient as the update size grows (Figure \ref{exp2-acc-sample}(b)), and at an update size of 20\%  the speedup is 8.7x.
@@ -285,14 +285,14 @@ For the most part, these results are consistent with our previous experiments sh
  \includegraphics[scale=0.14]{exp/msoi_2.pdf}
  \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \label{exp5-oi}}
 \end{figure}
-We hinted at the sensitivity to dataset skew of sampling-based approaches ealier.
+We hinted at the sensitivity to dataset skew of sampling-based approaches earlier.
 In our next experiment, we evaluate our outlier indexing.
 Our outlier indices are constructed on the base relations.
 We index the \textbf{l\_extendedprice} attribute in the \textbf{lineitem} table.
 We evaluate the outlier index on the TPCD query views.
 
 We find that four views: V3, V5, V10, V15, can benefit from this index with our push-up rules. 
-These are four views depedendent on \textbf{l\_extendedprice} that were also in the set of ``Complex" views chosen before.
+These are four views dependent on \textbf{l\_extendedprice} that were also in the set of ``Complex" views chosen before.
 We set an index of 100 records, and applied SVC+Corr and SVC+AQP to datasets with skew parameter $z=\{1,2,3,4\}$. 
 We run the same queries as before, but this time we measure the error at the 75\% quartile.
 In Figure \ref{exp5-oi}(a), we find in the most skewed dataset SVC with outlier indexing reduces query error by a factor of 2.
@@ -324,7 +324,7 @@ These results show consistency with our results on the synthetic datasets.
 \centering
  \includegraphics[scale=0.14]{exp/con_1.pdf}
  \includegraphics[scale=0.14]{exp/con_2.pdf}
- \caption{(a) Spark RDD's are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. However, larger batches are less affected by this reduction. \label{conv-2}}
+ \caption{(a) Spark RDDs are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. However, larger batches are less affected by this reduction. \label{conv-2}}
 \end{figure}
 
 We devised an end-to-end experiment simulating a real integration with periodic maintenance.
@@ -339,7 +339,7 @@ In this model, there are a lot of different parameters: batch size for periodic 
 Our goal is to fix the throughput of the cluster, and then measure whether SVC+IVM or IVM alone leads to more accurate query answers.
 
 \textbf{Batch sizes:} In Spark, larger batch sizes amortize overheads better.
-In Figure \ref{conv-2}(a), we show a tradeoff between batch size and throughput of Spark for V2 and V5.
+In Figure \ref{conv-2}(a), we show a trade-off between batch size and throughput of Spark for V2 and V5.
 Throughputs for small batches are nearly 10x smaller than the throughputs for the larger batches. 
 
 \textbf{Concurrent SVC and IVM:} Next, we measure the reduction in throughput when running multiple threads.
@@ -350,7 +350,7 @@ While for small batch sizes the throughput of the cluster is reduced by nearly a
 smaller.
 As we found in later experiments (Figure \ref{conv-5}), larger batch sizes are more amenable to parallel computation since there was more idle CPU time.
 
-\textbf{Chosing a Batch Size:}
+\textbf{Choosing a Batch Size:}
 The results in Figure \ref{conv-2}(a) and Figure \ref{conv-2}(b) show that larger batch sizes are more efficient, however, larger batch sizes also lead to more staleness.
 Combining the results in Figure \ref{conv-2}(a) and Figure \ref{conv-2}(b), for both SVC+IVM and IVM, we get cluster throughput as a function of batch size.
 For a fixed throughput, we want to find the smallest batch size that achieves that throughput for both.
@@ -360,7 +360,7 @@ And for SVC+IVM, the smallest batch size was 80GB for V2 and 100GB for V5.
 When running periodic maintenance alone view updates can be more frequent, and when run in conjunction with SVC it is less frequent. 
 
 We run both of these approaches in a continuous loop, SVC+IVM and IVM, and measure their maximal error during a maintenance period.
-There is further a tradeoff with the sampling ratio, larger samples give more accurate estimates however between SVC batches they go stale.
+There is further a trade-off with the sampling ratio, larger samples give more accurate estimates however between SVC batches they go stale.
 We quantify the error in these approaches with the max error; that is the maximum error in a maintenance period (Figure \ref{conv-4}).
 These competing objective lead to an optimal sampling ratio of 3\% for V2 and 6\% for V5.
 At this sampling point, we find that applying SVC gives results 2.8x more accurate for V2 and 2x more accurate for V5.
@@ -377,7 +377,7 @@ At this sampling point, we find that applying SVC gives results 2.8x more accura
 \includegraphics[scale=0.20]{exp/con_7.pdf}
  \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} 
 \end{figure}
-To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and svc+periodic IVM. 
+To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and SVC+periodic IVM. 
 We find that SVC takes advantage of the idle times in the system; which are common during shuffle operations in a synchronous parallelism model.
 
 In a way, these experiments present a worst-case application for SVC, yet it still gives improvements in terms of query accuracy.

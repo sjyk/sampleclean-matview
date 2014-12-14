@@ -6,7 +6,7 @@ In a world of ever-increasing data sizes, MVs are becoming even more important, 
  \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history} and for more advanced analytics based on linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
 However, when the underlying data is changed MVs can become \emph{stale} and all queries that use a stale MV can give incorrect answers. 
-One solution would be to recompute the MV every time a change occurs, however, in many cases, it is more efficent to incrementally update the MV instead of recomputing the query.
+One solution would be to recompute the MV every time a change occurs, however, in many cases, it is more efficient to incrementally update the MV instead of recomputing the query.
 There has been substantial work in deriving these incremental updates (incremental maintenance algorithms) for different classes of MVs and optimizing their execution \cite{gupta1995maintenance, DBLP:conf/sigmod/GriffinL95, griffin1997improved, samtani1999self, DBLP:conf/sac/TrutaC07, DBLP:journals/vldb/KochAKNNLS14, chirkova2011materialized}.
 
 For frequently changing tables even incremental maintenance can be expensive; every update to the underlying data requires updating all the dependent views.  
@@ -35,7 +35,7 @@ View staleness is a different type of error than typical dirty data, which raise
 To address these new challenges, we propose Sample-View-Clean (SVC), a framework that applies sampling to approximately correct query results on stale views.
 SVC takes a sample of up-to-date rows from the view, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how SVC can be used as complementary to existing deferred maintenance approaches. When the MVs become stale between maintenance cycles, we apply SVC for query result estimation for a far smaller cost than having to maintain the entire view.
 The query results from SVC are in expectation up-to-date. While they are approximate results, the approximation error is more manageable than staleness: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size as opposed to potentially unbounded staleness.
-Sampling is known to be senstive to skewed datasets, and we incorporate an outlier indexing technique to improve the accuracy of our approximate query results.
+Sampling is known to be sensitive to skewed datasets, and we incorporate an outlier indexing technique to improve the accuracy of our approximate query results.
 
 In practice, both MVs and queries can be arbitrarily complex.
 Since SVC is based on sampling, there are a subclass of views for which SVC can save significant computation and a subclass of queries on these views for which SVC can give accurate corrections.

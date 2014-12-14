@@ -49,7 +49,7 @@ We showed that the result of applying the query to the set of differences can be
 
 However, \nsc only considered data errors that transformed rows, not those that required new rows to be inserted or deleted.
 In the materialized view setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
-This makes the a row-by-row subtraction between two samples of data ill-defned. 
+This makes the a row-by-row subtraction between two samples of data ill-defined. 
 
 In Definition \ref{correspondence}, we formalized a notion of correspondence between two samples.
 We use this property to handle this problem of missing rows from either side of the subtraction.
@@ -76,7 +76,7 @@ $\;\;\;\;$q(View) := SELECT pk, $a \cdot \cond(A)$ FROM View
 $\;\;\;\;$q(View) := SELECT pk, $\cond(A)$ FROM View
 \end{lstlisting}
 
-We can use our correspondence subtract operator to get the pointwise difference:
+We can use our correspondence subtract operator to get the point-wise difference:
 \[d = q(\hat{S'}) \dot{-} q(\hat{S})\]  
 The definition of the correspondence subtract allows us to be agnostic to both insertions and deletions.
 For sampling ratio $m$, we can estimate the query correction for \sumfunc, \countfunc, and \avgfunc, respectively:
@@ -176,7 +176,7 @@ However, in general, these aggregate functions do not satisfy the optimality con
 These queries include: \histfunc, \corrfunc, \varfunc, \covfunc, and the estimation approach is different.
 The general estimation procedure is the following: (1) apply q to the stale sample, (2) apply q to the clean sample, (3) apply q to the full stale view, and (4) finally take the difference between (2) and (1) and add it to (3). 
 
-This procudure will also work for \sumfunc, \countfunc, and \avgfunc and in fact will give the same result estimate.
+This procedure will also work for \sumfunc, \countfunc, and \avgfunc and in fact will give the same result estimate.
 However, unlike before, it does not give us an analytic way to calculate a confidence interval.
 This is because variance does not commute with subtraction for correlated random variables.
 We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound our correction.

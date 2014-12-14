@@ -80,7 +80,7 @@ In special cases, we can push the hashing operator down through joins.
 \textbf{(Semi/Anti)-Join: } We can always push $\eta$ down on Semi-joins. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 \dot{-} (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
 \subsection{Hashing and Correspondence}
-Another benefit of deterministic hashing is that when applied in conjuction to the primary keys of a view, we get the Correspondence Property (Definition \ref{correspondence}) for free.
+Another benefit of deterministic hashing is that when applied in conjunction to the primary keys of a view, we get the Correspondence Property (Definition \ref{correspondence}) for free.
 \begin{proposition}[Hashing Correspondence]
 Suppose we have $S$ which is the stale view and $S'$ which is the up-to-date view.
 Both these views have the same schema and a primary key $a$.
@@ -101,7 +101,7 @@ There are four conditions for correspondence:
 \item 3. For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
 \item 4. For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
 \end{itemize}
-Condition 1 is satisfied since if $r$ is deleted, then $r \not \in S'$ which imples that $r \not\in \hat{S'}$.
+Condition 1 is satisfied since if $r$ is deleted, then $r \not \in S'$ which implies that $r \not\in \hat{S'}$.
 Condition 2 and 3 are satisfied since if $r$ is in $\hat{S}$ then it was sampled, and then since the primary key is consistent between $S$ and $S'$ it will also be sampled in $\hat{S'}$.
 Condition 4 is just the converse of 2 and 3 so it is satisfied.
 \end{proof}

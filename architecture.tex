@@ -61,7 +61,7 @@ If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenanc
 
 \subsection{Sampling}
 In this work, we focus on uniform samples of views.
-We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probablity $m$.
+We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
 To differentiate sampled relations from un-sampled ones we use the ``hat" notation eg. $\hat{S}$. 
 
 While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
@@ -143,7 +143,7 @@ This is because V2 was unchanged and therefore should be included in the sample.
 
 \subsubsection{Query Correction}
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
-Our query correction component takes two corresponding samples $\hat{S'}$ and $\hat{S}$, and calulates a correction to $q(S)$.
+Our query correction component takes two corresponding samples $\hat{S'}$ and $\hat{S}$, and calculates a correction to $q(S)$.
 Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
 In the SampleClean work, we focused on \sumfunc,\countfunc, and \avgfunc queries of the form: 
 \begin{lstlisting} [mathescape]
@@ -220,11 +220,11 @@ Conversely $r_m$ is \emph{fresh} for all values of $m$ if:
 \end{definition}
 
 \subsection{Semantics of Query Results}
-We should note that there is an implicit design tradeoff in the way we formulated this problem.
+We should note that there is an implicit design trade-off in the way we formulated this problem.
 By sampling the maintenance plans, our approach is very general with respect to supported views.
 On the other hand, we are restricted in the types of queries that we can run.
-If we were to sample from the delta relations instead, this tradeoff would be flipped. 
-We have a further discussion about this subtlty in Section ??.
+If we were to sample from the delta relations instead, this trade-off would be flipped. 
+We have a further discussion about this subtlety in Section ??.
 
 A important concern of users is what are the semantics and guarantees on their corrected query results.
 In Table ??, we list all of the aggregate queries supported by Apache HiveQL present a taxonomy of result semantics for these queries.
