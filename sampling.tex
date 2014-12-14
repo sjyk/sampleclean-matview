@@ -184,9 +184,9 @@ In this approach, we repeatedly subsample with replacement from our sample and a
 We use these repeat executions to build a distribution of values that the correction can take allowing us to bound the result.
 The conditions under which this technique is valid are nuanced, and detecting when it is valid is a subject of \cite{agarwalknowing}.
 
-\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an aggregate query that has an unbiased sample estimate, and let $\hat{S}$ and $\hat{S'}$ be sample views as defined before. \reminder{Revise the following two sentences. It seems that you repeatedly introduce $\hat{S'}_{sub}$ and $\hat{S}_{sub}$ twice. }
-We denote subsamples of the samples as $\hat{S'}_{sub}$ and $\hat{S}_{sub}$ respectively.
+\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an aggregate query that has an unbiased sample estimate, and let $\hat{S}$ and $\hat{S'}$ be sample views as defined before. 
 One sample of the bootstrap estimator $s$ is defined as the difference of q applied to random subsample of size $b_1$ (with replacement) of $\hat{S}$ and $\hat{S'}$.
+We denote subsamples of the samples as $\hat{S'}_{sub}$ and $\hat{S}_{sub}$ respectively.
 \[q(\hat{S'}_{sub}) - q(\hat{S}_{sub})\]
 To build the confidence interval, we repeatedly apply this procedure $b_2$ times.
 \end{proposition}
