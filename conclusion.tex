@@ -1,6 +1,8 @@
 \vspace{-.75em}
 \section{Related Work}\label{related}
 \vspace{-.25em}
+
+\iffalse
 Addressing the cost of materialized view maintenance is the subject of many recent papers, which
 focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transactions~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
@@ -8,6 +10,7 @@ The streaming community has also studied the view maintenance problem \cite{abad
 These works focus on correctness, consistency, and fault tolerance of materialized view maintenance.
 SVC proposes an alternative model where we allow approximation error (with guarantees) for queries on materialized views for vastly reduced maintenance time.
 In many decision problems, exact results are not needed as long as the probability of error is boundable. 
+\fi
 
 Sampling has been well studied in the context of query processing~\cite{AgarwalMPMMS13, olken1993random, garofalakis2001approximate}. 
 Both the problems of efficiently sampling relations \cite{olken1993random} and processing complex queries \cite{agarwalknowing}, have been well studied. 
@@ -39,8 +42,8 @@ Finally, the theory community has has studied related problems.
 Gibbons et al. studied the maintenance of approximate histograms~\cite{gibbons1997fast}, which closely resemble aggregate materialized views.
 This work did not model queries on the approximate histograms as in SVC.
 Furthermore, the goals of this line work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
-There is also close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
-While this line work studies query processing on probabilistic views, it does not study their maintenance as in SVC.
+%There is also close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
+%While this line work studies query processing on probabilistic views, it does not study their maintenance as in SVC.
 
 \vspace{-1em}
 \section{Conclusion and Future Work}\label{conclusion}
@@ -52,23 +55,25 @@ SVC uses sampling to trade-off computation and accuracy in the materialized view
 This trade-off allows more frequent maintenance to be applied in settings where before system resource constraints made impossible and the result is that between maintenance periods users can get more accurate query results.
 We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
 
-Our results suggest insights for both data cleaning and materialized views.
+%Our results suggest insights for both data cleaning and materialized views.
 We greatly expanded the scope of the SampleClean project \cite{wang1999sample} to general aggregate queries, missing data errors, and proved when optimality of the estimates hold.
 For materialized views, we found that our data cleaning approach can significantly reduce the maintenance time for a large class of materialized views, while still providing accurate aggregate query answers.
 The materialized view setting also encouraged us to consider the relational algebra of sampling, and we devised a hash-based approach to efficiently restrict general view maintenance procedures to a sample.
 One concern with sampling is its sensitivity to data skew, and our results suggest that outlier indexing can mitigate these concerns.
 
+\iffalse
 We evaluated our approach on real and synthetic datasets.
 We use the TPCD benchmark to illustrate three common use cases of materialized views: joins, data-cube aggregates, and nested queries.
 We also evaluated our approach on an industrial dataset from Conviva, where we demonstrated similar performance and accuracy.
 We simulated a real deployment where we integrate SVC with periodic maintenance, and showed that SVC can exploit idle times in the system to give more accurate query results.
+\fi
 
 Our results are promising and suggest many avenues for future work.
 In particular, we are interested in deeper exploration of the multiple view setting.
 Here, given a storage constraint and throughput demands, we can optimize sampling ratios over all views.
 We are also interested in the possibility of sharing computation between materialized views and maintenance on views derived from other views.
-We also believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied to build fast, approximate streaming machine learning applications.
-There is also a link to time series analysis and forecasting.
+%We also believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied to build fast, approximate streaming machine learning applications.
+%There is also a link to time series analysis and forecasting.
 
 
 

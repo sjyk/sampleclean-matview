@@ -2,12 +2,11 @@
 \section{Introduction}
 Materialized views (MVs), storing pre-computed query results, are a well-studied approach to speed up queries on large datasets \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized, halevy2001answering}.
 During the last 30 years, the research community has thoroughly studied MVs, and all major database vendors have added support for them.
-In a world of ever-increasing data sizes, MVs are becoming even more important, both for traditional query processing
- \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history} and for more advanced analytics based on linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
+In a world of ever-increasing data sizes, MVs are becoming even more important, both for traditional query processing and for more advanced analytics based on linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
 However, when the underlying data is changed MVs can become \emph{stale}; the pre-computed results do not reflect the recent changes to the data. 
 One solution would be to recompute the MV every time a change occurs, however, in many cases, it is more efficient to incrementally update the MV instead of recomputing the query.
-There has been substantial work in deriving these incremental updates (incremental maintenance algorithms) for different classes of MVs and optimizing their execution \cite{gupta1995maintenance, DBLP:conf/sigmod/GriffinL95, griffin1997improved, samtani1999self, DBLP:conf/sac/TrutaC07, DBLP:journals/vldb/KochAKNNLS14, chirkova2011materialized}.
+There has been substantial work in deriving these incremental updates (incremental maintenance algorithms) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
 
 For frequently changing tables even incremental maintenance can be expensive; every update to the underlying data requires updating all the dependent views.  
 This problem is exacerbated in Big Data environments, where new records arrive at an increasingly fast rate and where data are often 
@@ -21,7 +20,7 @@ of deferred MV maintenance.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.30]{figs/sys-arch.png} \vspace{-.25em}
+ \includegraphics[scale=0.20]{figs/sys-arch.png} \vspace{-.25em}
  \caption{If a view is being periodically maintained, in the interim, query results may be stale. Sample-View-Clean sits above an existing view maintenance architecture, and provides an interface for approximately up-to-date query results by maintaining a sample. The user can tune the sampling ratio to meet the resource constraints of the system\label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
@@ -41,14 +40,8 @@ In practice, both MVs and queries can be arbitrarily complex.
 Since SVC is based on sampling, there are a subclass of views for which SVC can save significant computation and a subclass of queries on these views for which SVC can give accurate corrections.
 In this work, we explore these classes from both a theoretical perspective (i.e. when is our query correction optimal w.r.t estimate variance) and an empirical perspective for queries that do not satisfy the optimality conditions when is SVC still beneficial.
 
-To summarize, our contributions are as follows:
-\begin{itemize}\vspace{-.45em}
-\item We model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error.\vspace{-.45em}
-\item We show how sampling with a \hashop operation can reduce computation during maintenance. \vspace{-.45em}
-\item We derive a correction for aggregate queries using the sample and show that, in fact, our correction is optimal for \sumfunc, \countfunc, and \avgfunc. \vspace{-.45em}
-\item We use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions.\vspace{-.45em}
-\item We evaluate our approach on a single-node MySQL database with a 10GB skewed TPCD benchmark dataset and on a 20-node Apache Spark cluster with a 1TB log dataset from a video streaming company. Our results show that sampling is significantly faster than full view maintenance, and also can give highly accurate results for a variety of queries and views.\vspace{-.45em}
-\end{itemize}
+To summarize, our contributions are as follows: (1) we model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error; allowing us to apply query processing techniques designed for dirty data, (1) we modify these techniques to apply in the materialized view setting and show that they can give us a tradeoff between query result accuracy and computation by applying sampling, (3) we use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (4) we evaluate our approach on a single-node MySQL database with a 10GB skewed TPCD benchmark dataset and on a 20-node Apache Spark cluster with a 1TB log dataset from a video streaming company. 
+%\end{itemize}
 
 The paper is organized as follows: 
 In Section~\ref{sec-background}, we give the necessary background for our work.

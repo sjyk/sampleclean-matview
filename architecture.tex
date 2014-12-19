@@ -1,6 +1,4 @@
 \section{Framework Overview}\label{sec-arch}
-The basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
-The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
 We first define notation, terminology, and the problem setting that we address in this work.
 Then, we formalize the three problems that the different components of SVC address: (1) analyzing a maintenance procedure to efficiently maintain a sample, (2) query processing using the sample, and (3) using an outlier index.
 Finally, we overview the system architecture and discuss a toy numerical example of how this works in practice.
@@ -11,8 +9,7 @@ Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$, an
 We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
 An update to a relation can be modeled as a deletion and then an insertion.
-
-When the base relations have been updated (there exists insertions and/or deletions), queries on the view $S$ will be stale.
+When the base relations have been updated (there exists insertions and/or deletions), we define $S$ as stale.
 We call the procedure to update the view as a \emph{maintenance strategy} $\mathcal{M}$.
 A maintenance strategy is a relational expression the execution of which will update the view $S$, and we call the updated view $S'$.
 
@@ -25,12 +22,12 @@ It is a function of the database $\mathcal{D}$, $S$, and all the delta relations
 \end{definition}
 
 %In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
-We look at maintenance strategies composed of the following relational operations:
-\begin{itemize}\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ \vspace{-.45em}
-\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R \vspace{-.45em}
+We look at materialized views and maintenance strategies composed of the following relational expressions:
+\begin{itemize}[noitemsep]
+\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
+\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The output schema is of the result is $a, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}\vspace{-.45em} 
+\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The output schema is of the result is $a, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
 \item $R_1 \cup R_2$: Set union take a union of the two sets.
 \item $R_1 \cap R_2$: Set intersection take an intersection of the set.
 \item $R_1 - R_2$: Set difference.
@@ -40,22 +37,16 @@ Relational expressions can be expressed in a tree form which we call an \emph{ex
 To illustrate the concept of a maintenance strategy, consider the following view that finds view counts for all videos:
 \begin{lstlisting} 
 CREATE VIEW countView
-AS SELECT 
-	videoId,
-	count(1) AS visitCount,
-FROM 
-	Log, Video
-WHERE 
-	Log.videoID = 
-		Video.videoID
-GROUP BY 
-	videoId;
+AS SELECT videoId, count(1) AS visitCount,
+FROM Log, Video
+WHERE Log.videoID = Video.videoID
+GROUP BY videoId;
 \end{lstlisting}
 If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogIns}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. We illustrate this process with the expression tree in Figure \ref{exexpr}.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.50]{figs/example_expression_tree.pdf} \vspace{-.25em}
+ \includegraphics[scale=0.35]{figs/example_expression_tree.pdf} \vspace{-.25em}
  \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.75em}
 \end{figure}
 
@@ -69,6 +60,7 @@ In principle, our framework can be extended to handle stratified samples similar
 However, this requires that we know our query workload in advance.  
 In this paper, we do not discuss stratified sampling and will explore this further in future work.
 
+\iffalse
 Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP \cite{DBLP:journals/toms/Vitter85} which find a uniform sample of fixed \emph{size} $k\le \mid S \mid$.
 Our sampling ratio gives a sample of the size $k$ in expectation, however, the actual size from any given instance may be slightly different.
 For large sample sizes, there is little difference between the techniques since the actual size of using a sample ratio will be close to $k$.
@@ -77,54 +69,55 @@ The uniform sample model represents our algorithm which uses hashing better and 
 Furthermore, any ``black-box" uniform sampling algorithm can be used to achieve a reservoir sample.
 The use of one technique over another does not affect the general principles or the statistics of SVC, only the 
 notation in the analysis.
+\fi
 
 \subsection{Problem Statements}
 \subsubsection{View Maintenance as Data Cleaning}
 In SVC, we model staleness in a materialized view as a type of data error.
-Materialized views whose base relations have been updated potentially give stale query results.
-We formalize the problem of correcting staleness as a data cleaning operation.
+%Materialized views whose base relations have been updated potentially give stale query results.
+We formalize the problem of correcting staleness as a data cleaning operation so we can apply our a data cleaning approach.
+%However, this requires us to define what it means to ``clean" a sample view.
 
+The staleness as a data error is clearly defined in the unsampled case.
 If we are given a materialized view $S$ and we know the base relations have had insertions and deletions, then there are three possible types of error:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item A row in $S$ needs to be updated.
 \item A row in $S$ needs to be deleted.
 \item A new row needs to be inserted into $S$.
 \end{itemize}
+In the absence of these errors, we call a view \emph{up-to-date}.
 
-In this case, it is clear that simply executing the maintenance strategy $\mathcal{M}$ will achieve the necessary results and update the view $S$ to view $S'$.
-However, now suppose we have a sampled view $\hat{S}$, and we want to do just enough effort to update only the rows in the sample.
-This problem is challenging since the errors are not just updates to rows in the views, as there might be new insertions needed.
-Thus, we define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$ with sampling ratio $m$, we want to find an up-to-date uniform sample $\hat{S'}$.
-We define the cleaning procedure as preserving the uniformity of sampling, so after cleaning $\hat{S'}$ is a uniform sample of $S'$:
-\begin{itemize}
+However, now suppose we have a sampled view $\hat{S}$.
+We define cleaning in the following way: suppose we have a uniform sample of a stale view $\hat{S}$, cleaning this sample
+should give us $\hat{S'}$ a uniform sample of the up-to-date view $\hat{S'}$ with the same sampling ratio.
+Formally, this can be represented as the following operations:
+\begin{itemize}[noitemsep]
 \item If an update is needed, update the row.
 \item If the row needs to be deleted, delete the row.
 \item For all new rows that need to be inserted into the view $S'$ insert a random sample of ratio $m$.
 \end{itemize}
-It is important to note that the way we defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$. 
-In this paper, we take advantage of this property and propose a technique that analyzes $\mathcal{M}$ and can find a particular $\hat{S'}$
-efficiently.
 
-In, SampleClean \cite{wang1999sample}, \nsc query result estimation is done taking a row-by-row difference of the dirty and cleaned data.
-However, in prior work, we did not consider the effect of deletions or insertions so taking this difference was well defined.
-In this application, we have to define a new property to handle this problem, which we call ``correspondence".
-SVC compares two ``corresponding" samples to derive a correction. 
+The way we defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$, so the next question is how to formalize the link between $\hat{S}$ and $\hat{S'}$. 
+To link a corrsponding stale samples (dirty data) and up-to-date samples (clean data), we define the following property:
 \begin{definition}[Correspondence]
 $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\hat{S'}$ and $\hat{S}$ correspond if and only if:
+\begin{itemize}[noitemsep]
 \item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
 \item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
 \item For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
 \item For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
+\end{itemize}
 %\item For every row $r$ in $S'$ that is newly inserted, $r \not\in \hat{S}$.
 %\item If a row $r$ requires an update and then a deletion. The deletion takes precedence and $r \not\in \hat{S'}$.
 %\item Rows that are inserted trivially satisfy the conditions since those rows are not contained in $S$ or $\hat{S}$.
 \label{correspondence}
 \end{definition}
-This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
-There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
+%This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
+%There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
 
+\iffalse
 \begin{example}[Correspondence]
-Suppose \tbl{countView} has 4 videos: 
+Suppose \tbl{countView} has 4 video rows: 
 \begin{lstlisting} [mathescape]
 V1 (visitCount = 4), V2 (visitCount = 6), V3 (visitCount = 1), V4 (visitCount = 1)
 \end{lstlisting}
@@ -140,6 +133,7 @@ V1 (visitCount = 4+1), V3 (visitCount = 1)
 \end{lstlisting}
 This is because V2 was unchanged and therefore should be included in the sample.
 \end{example}
+\fi
 
 \subsubsection{Query Correction}
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
@@ -168,9 +162,11 @@ Instead, we define an outlier index on base relations of the database $\mathcal{
 This index tracks records whose attributes cross some threshold $t$.
 Then, for a given view $S$, this component gives a series of rules to propagate the information from the outlier index upwards.
 Basically, for every row in the view that is derived from a record in the outlier index, we ensure that it is incorporated into the sample.
-We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
+%We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
 
 \subsection{System Architecture}
+The basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
+The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
 In implementation, SVC works in conjunction with existing periodic maintenance or periodic re-calculation.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
@@ -191,42 +187,3 @@ For example, if our sampling ratio is 5\%, that means for 5\% of the videos (dis
 %Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
 From this sample, we can estimate a correction (e.g., $40$) of the old result.
 This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
-
-\iffalse
-We add the following operator $\eta_{a_1, m}(R)$ which is the \textbf{hash} operator.
-For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to attribute $a_1$ and selects those records with hash value less than or equal to $m$.
-%We make two assumptions on this hash operator: (1) \emph{independence} there is no expression in $S_{def}$ that is dependent on the hash operator, and (2) \emph{uniformity} over the domain of possible attribute values the \emph{a priori} probability of including any tuple is the same.
-Finally, we use the \emph{query tree} representation to analyze $S_{def}$ where we unravel composed relational operators into a tree of expressions.
-Each leaf of the tree is a relation and each node is an operator.
-
-\subsubsection{Staleness and Freshness}
-
-
-Given a materialized view $S$ and an updated materialized view $S'$.
-In the deterministic case with no sampling, we call a query result $r = q(S)$ stale if:
-\[r \ne q(S')\]
-When there is sampling, this definition has to be made probabilistic.
-
-
-
-\begin{definition} PROBABILISTIC STALENESS.
-Let $\hat{S}$ be a uniform sample of $S$ with a sampling ratio of $m$,
-and let $r_m$ be the result of applying $q$ to $\hat{S}$.
-$r_m$ is \emph{stale} if and only if:
-\[\lim_{m\rightarrow 1} r_m \ne q(S') \text{  a.s}\]
-
-Conversely $r_m$ is \emph{fresh} for all values of $m$ if:
-\[\lim_{m\rightarrow 1} r_m == q(S') \text{  a.s}\]
-\end{definition}
-
-\subsection{Semantics of Query Results}
-We should note that there is an implicit design trade-off in the way we formulated this problem.
-By sampling the maintenance plans, our approach is very general with respect to supported views.
-On the other hand, we are restricted in the types of queries that we can run.
-If we were to sample from the delta relations instead, this trade-off would be flipped. 
-We have a further discussion about this subtlety in Section ??.
-
-A important concern of users is what are the semantics and guarantees on their corrected query results.
-In Table ??, we list all of the aggregate queries supported by Apache HiveQL present a taxonomy of result semantics for these queries.
-We will detail the corrections to these queries in Section \ref{correction}.
-\fi

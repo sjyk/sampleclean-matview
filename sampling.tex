@@ -7,15 +7,15 @@ The main idea to take a point-wise difference of $\hat{S'}$ and $\hat{S}$, and a
 %This gives us a uniform sample of the differences between the stale view and a hypothetical up-to-date view, and allows us to test how query results can be affected by the updates.
 %\reminder{The following text is not consistent with the structure of the section.}
 We first present our extensions to the existing SampleClean queries: \sumfunc, \countfunc, and \avgfunc.
-Then, we discuss how to extend this framework to other aggregate functions that have unbiased estimators.
-We also show how SampleClean can work with biased estimates as well and what statistical tools we can use to bound these estimates.
-Next, we discuss selection queries and how SampleClean can give limited support to these.
+Then, we discuss how to extend this framework to other aggregate functions.
+%We also show how SampleClean can work with biased estimates as well and what statistical tools we can use to bound these estimates.
+%Next, we discuss selection queries and how SampleClean can give limited support to these.
 We summarize these results in Table \ref{table:nonlin}, where we list each of the aggregate queries supported in Apache HiveQL and describe 
 how SVC estimates its results. 
-Finally, we analyze the cost of query correction.
+%Finally, we analyze the cost of query correction.
 
 
-\begin{table*}[ht!]
+\begin{table*}[ht!]\scriptsize
 \caption{Query Result Semantics}  % title of Table
 \centering % used for centering table
 \begin{tabular}{c c c c} % centered columns (4 columns)
@@ -36,17 +36,15 @@ Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table
 \end{table*}
 
 \subsection{SUM, COUNT, and AVG}
-In our prior work, in the context of data cleaning, \nsc considered \sumfunc, \countfunc, and \avgfunc of the form:
-\begin{lstlisting} [mathescape]
-SELECT $f(a)$ FROM View 
-WHERE $\cond(A)$
-\end{lstlisting}
-Group-by clauses can be handled as part of the predicate.
+In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \avgfunc queries.
+%\begin{lstlisting} [mathescape]
+%SELECT $f(a)$ FROM View 
+%WHERE $\cond(A)$
+%\end{lstlisting}
+%Group-by clauses can be handled as part of the predicate.
 As input \nsc is given a query (\sumfunc, \countfunc, or \avgfunc), the result of running this query on the dirty data, and a dirty sample and a cleaned version of the sample.
-We then calculate the row-by-row difference for each row in the sample between dirty and clean.
-Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
-We showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results.
-
+We then calculate the row-by-row difference for each row in the sample between dirty and clean and we showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results. 
+%Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
 However, \nsc only considered data errors that transformed rows, not those that required new rows to be inserted or deleted.
 In the materialized view setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
 This makes the a row-by-row subtraction between two samples of data ill-defined. 
@@ -61,7 +59,7 @@ $\dot{-}$ is defined as a projection of the full outer join on equality of $R_1.
 If $R_1.a_1$ or $R_2.a_1$ is $\emptyset$ then they are respectively represented as a $0$.
 \end{definition}
 
-Then, we rewrite the \sumfunc, \countfunc, and \avgfunc queries using a selection with a \textbf{case} statement, and use the primary key (pk) that we defined in the previous section.
+To apply this operation, we rewrite the \sumfunc, \countfunc, and \avgfunc queries using a selection with a \textbf{case} statement, and use the primary key (pk) that we defined in the previous section.
 Let $\cond(\hat{S'})=1$ ($\cond(\hat{S})=1$) be \textbf{case} statements to denote that its old (new) record satisfies the query condition; otherwise, $\cond(\hat{S'})=0$ ($\cond(\hat{S})=0$). 
 
 \vspace{.5em}
@@ -107,9 +105,9 @@ $\;\;\;\;$$\avgfunc(S') \approx \avgfunc(S) + \dans_{avg}$;
 
 In each of these formulas, all of the $\dans$ terms correspond to estimates, and these estimates can be bounded.
 In \cite{wang1999sample}, we showed that the corrections for three queries can be rewritten as a sample mean.
-A sample mean is an unbiased estimator of a population mean for all data distributions and sample sizes.
-Furthermore, the Central Limit Theorem states that asymptotically this mean approaches a normal distribution giving very tight bounds on the error.
+Refer to our prior work \cite{wang1999sample} for further details on how to bound these estimates with the Central Limit Theorem (CLT).
 
+\iffalse
 By the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
 \[
 \bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
@@ -118,28 +116,52 @@ where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample 
 We can use this to bound the term with its 95\% confidence interval (or any other user specified probability), e.g., $\bar{X} \pm 1.96 \frac{\sigma}{\sqrt{k}}$; refer to our prior work \cite{wang1999sample} for further details.
 
 In the statistical literature, the class of aggregate functions for which we can apply this technique is formalized as the class of U-statistics, see \cite{hoeffding1948class}.
+\fi
 
-\subsubsection{Optimality}
+\subsection{Select Queries}
+We can also correct stale Select queries with SVC.
+Suppose, we have a Select query with a predicate:
+\begin{lstlisting} [mathescape]
+SELECT $*$ FROM View 
+WHERE $\cond(A)$
+\end{lstlisting}
+
+We can first run the Select query on the stale view, and the result of this is a set of rows.
+First, we must define what it means to ``correct" this stale result.
+This result has three types of data error: rows that are missing, rows that are falsely included, and rows whose values are incorrect.
+
+As in the \sumfunc, \countfunc, and \avgfunc query case, we can apply the query to the sample of the up-to-date view.
+From this sample, using our lineage defined earlier, we can quickly identify which rows were added, updated, and deleted.
+For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
+For the new rows, we take a union of the sampled selection and the updated stale selection.
+For the missing rows, we remove them from the stale selection.
+To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of number of rows that were not updated, added, or deleted (thus three ``confidence" intervals). 
+
+\subsection{Optimality}
 %\reminder{I remebered there was one reviewer who had some concerns about this section. Make sure you addressed his concern.}
 We can prove that for the \sumfunc, \countfunc, and \avgfunc queries this estimate is optimal with respect to the variance.
 \begin{proposition}
 An estimator is called a minimum variance unbiased estimator (MVUE) of a parameter if it is unbiased and the variance of the parameter estimate is less than or equal to that of any other unbiased estimator of the parameter.
 \end{proposition}
 The concept of a Minimum Variance Unbiased Estimator (MVUE) comes from statistical decision theory \cite{cox1979theoretical}.
+\iffalse
 Unbiased estimators are ones that, in expectation, are correct.
 However, on its own, the concept of an unbiased estimate is not useful as we can construct bad unbiased estimates.
 For example, if we simply pick a random element from a set, it is still an unbiased estimate of the mean of the set.
 The variance of the estimate determines the size of our confidence intervals thus is important to consider.
-
+\fi
 The \sumfunc, \countfunc, and \avgfunc queries are linear functions of their input rows.
 We explored whether our estimate was optimal for linear estimates, for example, should we weight our functions when applied to the sample.
 It turns out that the proposed corrections are the optimal strategy when nothing is known about the data distribution a priori.
-
 \begin{theorem}
 For \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correction is optimal over the class of linear estimators when no other information is known about the distribution. 
-In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
+%In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
 \end{theorem}
 \begin{proof}[Sketch]
+The basic idea is that if we have two independent estimates, we want to average them to make a single estimate, and we know nothing about these estimates before hand, the 
+optimal thing to do is to take an equally weighted combination. See \reminder{TR} for the full version of the proof.
+\end{proof}
+\iffalse
 As discussed before, we reformulate \sumfunc, \countfunc, and \avgfunc as means over the entire table. We prove the theorem by induction. 
 Suppose, we have two independent unbiased estimates of the mean $\bar{X}_1$ and $\bar{X}_2$ and we want to merge them into one estimate $\bar{X} = c_1\bar{X}_1+c_2\bar{X}_2$.
 Since both estimates are unbiased, $c_1 + c_2 = 1$ to ensure the merged estimate is also unbiased, and now we consider the variance of the merged estimate.
@@ -147,66 +169,69 @@ The variance of the estimate is $var(\bar{X}) = c_1^2var(\bar{X}_1) + c_2^2var(\
 Since, we don't know anything about the distribution of the data, by symmetry $var(\bar{X}_1) = var(\bar{X}_2)$.
 Consequently, the optimal choice is $c_1=c_2=0.5$. 
 We can recursively induct, and we find that if we do not know the variance of data, as is impossible with new updates, then equally weighting all input rows is optimal. 
-\end{proof}
+\fi 
 The implication of this proof is that there does not exist any other weighted average that gives better estimate (for any distribution or sample size).
 
 \subsection{General Aggregate Queries}
 In SampleClean, we proposed the \nsc algorithm to give unbiased corrections to \sumfunc, \countfunc, and \avgfunc.
-In this work, we found that these queries are a special case of a broader class of aggregate queries; namely if a query has an unbiased sample estimate there also exists an unbiased correction.
+We found that these queries are a special case of a broader class of aggregate queries; namely if a query has an unbiased sample estimate there also exists an unbiased correction.
+However, in general, these aggregate functions do not satisfy the optimality conditions of the previous section.
+These queries include: \histfunc, \corrfunc, \varfunc, \covfunc, and the estimation approach is different.
+The general estimation procedure is the following: (1) apply q to the stale sample, (2) apply q to the clean sample, (3) apply q to the full stale view, and (4) finally take the difference between (2) and (1) and add it to (3). 
 The implications of this are that any query that can be answered in prior work with SAQP (eg. in BlinkDB \cite{AgarwalMPMMS13}) in an unbiased way can also be answered with our approach.
 
 Suppose, we have an aggregate query $q$ and we apply the query to the stale view $S$.
 Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
 The query result is stale by a factor of $c$ if:
 \[ c = q(S') - q(S)\] 
-
 \begin{lemma}\label{lemma:unbiased}
 If there exists an unbiased sample estimator for q(S') then there exists an unbiased sample estimator for c.
 \end{lemma}
+\begin{proof}[Sketch] 
+Deterministic constants do not change the expected value of a random variable.
+The query result on the entire stale view is deterministic.
+Refer to our extended paper for more details \reminder{TR}.
+\end{proof}
 
-\begin{proof}[Sketch] Suppose, we have an unbiased sample estimator $\bar{q}$ of $q$. 
+\iffalse
+Suppose, we have an unbiased sample estimator $\bar{q}$ of $q$. 
 Then, it follows that \[\mathbb{E}\big[\bar{q}(\hat{S'})\big] = q(S')\]
 If we substitute in this expression:
 \[ c = \mathbb{E}\big[\bar{q}(\hat{S'})\big] -q(s) \] 
 Applying the linearity of expectation:
 \[ c = \mathbb{E}\big[\bar{q}(\hat{S'}) - q(s)\big] \]
-\end{proof}
+\fi
 
-However, in general, these aggregate functions do not satisfy the optimality conditions of the previous section.
-These queries include: \histfunc, \corrfunc, \varfunc, \covfunc, and the estimation approach is different.
-The general estimation procedure is the following: (1) apply q to the stale sample, (2) apply q to the clean sample, (3) apply q to the full stale view, and (4) finally take the difference between (2) and (1) and add it to (3). 
-
-This procedure will also work for \sumfunc, \countfunc, and \avgfunc and in fact will give the same result estimate.
-However, unlike before, it does not give us an analytic way to calculate a confidence interval.
-This is because variance does not commute with subtraction for correlated random variables.
-We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound our correction.
-In this approach, we repeatedly subsample with replacement from our sample and apply the sample estimator.
-We use these repeat executions to build a distribution of values that the correction can take allowing us to bound the result.
-The conditions under which this technique is valid are nuanced, and detecting when it is valid is a subject of \cite{agarwalknowing}.
-
-\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an aggregate query that has an unbiased sample estimate, and let $\hat{S}$ and $\hat{S'}$ be sample views as defined before. 
-One sample of the bootstrap estimator $s$ is defined as the difference of q applied to random subsample of size $b_1$ (with replacement) of $\hat{S}$ and $\hat{S'}$.
-We denote subsamples of the samples as $\hat{S'}_{sub}$ and $\hat{S}_{sub}$ respectively.
-\[q(\hat{S'}_{sub}) - q(\hat{S}_{sub})\]
-To build the confidence interval, we repeatedly apply this procedure $b_2$ times.
-\end{proposition}
-
-It is true that bootstrap is more computationally expensive than the analytical derivations for the \sumfunc, \countfunc, and \avgfunc queries, and it is also sensitive to the choice of parameters $b_1$ and $b_2$.
-There has been recent research in using techniques such as Poissonized resampling \cite{agarwalknowing}, analytical bootstrap\cite{DBLP:conf/sigmod/ZengGMZ14}, and bagging \cite{DBLP:conf/kdd/KleinerTASJ13} to make this algorithm better suited for latency-sensitive query processing application.
-
-\subsection{Bounded Bias Aggregates}
 Some queries do not have unbiased sample estimators, but the bias of their sample estimators can be bounded. Example queries include: \medfunc, \percfunc.
-
 A corollary to the previous lemma, is that if we can bound the bias for our estimator then we can achieve a bounded bias for $c$ as well.
 \begin{corollary}
 If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
 \end{corollary}
+Functionally, we can apply the same estimation procedure as the unbiased case.
 
-What this means for a user is that the error bars are asymmetric with increased error in the direction of the bias (often in the direction of skew in the dataset).
-Functionally, we can apply the same technique discussed in the previous section for these queries and apply the bootstrap to bound the results. 
+%What this means for a user is that the error bars are asymmetric with increased error in the direction of the bias (often in the direction of skew in the dataset).
 
-\subsection{MIN and MAX}
+%This procedure will also work for \sumfunc, \countfunc, and \avgfunc and in fact will give the same result estimate.
+%However, unlike before, it does not give us an analytic way to calculate a confidence interval.
+%This is because variance does not commute with subtraction for correlated random variables.
+%We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound our correction.
+
+
+For both cases above, we may not get analytic confidence intervals on our results, nor is it guaranteed that our estimates are optimal.
+We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound our correction.
+In this approach, we repeatedly subsample with replacement from our sample and apply the sample estimator.
+We use these repeat executions to build a distribution of values that the correction can take allowing us to bound the result.
+There has been recent research in using techniques such as Poissonized resampling \cite{agarwalknowing}, analytical bootstrap\cite{DBLP:conf/sigmod/ZengGMZ14}, and bagging \cite{DBLP:conf/kdd/KleinerTASJ13} to make this algorithm better suited for latency-sensitive query processing application.
+Refer to the extended technical report for the details on the bootstrap procedure \reminder{TR}.
+
+\subsubsection{MIN and MAX}
 \minfunc and \maxfunc fall into their own category since there does not exist any unbiased sample estimator nor can that bias be bounded.
+We devise an estimation procedure that corrects these queries.
+However, we can only acheive bound that has a slightly different interpretation than the confidence intervals seen before.
+We can calculate the probability that a larger (or smaller) element exists in the unsampled view.
+Refer to the extended technical report for the details on \minfunc and \maxfunc \reminder{TR}.
+
+\iffalse
 We devise the following correction estimate for \maxfunc: (1) For all rows in both $S$ and $S'$, calculate the row-by-row difference, (2) let $c$ be the max difference, and (3) add $c$ to the max of the stale view.
 
 We can give weak bounds on the results using Cantelli's Inequality.
@@ -222,27 +247,35 @@ The same estimator can be modified for \minfunc, with a corresponding bound:
 \]
 This bound has a slightly different interpretation than the confidence intervals seen before.
 This gives the probability that a larger (or smaller) element exists in the unsampled view.
+\fi
 
-\subsection{Select Queries}
-We can correct stale Select queries with SVC.
-Suppose, we have a Select query with a simple predicate:
-\begin{lstlisting} [mathescape]
-SELECT $*$ FROM View 
-WHERE $\cond(A)$
-\end{lstlisting}
+\iffalse
+\begin{proposition} (BOOTSTRAP OVER DIFFERENCES) Let q be an aggregate query that has an unbiased sample estimate, and let $\hat{S}$ and $\hat{S'}$ be sample views as defined before. 
+One sample of the bootstrap estimator $s$ is defined as the difference of q applied to random subsample of size $b_1$ (with replacement) of $\hat{S}$ and $\hat{S'}$.
+We denote subsamples of the samples as $\hat{S'}_{sub}$ and $\hat{S}_{sub}$ respectively.
+\[q(\hat{S'}_{sub}) - q(\hat{S}_{sub})\]
+To build the confidence interval, we repeatedly apply this procedure $b_2$ times.
+\end{proposition}
+\fi
 
-We can first run the Select query on the stale view, and the result of this is a multiset.
-First, we must define what it means to ``correct" this stale result.
-This result has three types of data error: rows that are missing, rows that are falsely included, and rows whose values are incorrect.
 
-As in the aggregate query case, we can apply the query to the sample of the up-to-date view.
-From this sample, using our lineage defined earlier, we can quickly identify which rows were added, updated, and deleted.
-For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
-For the new rows, we take a union of the sampled selection and the updated stale selection.
-For the missing rows, we remove them from the stale selection.
-To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of number of rows that were not updated, added, or deleted (thus three ``confidence" intervals). 
+\iffalse
+\subsection{Bounded Bias Aggregates}
+Some queries do not have unbiased sample estimators, but the bias of their sample estimators can be bounded. Example queries include: \medfunc, \percfunc.
+
+A corollary to the previous lemma, is that if we can bound the bias for our estimator then we can achieve a bounded bias for $c$ as well.
+\begin{corollary}
+If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
+\end{corollary}
+
+What this means for a user is that the error bars are asymmetric with increased error in the direction of the bias (often in the direction of skew in the dataset).
+Functionally, we can apply the same technique discussed in the previous section for these queries and apply the bootstrap to bound the results. 
+\fi
+
+\iffalse 
 
 \subsection{Query Execution Cost}
 It is true that SVC adds to the query execution time by issuing a correction. 
 However, this correction is only calculated on a sample and thus is small compared to the query execution time over the entire old view.
 In our experiments, we show that the overheads are small in comparison to the execution time over the entire old view and the savings from only maintaining a sample (Section \ref{exp-datacube}).
+\fi

@@ -26,9 +26,9 @@
 \usepackage{bm}
 \usepackage[nospace]{cite}
 
-\lstset{basicstyle=\scriptsize,breaklines=true}
+\lstset{basicstyle=\scriptsize,breaklines=true,language=SQL}
 
-%\linespread{0.94}%
+\linespread{0.94}
 
 \makeatletter
 \def\@copyrightspace{\relax}
@@ -36,9 +36,9 @@
 
 \begin{document}
 
-\setlength{\belowdisplayskip}{2pt} \setlength{\belowdisplayshortskip}{2pt}
-\setlength{\abovedisplayskip}{2pt} \setlength{\abovedisplayshortskip}{2pt}
-\setlength{\belowcaptionskip}{-8pt}
+\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{1pt}
+\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{1pt}
+\setlength{\belowcaptionskip}{-10pt}
 \selectfont
 
 \newtheorem{theorem}{Theorem}
@@ -98,6 +98,8 @@
 \def\rightouterjoin{\mathbin{\bowtie\mkern-5.8mu\ojoin}}
 \def\fullouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie\mkern-5.8mu\ojoin}}
 
+%\setlength{\belowcaptionskip}{-10pt}
+
 %\newcommand{\reminder}[1] {}
 \pagestyle{plain}
 
@@ -124,13 +126,13 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 \vspace{-1em}
 
 \begin{abstract}
-Materialized views, stored pre-computed query results, are widely used to facilitate fast queries on large datasets. 
-In the Big Data era when new data arrives at an increasingly fast rate, maintaining materialized views can be costly.
-Due to this cost, maintenance is often deferred to a later time, but at the new cost of returning inaccurate query results on stale views.
-In this paper, we address this problem from a data cleaning perspective and model staleness as a type of data error.
+Materialized views (MVs), stored pre-computed query results, are widely used to facilitate fast queries on large datasets. 
+%In the Big Data era when new data arrives at an increasingly fast rate, maintaining materialized views can be costly.
+%Due to this cost, maintenance is often deferred to a later time, but at the new cost of returning inaccurate query results on stale views.
+We address the problem of stale MVs from a data cleaning perspective.
 We take inspiration from recent data cleaning results that greatly improve query accuracy by cleaning only a small sample of dirty data.
 To complement existing deferred maintenance approaches, we maintain a sample of a materialized view to correct stale query results between maintenance periods, without the cost of full maintenance. 
-This requires an analysis of the view maintenace procedure to efficiently maintain only a sample of a view.
+%This requires an analysis of the view maintenace procedure to efficiently maintain only a sample of a view.
 We use this sample to estimate how the updates affect a query on the view, and correct the query results based on this estimate.
 We show any query that has an unbiased sample estimator can be reformulated to give an unbiased correction, and for the most common aggregate queries (SUM,COUNT, AVG) our corrections are optimal with respect to estimate variance. 
 As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. 
@@ -146,16 +148,16 @@ We evaluate our method on real and synthetic datasets and results suggest that w
 \input{sampling.tex}
 %\input{correction2.tex}
 \input{outlier.tex}
-\input{analysis.tex}
+%\input{analysis.tex}
 \input{experiments.tex}
 \input{conclusion.tex}
 
 \bibliographystyle{abbrv}
 %\scriptsize
-\fontsize{6.08pt}{6.4pt} \selectfont
+\fontsize{6.00pt}{6.3pt} \selectfont
 \bibliographystyle{abbrv}
 \bibliography{ref} 
 
-\input{appendix.tex}
+%\input{appendix.tex}
 
 \end{document}

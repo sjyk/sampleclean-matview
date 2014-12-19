@@ -43,7 +43,7 @@ Define an outlier index to be a triple of a set of indexed attributes, and a set
 \item $\sigma_{\phi}(R)$: Push up with a new outlier index $(I,O)$ \vspace{-.45em}
 \item $\Pi_{(a_1,...,a_k)}(R)$: Push upwards with new outlier index $(I \cap (a_1,...,a_k), O)$.\vspace{-.45em}
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Push upwards with new outlier index $(I_{1} \cup I_{2}, O_1 \bowtie O_2)$. 
-\item $\gamma_{f,A}(R)$: Recall our earlier notation where the resulting schema of the group-by aggregation was $(A,f_i)$. For group-by aggregates, we set $I = \{f_i\}$. For the outlier index, we do the following steps. (1) Apply the aggregation to the outlier index $\gamma_{f,A}(O)$, (2) for all distinct $A$ in $O$ select the row in $\gamma_{f,A}(R)$ with the same $A$, and (3) this selection is the new set of outliers $O$. 
+\item $\gamma_{f,A}(R)$: For group-by aggregates, we set $I = \{f_i\}$. For the outlier index, we do the following steps. (1) Apply the aggregation to the outlier index $\gamma_{f,A}(O)$, (2) for all distinct $A$ in $O$ select the row in $\gamma_{f,A}(R)$ with the same $A$, and (3) this selection is the new set of outliers $O$. 
 \item $R_1 \cup R_2$: Push up with a new outlier index $(I_1 \cap I_2, O_1 \cup O_2)$. The set of index attributes is combined with an intersection to avoid missed outliers.
 \item $R_1 \cap R_2$: Push up with a new outlier index $(I_1 \cap I_2, O_1 \cap O_2)$.
 \item $R_1 - R_2$: Push up with a new outlier index $(I_1 \cup I_2, O_1 - O_2)$.

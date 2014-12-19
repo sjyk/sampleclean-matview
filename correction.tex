@@ -1,5 +1,5 @@
 \section{Efficient Maintenance With Sampling} \label{sampling}
-\reminder{Make sure that we do a good survey on ``sampling from a view" and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
+%\reminder{Make sure that we do a good survey on ``sampling from a view" and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
 In the previous section, we formalized the computation of $\hat{S'}$  as a data cleaning procedure.
 A naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
 However, this does not make the maintenance of the sample any more efficient.
@@ -8,7 +8,7 @@ need not operate on the full data.
 In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
 maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
-\subsection{Formalizing Uniform Sampling}
+\subsection{Uniform Sampling on Views}
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
 \begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} if
@@ -27,16 +27,16 @@ Achieving this requires a definition of lineage; traceable, unique identificatio
 
 \subsection{Identification With Row Lineage}
 \label{lin}
-Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}. \reminder{Add Kai into acknownledgement for helping us with problem formulation. }
+Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}. %\reminder{Add Kai into acknownledgement for helping us with problem formulation. }
 We recursively define a set of consistent primary keys for all nodes in the expression tree:
 \begin{definition} [Primary Key]
 For every relational expression $R$, we define the primary key of every subexpression to be:
-\begin{itemize}\vspace{-.45em}
-\item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. That uniquely identifies rows.\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Primary key of the result is the primary key of R \vspace{-.45em}
-\item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection. \vspace{-.45em}
+\begin{itemize}[noitemsep]
+\item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. That uniquely identifies rows.
+\item $\sigma_{\phi}(R)$: Primary key of the result is the primary key of R 
+\item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection.
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the union of the primary key of $R_1$ and $R_2$. 
-\item $\gamma_{f,A}(R)$: The primary key of the result is the tuple $A$.\vspace{-.45em}
+\item $\gamma_{f,A}(R)$: The primary key of the result is the tuple $A$.
 \item $R_1 \cup R_2$: Primary key of the result is the primary key of R
 \item $R_1 \cap R_2$: Primary key of the result is the primary key of R
 \item $R_1 - R_2$: Primary key of the result is the primary key of R
@@ -61,11 +61,11 @@ It turns out in general we cannot push down even a deterministic sample through 
 We formalize the push down rules below:
 \begin{definition}[Hash Pushdown]
 Let $a$ be a primary key of a materialized view. The following rules can be applied to push $\eta_{a, m}(R)$ down the expression tree of the maintenance strategy. 
-\begin{itemize}\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Push $\eta$ through the expression.  \vspace{-.45em}
-\item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through if $a$ is in the projection.\vspace{-.45em}
+\begin{itemize}[noitemsep]
+\item $\sigma_{\phi}(R)$: Push $\eta$ through the expression.  
+\item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through if $a$ is in the projection.
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. 
-\item $\gamma_{f,A}(R)$: Push $\eta $ through if $a$ is in the group by clause $A$.\vspace{-.45em}
+\item $\gamma_{f,A}(R)$: Push $\eta $ through if $a$ is in the group by clause $A$.
 \item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 - R_2$: Push $\eta $ through to both $R_1$ and $R_2$
@@ -95,7 +95,7 @@ Then, two samples $\hat{S'}$ and $\hat{S}$ correspond.
 \end{proposition}
 \begin{proof}[Sketch]
 There are four conditions for correspondence:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item 1. For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
 \item 2. For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
 \item 3. For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
@@ -123,7 +123,7 @@ Then, we reach a many-to-one (foreign key) join allowing us to push down the sam
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.30]{figs/example_expression_tree_2.pdf} \vspace{-.25em}
+ \includegraphics[scale=0.20]{figs/example_expression_tree_2.pdf} \vspace{-.25em}
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance plan. \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
