@@ -5,7 +5,7 @@ During the last 30 years, the research community has thoroughly studied MVs, and
 In a world of ever-increasing data sizes, MVs are becoming even more important, both for traditional query processing
  \cite{lefevre2014opportunistic, bailis2014scalable, perez2014history} and for more advanced analytics based on linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
-However, when the underlying data is changed MVs can become \emph{stale} and all queries that use a stale MV can give incorrect answers. 
+However, when the underlying data is changed MVs can become \emph{stale}; the pre-computed results do not reflect the recent changes to the data. 
 One solution would be to recompute the MV every time a change occurs, however, in many cases, it is more efficient to incrementally update the MV instead of recomputing the query.
 There has been substantial work in deriving these incremental updates (incremental maintenance algorithms) for different classes of MVs and optimizing their execution \cite{gupta1995maintenance, DBLP:conf/sigmod/GriffinL95, griffin1997improved, samtani1999self, DBLP:conf/sac/TrutaC07, DBLP:journals/vldb/KochAKNNLS14, chirkova2011materialized}.
 
