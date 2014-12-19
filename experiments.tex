@@ -1,309 +1,387 @@
 \vspace{-.5em}
 \section{Results}
 \label{exp}
-First, we evaluate SVC on a synthetic benchmark dataset where we can control the data distribution and the update rate.
-We evaluate query accuracy, the efficiency of sampling, and query execution time.
-Next, we evaluate how SVC performs as we vary the complexity of the materialized view.
+We evaluate SVC first on a single node MySQL database to evaluate its accuracy, performance, and efficiency in a variety of materialized view 
+scenarios.
+We look at three main applications, join view maintenance, aggregate view maintenance, and a data cube application, on the standard TPCD benchmark 
+and skewed version of the benchmark TPCD-Skew.
 Then, we evaluate the outlier indexing approach in terms of improved query accuracy and also evaluate the overhead associated with using the index.
 After evaluation on the benchmark, we present an end-to-end application of log analysis with a dataset from a video streaming company.
+In this application, we look at the real query workload of the company and materialize views that could improve performance of these queries.
+We implement SVC in Spark 1.1 and deploy it on a 10-node cluster to analyze 1TB of logs.
 
-\begin{figure*}[ht!]\vspace{-1em}
-\hspace{-5.5em}
- \includegraphics[trim = 10mm 0mm 10mm 0mm, clip, scale=0.19]{exp/exp2-full.eps}\vspace{-1em}
- \caption{For each of the three views listed above, we plot the accuracy for 5\% samples compared to SAQP and a stale baseline. We also plot the maintenance time for each of the views in comparison to full incremental maintenance for a 1\%, 5\% and 10\% sample. \label{exp2update} }\vspace{-1em}
-\end{figure*}
-
-\subsection{Experimental Setting}
-\vspace{-.5em}
-\subsubsection{TPCD-Skew}
-{\noindent \bf Dataset Description and Views :}
+\subsection{Single-node Experimental Setup}
+Our single node experiments are run on a r3.large Amazon EC2 node (2x Intel Xeon E5-2670, 15.25 GB Memory, and 32GB SSD Disk) with a MySQL version 5.6.15 database.
+These experiments evaluate views from 10GB TPCD and TPCD-Skew datasets.
 TPCD-Skew dataset \cite{tpcdskew} is based on the Transaction Processing Council's benchmark
 schema but is modified so that it generates a dataset with values drawn from a Zipfian distribution instead of uniformly.
-The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribution with a single parameter $z=\{0,1,2,3,4\}$ which a larger
+The Zipfian distribution \cite{mitzenmacher2004brief} is a long-tailed distribution with a single parameter $z=\{1,2,3,4\}$ which a larger
 value means a more extreme tail.
-This dataset has been applied to benchmark other sampling based approaches, approximate queries, and outlier performance \cite{chaudhuri2001overcoming, agrawal2005database}.
-The base dataset is 10GB corresponding to 60M records.
-Unless otherwise noted, we experiment with $z=2$.
-The dataset is provided in the form of a generation program which can generate both the base tables and a set of updates.
+$z=1$ corresponds to the basic TPCD benchmark. 
+We implement incremental view maintenance with an ``update...on duplicate key insert" command.
+We implement SVC's sampling operator with a linear hash written in C that is evoked in MySQL as a stored procedure.
+In all of the applications, the updates are kept in memory in a temporary table, and we discount this loading time from our experiments.
+We build an index on the primary keys of the view, the base data, but not on the updates.
 
-For this dataset, we applied our approach to three materialized views, each of a different type:
+Below we describe the view definitions and the queries on the views:
 
-\vspace{0.5em}
+\textbf{Join View: } In the TPCD specification, two tables receive insertions and updates: \textbf{lineitem} and \textbf{orders}.
+Out of 22 parameterized queries in the specification, 12 are group-by aggregates of the join of \textbf{lineitem} and \textbf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
+Therefore, we define a materialized view of the foreign-key join of \textbf{lineitem} and \textbf{orders}, and compare incremental view maintenance and SVC.
+We treat the 12 group-by aggregates as queries on the view.
 
-{\noindent \bf \spview :}\vspace{-0.25em}
-\begin{lstlisting}
-SELECT *, 
-       IF(Lcase(l_shipinstruct) LIKE '%deliver%' 
-          AND Lcase(l_shipmode) LIKE '%air%', 'priority', 'slow') 
-FROM   lineitem_s 
+\textbf{Aggregate View: } We apply SVC in an application similar to data cubes \cite{gray1997data}.
+We define the following ``base cube" as a materialized view that calculates the total revenue 
+grouped by distinct customer, nation, region, and part number.
+The queries on this view are ``roll-up" queries that aggregate over 
+subsets of the groups (e.g., total of all customers in North America).
+The specification of this data cube and the queries are listed in the appendix \reminder{TR}.
+
+\textbf{Complex Views:} We take the TPCD schema and denormalize the database, and treat each of the 22 
+TPCD queries as views on this denormalized schema. 
+The 22 TPCD queries are actually parameterized queries where parameters, such as the selectivity of the predicate, are randomly set by the TPCD \textsf{qgen} program.
+Therefore, we use the program to generate 10 random instances of each query and use those as our materialized view.
+We remove views with a small result set making them not suitable for sampling or are static.
+10 out of the 22 sets of views can benefit from SVC, and the reasons why queries were excluded is listed in the appendix \reminder{TR}.
+
+For each of the views, we generated \emph{queries on the views}.
+Since the outer queries of our views were group by aggregates, we picked a random attribute $a$ from the group by clause and a random attribute $b$ from aggregation.
+We use $a$ to generate a predicate.
+For each attribute $a$, the domain is specified in the TPCD standard.
+We select a random subset of this domain eg. if the attribute is country then the predicate can be \textsf{countryCode} > 50 and \textsf{countryCode} < 100.
+We generated \sumfunc, \avgfunc, and \countfunc of the following form: 
+\begin{lstlisting} [mathescape]
+SELECT $f(b)$ FROM View 
+WHERE subset of domain of a;
 \end{lstlisting}
+We generated 100 random aggregate queries for each view.
 
-\vspace{0.5em}
+\subsection{Distributed Experimental Setup}
+We evaluated performance on Apache Spark 1.1.0 with a 10 node r3.large Amazon EC2 cluster.
+Systems like Spark are increasingly popular, and Spark supports materialization through a distributed data structure called an RDD \cite{zaharia2012resilient}.
+In the most recent release of Spark, there is a SQL interface that allows users to persist query results in memory.
 
-{\noindent \bf \aggview :}\vspace{-0.25em}
-\begin{lstlisting}
-SELECT l_orderkey, l_shipdate, 
-       Sum(l_quantity)      AS quantity_sum, 
-       Sum(l_extendedprice) AS extendedprice_sum, 
-       Max(l_receiptdate)   AS receiptdate_max, 
-       Count(*)             AS group_count 
-FROM   lineitem 
-GROUP  BY l_orderkey, 
-          l_shipdate 
-\end{lstlisting}
+However, in real-world application, RDDs have limitations.
+As RDDs are an immutable data structure, any maintenance must be done synchronously.
+As Spark also does not have support for indices, we rely on partitioned joins for incremental maintenance of the views.
+We partitioned the views by primary-by key, and apply a full outer join of the updates with the partitioned view.
+With this set of experiments, we show that SVC implemented on Spark can help overcome some of these limitations and allow users to take advantage of materialized views and incremental maintenance.
 
-\vspace{0.5em}
-
-{\noindent \bf \fjview :}\vspace{-0.25em}
-\begin{lstlisting}[mathescape]
-SELECT supplier.*, customer.* 
-FROM   customer$,\;$orders$,\;$lineitem$,\;$supplier$,\;$partsupp 
-WHERE  c_custkey = o_custkey 
-       AND o_orderkey = l_orderkey 
-       AND l_suppkey = ps_suppkey 
-       AND l_partkey = ps_partkey 
-       AND ps_suppkey = s_suppkey 
-       AND s_nationkey <> c_nationkey 
-\end{lstlisting}
-
-\vspace{0.5em}
-
-%\sloppy
-
-{\noindent \bf Queries on the views :}
-We randomly generated 10,000 aggregate queries for each view, based on the query templates provided by the TPCD-Skew dataset. These queries are in the form of ``SELECT $f(a)$ FROM View WHERE Condition(A)", where $f$ is randomly selected from \{\sumfunc, \countfunc, \avgfunc\}, $a$ is randomly selected from the  aggregation attributes of the query templates, and $Condition(A)$ is randomly selected from the predicates of the query templates.
-
-%\fussy
-
-\iffalse
-
-Along with the TPCD specification are templates to generate a query workload to benchmark database systems.
-We used these templates to generate queries and filtered the query workload to the aggregation queries and the ones whose predicates could be applied on our views.
-In all, for each view, we had 10,000 aggregate queries with different randomly generated predicates from the template.
-
-\fi
-
-\vspace{0.5em}
-
-{\noindent \bf Experimental Platform :}
-All of our experiments for the TPCD-Skew dataset are run on a single r3.large Amazon EC2 node (2x Intel Xeon E5-2670, 15.25 GB Memory, and 32GB SSD Disk) with a MySQL version 5.6.15 database.
-With MySQL, we create these views as tables.
-We construct a separate table of updates, and then measure the time needed to propagate the necessary updates (forming the delta table and writing the updates) to the views.
-In evaluating \fjview, we only insert records into the lineitem table and create an index on all of the dimension tables.
-For \aggview, we have an index on the group-by key of sampled materialized view.
-%Note, that we do not assume there are any indices on the newly inserted records.
-We use the MySQL query profiling feature to isolate the cost of view maintenance in both the delta view phase and the refresh phase.
-
-\subsubsection{Conviva}
-{\noindent \bf Dataset Description :}
-Conviva is a video streaming company and we evaluated our approach on user activity logs \cite{conviva}.
-We experimented with a 1TB dataset of these logs which formed a single base table.
+We evaluate SVC on a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
+The 1TB dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
+%1TB corresponded to a sample of customer data from 1 year of logs. \reminder{[privacy]}
 With this dataset, there was a corresponding dataset of analyst SQL queries on the log table.
-Using the query dataset, we constructed 67 aggregation views, and 10,000 queries for each view using a similar method as the TPCD-Skew dataset. 
-%We constructed the queries in a similar way to the TPCD-Skew queries  %, where we found all of the aggregate queries and filtered down
-%to those that could run on the views.
-We used this dataset to evaluate the end-to-end accuracy and performance of the system in a real-world application. %on a real dataset and query workload.
+In this workload, there were annotated summary statistics queries, and we filtered for the most common types.
+While, we cannot give the details of the queries, we can present some of the high-level characteristics of 8 summary-statistics type views. 
+\begin{itemize} 
+\item \textbf{V1.} Counts of various error types grouped by resources, users, date
+\item \textbf{V2.} Sum of bytes transferred grouped by resource, users, date
+\item \textbf{V3.} Counts of visits grouped by an expression of resource tags, users, date.
+\item \textbf{V4.} Nested query that groups users from similar regions/service providers together then aggregates statistics
+\item \textbf{V5.} Nested query that groups users from similar regions/service providers together then aggregates error types
+\item \textbf{V6.} Union query that is filtered on a subset of resources and aggregates visits and bytes transferred
+\item \textbf{V7.} Aggregate network statistics group by resources, users, date with many aggregates.
+\item \textbf{V8.} Aggregate visit statistics group by resources, users, date with many aggregates.
+\end{itemize}
+We used this dataset to evaluate the end-to-end accuracy and performance of the system in a real-world application.
 
-\vspace{0.5em}
+Using the dataset of analyst queries, we identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics for specific customers on a certain day.
+We generalized these queries by turning them into group-by queries over customers and dates; that is a view that calculates the metric for every customer on every day.
+We generated aggregate random queries over this dataset by taking either random time ranges or random subsets of customers.
 
-{\noindent \bf Experimental Platform :}
-We evaluated performance on Apache Spark 1.0.2 with a 20 node r3.large Amazon EC2 cluster.
-Spark supports materialized views through a distributed data structure called an RDD \cite{zaharia2012resilient}.
-There is a SQL interface which transforms the RDD's using Map-Reduce chains.
-The RDD's are immutable, thus requiring significant overhead to maintain.
-As Spark does not have support for indices, we rely on partitioned joins for incremental maintenance of the aggregation views.
-We partitioned the aggregation views by group-by key, and joined the delta table with the aggregation view.
+\subsubsection{Metrics and Evaluation}
+To illustrate how SVC gives the user access to this new trade-off space, we will illustrate that SVC is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 
-\subsection{Accuracy}
-\vspace{-.5em}
-\subsubsection{Update Rate and Accuracy}\label{exp:tpcd-acc}
-For each of the three views listed above, we evaluate the accuracy of our approach.
-We set the sample size to $5\%$ and then vary the number of inserted records by increments of 500K (0.8\% base data) records to a final count of 8M records (13.3\% base data).
-For the 10,000 generated queries on the view, we calculate the mean error as a relative percentage of the true value.
-As a baseline, we compare against SAQP with the sample sampling ratio (5\%) and no maintenance (i.e., the stale error).
-In Figure \ref{exp2update} (a)(c)(e), we show the results of the experiment. 
-For all three views a 5\% sample sufficed to achieve a mean relative error of less than 1\%, even though when 8M records were inserted the staleness was 7\%.
-Furthermore, in comparison to SAQP, the accuracy of our approach is proportional to the amount of correction needed, while SAQP keeps a roughly constant accuracy.
-As more records are inserted the approximation error in our approach increases.
-However, we find that even for very large amounts of inserted records (>10\% of dataset size), our approach gives significantly more accurate results
-than SAQP.
-The gain is most pronounced in aggregation views where there are a mixture of updated and inserted rows into the view.
-Correcting an update to an existing row is often much smaller than doing so for a new inserted record.
+In our evaluation, we separate maintenance from query processing.
+We use the following notation to represent the different approaches:
+\begin{itemize}
+\item No maintenance (Stale): The baseline for evaluation is not applying any maintenance to the materialized view.
+\item Incremental View Maintenance (IVM): We apply incremental view maintenance to the full view.
+\item SVC+AQP: We maintain a sample of the materialized view using SVC but estimate the result with AQP rather than using 
+the correction technique proposed in this paper.
+\item SVC+Corr: We maintain a sample of the materialized view using SVC and process queries on the view using the correction method presented in this paper.
+\end{itemize}
+%\reminder{Do you think we need to say something about another solution which maintains a sample of ``base" table and transform a query on a view to a query on the base table?}
+Since SVC has a sampling parameter, we denote a sample size of $x \% $ as SVC+Corr-x or SVC+AQP-x, respectively. 
 
-\subsubsection{Sample Size and Accuracy} Next, we explore how sample size affects query results.
-We inserted 5M (8\% base data) records, and then vary the sampling ratio for the three types of views and show how much sampling is needed to achieve a given query accuracy.
-In Figure \ref{exp1sample}, we show the accuracy as a function of sampling ratio for each of the views.
-In our experiment, we found that a 0.1\% sample was sufficient to ensure the approximation error due to sampling was less than the baseline staleness.
-SAQP also has this break even point, but we found for this update size, SAQP required a much larger sample size.
+To evaluate accuracy and performance, we define the following metrics:
+\begin{itemize}
+\item Relative Error: For a query result $r$ and an incorrect result $r'$, the relative error is \[\frac{\mid r-r' \mid}{r}.\] 
+When a query has multiple results (a group-by query), then, unless otherwise noted, relative error is defined as the median over all the errors.
+\item Maintenance Time: We define the maintenance time as the time needed to produce the up-to-date view for incremental view maintenance, and the time needed to produce the up-to-date sample in SVC. 
+\end{itemize}
 
-\begin{figure}[ht!]
- \includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp1-samplesize-accuracy.eps}\vspace{-1em}
- \caption{As we increase the sample size, the relative error goes down following a $\frac{1}{\sqrt{samplesize}}$ rate. SAQP also follows the same rate so the lines will never cross by only changing the sample size. \label{exp1sample} }\vspace{-1em}
-\end{figure}
+\subsection{Single-node Accuracy and Performance}
 
-\subsubsection{Distribution of Query Error} In our earlier experiments, we presented the average error for the queries on the views.
-We found that for inserted 5M records (8\% base data) on average queries on the views were 4.6\% stale for \spview, 4.2\% stale for \fjview, and 6.4\% stale for \aggview. 
-However, that some queries were much more stale than others.
-In this experiment, we looked at the distribution of staleness for the aggregation view.
-We used a sampling ratio of 5\% and evaluate the accuracy of our approach. 
-In Figure \ref{exp3dist} (a), we show a cumulative distribution function (CDF) of the staleness and a scatter plot comparing the staleness of the query to the accuracy using our correction method.
-In the right figure (Figure \ref{exp3dist} (b)), each black point corresponds to a query with the y-axis as SVC estimation error and the x-axis as staleness. 
-5\% queries have greater than 20\% staleness error, and for many of these queries we are able to greatly reduce this error.
-\begin{figure}[ht!]
+\subsubsection{Join View}
+
+\begin{figure}[t]
 \centering
- \includegraphics[scale=0.22]{exp/query_error_dist.eps}
- \includegraphics[scale=0.21]{exp/query_error_dist2.eps}\vspace{-.5em}
- \caption{While the mean error is 6.4\%, 5\% of queries have more than 20\% relative error. In the second plot, we show a scatter plot of staleness (x-axis) and a query correction accuracy (y-axis). Each black point corresponds to a single query. Points below the dotted line show that we improved query accuracy.}\label{exp3dist} %\vspace{-.5em}
+\includegraphics[scale=0.15]{exp/msj_1.pdf}
+\includegraphics[scale=0.15]{exp/msj_2.pdf}
+ \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of SVC. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for SVC. \label{exp-1-samplesize}}
 \end{figure}
-The long tail of query errors can occur for a variety of reasons.
-First, some of the generated queries are highly selective and a uniform sampling approach may not sample enough records to answer it accurately.
-Next, outliers can be caused by large updates to the data that are missed by our sampling, which we will address in subsequent experiments.
 
-\subsection{Efficiency}
-\vspace{-.5em}
-\subsubsection{Sampling Efficiency}\label{exp:tpcd-eff}
-In Figure \ref{exp2update} (b)(d)(f), we evaluate how sampling can reduce maintenance time for each of the views.
-For a batch of updates, we evaluate how long it takes to sample the update patterns as opposed to maintaining the view.
-As a baseline, we compare to full incremental maintenance.
-In this experiment, we exclude SAQP since for the same sampling ratio SAQP and SVC require the same amount of time.
-We find that for the \aggview and \fjview, which are more expensive to maintain, sampling leads to more pronounced savings. 
-For 10\% of data inserted and a 10\% sampling ratio, the maintenance time for \fjview  is 9.35x faster and for \aggview it is 8.4x faster.
-However, for the \spview the gains are smaller with a 6.2x speedup.
-There are diminishing returns with smaller sample sizes as overheads start becoming significant. 
-
-\subsubsection{Overhead of Query Correction}
-In Section \ref{subsec-corr-cost}, we analyzed the query execution times.
-We found that while for \spview and \fjview we have a reduced query time in comparison to full incremental maintenance, we can make no such
-guarantee for \aggview.
-In this experiment, we evaluated the query execution time of SVC compared to SAQP, full incremental maintenance (query on the fresh view), and no maintenance (query on the stale view).
-Since \spview and \fjview are similar, we only evaluate query execution on \fjview.
-For each of the views, we insert 5M records (8\% of Base Data) and evaluate the average query execution time; that is over the 10,000 generated queries the average time to return a result. 
-For \aggview, the insertions were such that 50\% of the insertions updated existing rows and 50\% corresponded to new rows.
-In Figure \ref{exp10overheads}, we show the results of the experiment.
-SAQP, which avoids querying the entire view, is much faster than both, however as seen in the previous experiments, it has lower accuracy. 
-For the \aggview, it has a mean error of 6.6\% compared to SVC's 0.8\% (Section \ref{exp:tpcd-acc}).
-We also highlight that the introduced overhead for correction is orders of magnitude less than the maintenance time seen in the previous sections.
-For \aggview, full incremental maintenance requires 106.3 seconds while 5\% SVC only requires 5.5 seconds, and in comparison the correction is 0.08 seconds (Section \ref{exp:tpcd-eff}).
-
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]
 \centering
- \includegraphics[width=\columnwidth]{exp/total_time_agg_view.pdf}\vspace{-1em}
- \caption{We compare the query execution time for SVC, SAQP, the fresh view, and stale view. Since, we use a sample to correct query results on the stale view, we always require a query on the stale view. For \fjview and \spview, we do not increase query execution time with our correction. However, for \aggview, we introduce a small overhead.\label{exp10overheads}} \vspace{-1em}
+\includegraphics[scale=0.16]{exp/msj_3.pdf}
+ \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued). Our experiments suggest that on this view, SVC+Corr is more accurate than SVC+AQP and No Maintenance.\label{exp-1-acc}}
 \end{figure}
 
-\subsubsection{View Complexity}
-In our maintenance time experiments, we showed that more expensive views tended to benefit from our approach.
-We evaluated this tradeoff by taking the simplest possible view, a SELECT of the base table, and then progressively adding clauses to the predicate.
-For example:
-\begin{lstlisting}
-WHERE (condition1)
-WHERE (condition1 || condition2)
-WHERE (condition1 || condition2 || condition3)
-\end{lstlisting}
-We set the sample size to 5\%, insert 5M records (8\% of Base Data), and measure the maintenance time.
-For the selection view the only cost for maintenance is a scan of the data and evaluating the predicate. 
-Sampling saves on predicate evaluation but introduces the overhead of random number generation (see Section \ref{subsec:pattern}). 
-Figure \ref{exp11overheads} illustrates how as the view becomes more complex, the performance improvement given
-by our approach increases.
-Initially, there is about 5\% overhead, but as the cost of evaluating the predicate increases, we see an increased benefit of SVC.
-The benefits increase to a 7.9x speedup over incremental maintenance for the most complex query.
-We repeated the same experiment for the \aggview, but instead we added terms to the group by clause to increase the
-cardinality of the view.
-We found that for a highly selective group by clause (thus a large view) the savings were 16.9x.
-However, when the view was small with the l\_shipdate key, the cost savings were smaller(5.5x).
-These experiments emphasize that when views are large and complex, we can have significant improvements.
-\begin{figure}[!t]\vspace{-1em}
- \includegraphics[trim = 35mm 0mm 35mm 0mm, clip,width=\columnwidth]{exp/complexity_efficiency_tradeoff.eps}\vspace{-1em}
- \caption{As the view definitions become more complex our approach gives increasing gains. For simplest view (selection no predicate), the overhead is small (5\%).\label{exp11overheads}}\vspace{-1em}
-\end{figure}
-%This experiment emphasizes that our approach rarely makes performance worse and at worst the improvements are not linear with the sampling ratio.
-
-
-
-\subsection{Outlier Indexing}
-
-\sloppy
-
-We use a 5\% sample size and 5M records (8\% of Base Data) inserted, and we evaluate the accuracy of our approach with and without outlier indexing.
-We apply the index to the \spview, where we index the attributes l\_extendedprice and l\_quantity.
-The results for the other two views were similar, and in this paper, we only present results for the \spview.
-In Figure \ref{exp7outlier}(a), we plot the 10 queries with the worst estimation with SVC 5\%.
-Then, we set the outlier index size to the top 500 records in the base table, and re-ran SVC 5\%.
-Figure \ref{exp7outlier}(a) shows the change in accuracy for queries that were estimated poorly before.
-We find that for these queries, we can improve the accuracy by a factor of 8.2.
-We further evaluated the overhead of the approach compared to the time needed to sample SVC 5\% of 1.44s and found that the overhead was only 1\% for an outlier index of size 1000.
-We varied the Zipfian parameter from (0,1,2,3,4), which makes the distribution more skewed, and measured the average improvement in accuracy over all queries.
-We found that as the dataset becomes more skewed, outlier indexing is increasingly important leading to almost a 6x more accurate estimate for $z=4$.
-
-\fussy
-
-\begin{figure}[ht!]
-\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp7-outlier.eps}\vspace{-1em}
- \caption{Outlier indexing greatly improves accuracy of our approach especially in skewed datasets for a small overhead of building the index and ensuring those rows are in the view.\label{exp7outlier}}\vspace{-1em}
-\end{figure}
-
-\subsection{Application: Log Analysis For Conviva}
-We used a 1TB dataset of queries given by Conviva to generate three materialized views.
-All three of these views are aggregation views, and for confidentiality, we exclude the actual definitions of the views.
-LargeView has the most selective group-by clause and was chosen to be a large view where most of the maintenance is in the form of new rows to insert.
-LargeView aggregates session times for each visitor and video pair.
-MediumView is a medium size view where maintenance is a mix of both updates and insertions.
-MediumView computes buffering time statistics for each visitor over all videos they watched.
-SmallView is a small view where most of the maintenance is updates to existing rows.
-SmallView computes statistics for log events that triggered error states.
-
-Since we evaluate accuracy in terms of query accuracy, we did not evaluate accuracy on the full 1TB dataset since it would have been prohibitive to execute thousands of queries for different sample sizes. 
-Instead, for evaluating accuracy we used a 7GB subset of the logs corresponding to 5 days of data.
-However, for the scalability experiments, we use the full 1TB dataset.
-We present results in terms of relative sizes in comparison to the base table.
-
-\begin{figure}[t]\vspace{-1em} 
+\begin{figure}[t]
 \centering
-\vspace{-0.75em}
-\includegraphics[scale=0.23]{exp/conviva_efficiency_accuracy.eps}\vspace{-.5em}
- \caption{We chose three views that represented the distribution of all views well in terms of both accuracy. We plot the staleness of each of the 67 views and mark the three views in our experiment.\label{exp12conviva}}\vspace{-1em}
+ \includegraphics[scale=0.13]{exp/msj_4.pdf}
+ \includegraphics[scale=0.13]{exp/msj_6.pdf}
+  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. SVC+Corr does take longer to query a view (due to the correction) than SVC+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that SVC+Corr is more accurate than SVC+AQP until the update size is 32.5\% (3.2GB).  \label{exp-1-total}}
 \end{figure}
 
-\subsubsection{Representativeness of the Views}
-We first present an experiment illustrating where these materialized views lie in the space of all the generated views from the conviva query log. 
-We derived each view from a 7GB base table and inserted 1.1GB (15\%) of records to the table. 
-Since the query accuracy is a function of the data distribution and staleness.
-In Figure \ref{exp12conviva}, we plot the average staleness of each of the views and mark the three views.
-While queries on LargeView and MediumView are 21\% and 16\% stale respectively, queries on SmallView are 0.5\%.
-For the rest of our experiments, we use SmallView as the counter-example since the results are not affected much by the updates.
-Even so, we still show in subsequent experiments that we can achieve more accurate query results and save on maintenance time.
-
-\subsubsection{Accuracy in Conviva}
-We evaluated the average query accuracy for different sample sizes and numbers of records inserted.
-As before, we derived each view from a 7GB base table and inserted 1.4GB (20\%) of records to the table. 
-We built an outlier index on all of the attributes that represent time intervals or rates.
-Figure \ref{exp5conviva} compares the accuracy to the staleness of the query.
-We find that even a $0.1\%$ sample gives significantly more accurate results for LargeView and MediumView.
-Even in the situation where the view is small, sampling can still have benefits as seen in SmallView.
-
-\begin{figure}[t]\vspace{-1em}
-\includegraphics[trim = 45mm 0mm 45mm 0mm, clip,width=\columnwidth]{exp/exp5-coniva-accuracy.eps}\vspace{-.5em}
- \caption{We compare average query staleness to our approach for a variety of sample sizes. For the larger views, we find that small sample sizes can give accurate results. Larger sample sizes are needed for accurate estimates in SmallView. \label{exp5conviva}}\vspace{-.5em}
+\begin{figure}[t]
+\centering
+  \includegraphics[scale=0.25]{exp/msj_5.pdf}
+ \caption{We fix the update size at 1GB and the sampling ratio at 10\% and vary the skew of the dataset. The gap between SVC+AQP and SVC increases in more skew datasets suggesting that corrections are more robust to skew. \label{exp-1-zipf}}
 \end{figure}
 
-\begin{figure*}[ht] \vspace{-1em}
-\hspace{-1em}
-\vspace{-0.75em}
-\includegraphics[scale=0.20]{exp/exp5-efficiency-conviva.eps}
- \caption{As before, we compare maintenance times for a variety of sample sizes and full incremental maintenance. We further include a comparison with view recalculation as our experimental platform, Spark, does not support indices or selective writes.\label{exp6conviva}} \vspace{-1em}
-\end{figure*}
+In our first experiment, we evaluate how SVC performs on a materialized view of the join of \textbf{lineitem} and \textbf{orders}.
+We generate a 10GB base TPCD dataset with skew $z=1$, and derive the view from this dataset.
+We first generate 1GB (10\% of the base data) of updates (insertions and updates to existing records), and vary the sample size.
+Figure \ref{exp-1-samplesize}(a), shows the maintenance time of SVC as a function of sample size.
+With the bolded dashed line, we note the time for full IVM. 
+For this materialized view, sampling allows for significant savings in maintenance time; albeit for approximate answers.
+While full incremental maintenance takes 56 seconds, SVC with a 10\% sample can complete in 7.5 seconds.
 
-\subsubsection{Performance in Conviva}
-We scaled these experiments up significantly from the accuracy experiments to illustrate the performance benefits of sampling at a large scale, however, as insertions as a percentage of the base data are the same.
-We derived the views from a 800GB base table and inserted records in approximately 20GB increments. 
-In Figure \ref{exp6conviva}, we illustrate the maintenance time as a function of the number of inserted records.
-As Spark does not support selective writes, we include view recalculation as a baseline for comparison.
-In many Spark applications, recalculation is often faster than incremental maintenance.
-For LargeView a 10\% sample with 120GB of inserted records (15\%) achieves a  7.5x speedup over full incremental maintenance and a 5.6x speedup over recalculation.
-On the other hand, for SmallView, there is a 5.1x speedup over full incremental maintenance and a 1.7x improvement over recalculation.
-Aggregation views with a larger cardinality create larger delta views.
-These delta views necessitate a shuffle operation that communicates them during the refresh step.
-As SmallView is smaller, the communication gains are less and the only savings are in computation.
+\textbf{Performance: }
+The speedup for SVC-10 is 7.5x which is far from ideal on a 10\% sample.
+In the next figure, Figure \ref{exp-1-samplesize}b, we evaluate this speedup. 
+We fix the sample size to 10\% and plot the speedup of SVC compared to IVM while varying the size of the updates.
+On the x-axis is the update size as a percentage of the base data.
+For small update sizes, the speedup is smaller, 6.5x for a 2.5\% (250GB) update size.
+As the update size gets larger, SVC becomes more efficient, since for a 20\% update size (2GB), the speedup is 10.1x. 
+The super-linearity is because this view is a join of \textbf{lineitem} and \textbf{orders} and we assume that there is not a join index on the updates.
+Since both tables are growing sampling reduces computation super-linearly. 
 
+\textbf{Accuracy: }
+At the same design point with a 10\% sample, we evaluate the accuracy of SVC.
+In Figure \ref{exp-1-acc}, we answer TPCD queries with this view.
+The TPCD queries are group-by aggregates and we plot the median relative error for SVC+Corr, No Maintenance, and SVC+AQP.
+On average over all the queries, we found that SVC was 11.7x more accurate than the stale baseline, and 3.1x more accurate than applying SVC+Corr to the sample.
+
+\textbf{SVC+Corr vs. SVC+AQP: }
+While more accurate, it is true that SVC+Corr correction technique moves some of the computation from maintenance to query execution.
+SVC+Corr calculates a correction to a query on the full materialized view.
+On top of the query time on the full view (as in IVM) there is additional time to calculate a correction from a sample.
+On the other hand SVC+AQP runs a query only on the sample of the view, 
+Accordingly, for a 10\% sample SVC+Corr required 2.69 secs to execute a \sumfunc over the whole view, IVM required 2.45 secs, and  SVC+AQP required 0.25 secs.
+However, when we compare this overhead to the savings in maintenance time it is small.
+We evaluate this overhead in Figure \ref{exp-1-total}a, where we compare the total time maintenance and query execution time.
+
+SVC+Corr is most accurate when the materialized view is less stale, since it relies on correct a stale result.
+On the other hand SVC+AQP is more robust to the staleness and gives a consistent relative error.
+The error for SVC+Corr grows proportional to the staleness.
+In Figure \ref{exp-1-total}b, we explore which query processing technique should be used SVC+Corr or SVC+AQP.
+For a 10\% sample, we find that SVC+Corr is more accurate until the update size is 32.5\% of the base data.
+
+\textbf{Effect of Skew: }
+Finally in Figure \ref{exp-1-zipf}, we vary the Zipfian parameter and show how the accuracy of SVC+Corr and SVC+AQP changes.
+While both techniques are sensitive to skew, we find that the gap between SVC+Corr and SVC+AQP widens for more skewed datasets. 
+SVC's accuracy is dependent on the variance of the difference between tuples in the up-to-date view and the stale view; which is different from SVC+AQP which is dependent on the variance of the tuples themselves. 
+Even though a dataset might be skewed, if (in relative terms) the updates are more uniform SVC+Corr will give more accurate results.
+We can make SVC+Corr and SVC+AQP even more accurate using the outlier indexing which we will evaluate in the later sections.
+
+\subsubsection{Aggregate View}
+\label{exp-datacube}
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.15]{exp/msdc_1.pdf}
+ \includegraphics[scale=0.15]{exp/msdc_2.pdf}
+  %\includegraphics[scale=0.17]{exp/msdc_3.pdf}
+   \caption{(a) In the aggregate view case, sampling can save significant maintenance time. (b) As the update size grows SVC tends towards an ideal speedup of 10x.\label{exp2-acc-sample}}
+\end{figure}
+
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.17]{exp/msdc_3.pdf}
+   \caption{We measure the accuracy of each of the roll-up aggregate queries on this view. For a 10\% sample size and 10\% update size, we find that SVC+Corr is more accurate than SVC+AQP and No Maintenance.\label{exp2-acc-sample2}}
+\end{figure}
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[scale=0.17]{exp/msdc_4.pdf}
+   \caption{For 1GB of updates, we plot the max error as opposed to the median error in the previous experiments. Even though updates are 10\% of the dataset size, some queries are nearly 80\% incorrect. SVC helps significantly mitigate this error. \label{exp2-max}}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+  \includegraphics[scale=0.17]{exp/msdc_5.pdf}
+  %\includegraphics[scale=0.20]{exp/msdc_6.pdf}
+ \caption{We run the same experiment but replace the \sumfunc query with a median query. We find that similarly SVC is more accurate.\label{exp2-median} }
+\end{figure}
+
+In our next experiment, we evaluate an aggregate view use case similar to a data cube.
+We generate a 10GB base TPCD dataset with skew $z=1$, and derive the base cube as a materialized view from this dataset.
+We add 1GB of updates and apply SVC to estimate the results of all of the ``roll-up" dimensions.
+
+\textbf{Performance: }
+We observed the same trade-off as the previous experiment where sampling significantly reduces the maintenance time (Figure \ref{exp2-acc-sample}(a)).
+It takes 186 seconds to maintain the entire view, but a 10\% sample can be maintained in 26 seconds.
+As before, we fix the sample size at 10\% and vary the update size.
+We similarly observe that SVC becomes more efficient as the update size grows (Figure \ref{exp2-acc-sample}(b)), and at an update size of 20\%  the speedup is 8.7x.
+
+\textbf{Accuracy: }
+In Figure \ref{exp2-acc-sample2}, we measure the accuracy of each of the ``roll-up" aggregate queries on this view.
+That is, we take each dimension and aggregate over the dimension.
+We fix the sample size at 10\% and the update size at 10\%.
+On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more accurate than SVC+AQP (Figure \ref{exp2-acc-sample}(c)). 
+
+Since the data cubing operation is primarily constructed by group-by aggregates, we can also measure the max error for each of the aggregates.
+We see that while the median staleness is close to 10\%, for some queries some of the group aggregates have nearly 80\% error (Figure \ref{exp2-max}).
+SVC greatly mitigates this error to less than 12\% for all queries.
+
+\textbf{Other Queries: }
+Finally, we also use the data cube to illustrate how SVC can support a broader range of queries outside of \sumfunc, \countfunc, and \avgfunc.
+We change all of the roll-up queries to use the \textbf{median} function (Figure \ref{exp2-median}).
+First, both SVC+Corr and SVC+AQP are more accurate as estimating the median than they were for estimating sums. 
+This is because the median is less sensitive to variance in the data.
+
+\subsubsection{Complex Views}
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.19]{exp/msqv_1.pdf}
+ \caption{For 1GB update size, we compare maintenance time and accuracy of SVC with a 10\% sample on different views. V21 and V22 do not benefit as much from SVC due to nested query structures. \label{exp3-acc}}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.19]{exp/msqv_2.pdf}
+ \caption{As before for a 10\% sample size and 10\% update size, SVC+Corr is more accurate than SVC+AQP and No Maintenance. \label{exp3-acc}}
+\end{figure}
+
+In the the last single-node experiment, we demonstrate the breadth of views supported by SVC.
+Each parameterized TPCD query is treated as a materialized view, and we use the \textsf{qgen} program 
+to generate 10 instances for each query.
+When we report results, we average over these 10 instances for each of the query types.
+
+\textbf{Performance: }
+Figure \ref{exp3-acc}, shows the maintenance time for a 10\% sample compared to the full view.
+As before, we find that sampling saves a significant amount of maintenance time.
+However, this experiment illustrates how the view definitions plays a role in the efficiency of our approach.
+For the last two views, V21 and V22, we see that sampling does not lead to as large of speedup indicated in our previous experiments.  
+This is because both of those views contain nested structures which block the pushdown of our sampling.
+V21 contains a subquery in its predicate that does not involve the primary key, but still requires a scan of the base relation to evaluate.
+V22 contains a string transformation of a key blocking the push down.
+There might be a way to derive an equivalent expression with joins that could be sampled more efficiently, and we will explore this in future work.
+For the most part, these results are consistent with our previous experiments showing that SVC is faster than IVM and more accurate than SVC+AQP and no maintenance.
+
+
+\subsubsection{Outlier Indexing}
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.14]{exp/msoi_1.pdf}
+ \includegraphics[scale=0.14]{exp/msoi_2.pdf}
+ \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \label{exp5-oi}}
+\end{figure}
+We hinted at the sensitivity to dataset skew of sampling-based approaches earlier.
+In our next experiment, we evaluate our outlier indexing.
+Our outlier indices are constructed on the base relations.
+We index the \textbf{l\_extendedprice} attribute in the \textbf{lineitem} table.
+We evaluate the outlier index on the TPCD query views.
+
+We find that four views: V3, V5, V10, V15, can benefit from this index with our push-up rules. 
+These are four views dependent on \textbf{l\_extendedprice} that were also in the set of ``Complex" views chosen before.
+We set an index of 100 records, and applied SVC+Corr and SVC+AQP to datasets with skew parameter $z=\{1,2,3,4\}$. 
+We run the same queries as before, but this time we measure the error at the 75\% quartile.
+In Figure \ref{exp5-oi}(a), we find in the most skewed dataset SVC with outlier indexing reduces query error by a factor of 2.
+In the next Figure \big(Figure \ref{exp5-oi} (b)\big), we plot the overhead for outlier indexing for an index size of 0, 10, 100, and 1000.
+While there is an overhead, it is still small compared to the gains made by sampling the maintenance strategy.
+
+\subsection{Conviva}
+In our next set of experiments, we applied SVC to a 1TB dataset of logs from Conviva.
+We implement SVC on a 10-node Spark cluster. 
+
+\subsubsection{Performance and Accuracy}
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.15]{exp/con_3.pdf}
+ \includegraphics[scale=0.15]{exp/con_4.pdf}
+ \caption{(a) We compare the maintenance time of SVC with a 10\% sample and full incremental maintenance, and find that as with TPCD SVC saves significant maintenance time. (b) We also compare SVC+Corr to SVC+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
+\end{figure}
+We derive these views from 800GB of base data and add 80GB of updates.
+In Figure \ref{conv-1}a, we show that while full maintenance takes nearly 800 seconds for one of the views, a 10\% sample SVC can complete sample maintenance in less than 100s for all of them.
+On average SVC gives a 7.5x speedup.
+
+SVC also gives highly accurate results with an average error of 0.98\%.
+In the following experiments, we will use V2 and V5 as exemplary views.
+V5 is the most expensive to maintain due to its nested query and V2 is a single level group by aggregate.
+These results show consistency with our results on the synthetic datasets.
+
+\subsubsection{End-to-end integration with periodic maintenance}
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.14]{exp/con_1.pdf}
+ \includegraphics[scale=0.14]{exp/con_2.pdf}
+ \caption{(a) Spark RDDs are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. However, larger batches are less affected by this reduction. \label{conv-2}}
+\end{figure}
+
+We devised an end-to-end experiment simulating a real integration with periodic maintenance.
+However, unlike the MySQL case, Apache Spark does not support selective updates and insertions as the ``views" are immutable.
+A further point is that the immutability of these views and Spark's fault-tolerance requires that the ``views" are maintained synchronously.
+Thus, to avoid these significant overheads, we have to update these views in batches.
+Spark does have a streaming variant \cite{zaharia2012discretized}, however, this does not support the complex SQL derived materialized views used in this paper, and still relies on mini-batch updates.
+
+SVC and IVM will run in separate threads each with their own RDD materialized view.
+In this application, both SVC and IVM maintain respective their RDDs with batch updates.
+In this model, there are a lot of different parameters: batch size for periodic maintenance, batch size for SVC, sampling ratio for SVC, and the fact that concurrent threads may reduce overall throughput.
+Our goal is to fix the throughput of the cluster, and then measure whether SVC+IVM or IVM alone leads to more accurate query answers.
+
+\textbf{Batch sizes:} In Spark, larger batch sizes amortize overheads better.
+In Figure \ref{conv-2}(a), we show a trade-off between batch size and throughput of Spark for V2 and V5.
+Throughputs for small batches are nearly 10x smaller than the throughputs for the larger batches. 
+
+\textbf{Concurrent SVC and IVM:} Next, we measure the reduction in throughput when running multiple threads.
+We run SVC-10 in loop in one thread and IVM in another.
+We measure the reduction in throughput for the cluster from the previous batch size experiment.
+In Figure \ref{conv-2}(b), we plot the throughput against batch size when two maintenance threads are running.
+While for small batch sizes the throughput of the cluster is reduced by nearly a factor of 2, for larger sizes the reduction is
+smaller.
+As we found in later experiments (Figure \ref{conv-5}), larger batch sizes are more amenable to parallel computation since there was more idle CPU time.
+
+\textbf{Choosing a Batch Size:}
+The results in Figure \ref{conv-2}(a) and Figure \ref{conv-2}(b) show that larger batch sizes are more efficient, however, larger batch sizes also lead to more staleness.
+Combining the results in Figure \ref{conv-2}(a) and Figure \ref{conv-2}(b), for both SVC+IVM and IVM, we get cluster throughput as a function of batch size.
+For a fixed throughput, we want to find the smallest batch size that achieves that throughput for both.
+For V2, we fixed this at 700,000 records/sec and for V5 this was 500,000 records/sec.
+For IVM alone the smallest batch size that met this throughput demand was 40GB for both V2 and V5.
+And for SVC+IVM, the smallest batch size was 80GB for V2 and 100GB for V5. 
+When running periodic maintenance alone view updates can be more frequent, and when run in conjunction with SVC it is less frequent. 
+
+We run both of these approaches in a continuous loop, SVC+IVM and IVM, and measure their maximal error during a maintenance period.
+There is further a trade-off with the sampling ratio, larger samples give more accurate estimates however between SVC batches they go stale.
+We quantify the error in these approaches with the max error; that is the maximum error in a maintenance period (Figure \ref{conv-4}).
+These competing objective lead to an optimal sampling ratio of 3\% for V2 and 6\% for V5.
+At this sampling point, we find that applying SVC gives results 2.8x more accurate for V2 and 2x more accurate for V5.
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.14]{exp/con_5.pdf}
+ \includegraphics[scale=0.14]{exp/con_6.pdf}
+ \caption{For a fixed throughput, SVC+Periodic Maintenance gives more accurate results for V2 and V5. \label{conv-4}} 
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[scale=0.20]{exp/con_7.pdf}
+ \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} 
+\end{figure}
+To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and SVC+periodic IVM. 
+We find that SVC takes advantage of the idle times in the system; which are common during shuffle operations in a synchronous parallelism model.
+
+In a way, these experiments present a worst-case application for SVC, yet it still gives improvements in terms of query accuracy.
+In many typical deployments throughput demands are variable forcing maintenance periods to be longer, e.g., nightly.
+The same way that SVC takes advantage of micro idle times during communication steps, it can provide large gains during controlled idle times when no maintenance is going on concurrently.
 
 

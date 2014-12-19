@@ -1,490 +1,132 @@
-\section{Sampling Update Patterns}
-\label{sampling}
-Updates can affect the three classes of materialized views in different ways, making sampling challenging. 
-%and our sample should represent how the update will affect the materialized view.
-%We describe this process as sampling the ``update pattern".
-In this section, we discuss how to efficiently sample update patterns for different types of views.
-We first formalize the update patterns in Section~\ref{subsec:pattern}, and then present scalable sampling techniques in Section~\ref{subsec:sample-pattern}. 
-The cost analysis of this section ties back to our discussion of incremental maintenance in Section \ref{subsec-inc} we analyze how sampling can save costs in comparison to full incremental maintenance.
+\section{Efficient Maintenance With Sampling} \label{sampling}
+\reminder{Make sure that we do a good survey on ``sampling from a view" and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
+In the previous section, we formalized the computation of $\hat{S'}$  as a data cleaning procedure.
+A naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
+However, this does not make the maintenance of the sample any more efficient.
+Ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
+need not operate on the full data.
+In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
+maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
-\begin{figure}[tup]
+\subsection{Formalizing Uniform Sampling}
+%In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
+For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
+\begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} if
+\[ \forall s \in \hat{S'} : s \in S' \]
+and
+\[Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m \]
+\end{definition}
+A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
+Recall, the view in our example \textsf{countView}. 
+If we sampled the base relation the result would have a mix of missing rows from the view and rows with incorrect aggregates.
+However, this is not what we require.
+We want a uniform sample of the rows in the view. 
+
+To get a uniform sample of a view, the main problem is that for every row sampled in the view, our sampling technique needs to include all of the rows that contribute to its materialization.
+Achieving this requires a definition of lineage; traceable, unique identification for rows.
+
+\subsection{Identification With Row Lineage}
+\label{lin}
+Lineage has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}. \reminder{Add Kai into acknownledgement for helping us with problem formulation. }
+We recursively define a set of consistent primary keys for all nodes in the expression tree:
+\begin{definition} [Primary Key]
+For every relational expression $R$, we define the primary key of every subexpression to be:
+\begin{itemize}\vspace{-.45em}
+\item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. That uniquely identifies rows.\vspace{-.45em}
+\item $\sigma_{\phi}(R)$: Primary key of the result is the primary key of R \vspace{-.45em}
+\item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection. \vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the union of the primary key of $R_1$ and $R_2$. 
+\item $\gamma_{f,A}(R)$: The primary key of the result is the tuple $A$.\vspace{-.45em}
+\item $R_1 \cup R_2$: Primary key of the result is the primary key of R
+\item $R_1 \cap R_2$: Primary key of the result is the primary key of R
+\item $R_1 - R_2$: Primary key of the result is the primary key of R
+\end{itemize}
+\end{definition}
+This definition of a primary key for a relational expression, allows us to trace the primary key through the expression tree.
+Our definition of the primary key is also constructive; that is, if an expression has a null primary key then we modify every projection operation to ensure that primary key of the subrelation is never projected out.
+
+\subsection{Hashing Operator}
+\label{push}
+If we have a deterministic way of mapping a primary key defined in the previous subsection to a sample we can also ensure that all contributing expressions are also sampled. 
+To achieve this we use a hashing procedure.
+Let us denote the hashing operator $\eta_{a, m}(R)$. 
+For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.
+If the hash function is sufficiently uniform, then $h(a) \le m$ samples on average a fraction $m$ of the tuples.
+%This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
+
+To achieve the performance benefits of sampling, we push down the hashing operator through the query tree.
+The further than we can push $\eta$ down the query tree, the more operators can benefit from the sampling.
+However, it is important to note that for some of the expressions, notably joins, the push down rules are more complex. 
+It turns out in general we cannot push down even a deterministic sample through those expressions.
+We formalize the push down rules below:
+\begin{definition}[Hash Pushdown]
+Let $a$ be a primary key of a materialized view. The following rules can be applied to push $\eta_{a, m}(R)$ down the expression tree of the maintenance strategy. 
+\begin{itemize}\vspace{-.45em}
+\item $\sigma_{\phi}(R)$: Push $\eta$ through the expression.  \vspace{-.45em}
+\item $\Pi_{p,[a_2,...,a_k]}(R)$: Push $\eta $ through if $a$ is in the projection.\vspace{-.45em}
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. 
+\item $\gamma_{f,A}(R)$: Push $\eta $ through if $a$ is in the group by clause $A$.\vspace{-.45em}
+\item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
+\item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$
+\item $R_1 - R_2$: Push $\eta $ through to both $R_1$ and $R_2$
+\end{itemize}
+\end{definition}
+In special cases, we can push the hashing operator down through joins. 
+
+\textbf{Many-to-one Join: } If we have an join with two relations $R_1$ and $R_2$ and we know that for every $r_1 \in R_1$ there is at most one $r_2$ in $R_2$ that satisfies the join condition, then we push $\eta$ down to $R_1$.
+
+\textbf{One-to-one Join: } If we have the previous condition and also the converse is true for every $r_2 \in R_2$ there is at most one $r_1$ in $R_1$, then we push $\eta$ down to $R_1$ and $R_2$.
+
+\textbf{(Semi/Anti)-Join: } We can always push $\eta$ down on Semi-joins. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 \dot{-} (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
+
+\subsection{Hashing and Correspondence}
+Another benefit of deterministic hashing is that when applied in conjunction to the primary keys of a view, we get the Correspondence Property (Definition \ref{correspondence}) for free.
+\begin{proposition}[Hashing Correspondence]
+Suppose we have $S$ which is the stale view and $S'$ which is the up-to-date view.
+Both these views have the same schema and a primary key $a$.
+Let $\eta_{a, m}$ be our hash function that applies the hashing to the primary key $a$.
+\[
+\hat{S} = \eta_{a, m}(S)
+\]
+\[
+\hat{S'} = \eta_{a, m}(S')
+\]
+Then, two samples $\hat{S'}$ and $\hat{S}$ correspond.
+\end{proposition}
+\begin{proof}[Sketch]
+There are four conditions for correspondence:
+\begin{itemize}
+\item 1. For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
+\item 2. For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
+\item 3. For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
+\item 4. For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
+\end{itemize}
+Condition 1 is satisfied since if $r$ is deleted, then $r \not \in S'$ which implies that $r \not\in \hat{S'}$.
+Condition 2 and 3 are satisfied since if $r$ is in $\hat{S}$ then it was sampled, and then since the primary key is consistent between $S$ and $S'$ it will also be sampled in $\hat{S'}$.
+Condition 4 is just the converse of 2 and 3 so it is satisfied.
+\end{proof}
+We will use this property in the next section to get estimates for queries on the materialized view.
+
+\subsection{Example}
+We will illustrate our proposed approach on our example view \textsf{countView}.
+The maintenance strategy of this view is described in the previous section.
+Based on the rules described in Section \ref{lin}, the primary key of the view is \textsf{videoId}.
+We can apply our sampling operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy.
+
+In Figure \ref{exexpr2}, we illustrate the pushdown process.
+The the first operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
+for push down since \textsf{videoId} is in the projection.
+The second expression is a one-to-one join which merges the aggregate from the ``delta view" to the old view allowing us to push down on both branches of the tree.
+On the left side, we reach the the stale view so we stop.
+On the right side, we reach the aggregate query (count) and since \textsf{videoId} is in group by clause, we can push down the sampling.
+Then, we reach a many-to-one (foreign key) join allowing us to push down the sampling to the ``many" relation \tbl{LogIns}.
+
+\begin{figure}[t] \vspace{-2em}
 \centering
-\vspace{-0.75em}
- \hspace*{-2em}\includegraphics[scale=0.36]{figs/update-pattern-new.pdf}\vspace{-1em}
- \caption{Illustration of the update patterns for \spview and \fjview and \aggview.}\label{fig:update-pattern}\vspace{-1em}
+ \includegraphics[scale=0.30]{figs/example_expression_tree_2.pdf} \vspace{-.25em}
+ \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance plan. \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
-\begin{table*}\renewcommand{\arraystretch}{1.2}
-\vspace{-2em}
-\caption{Cost comparison between incremental view maintenance and update-pattern sampling.}\label{tbl:cost-analysis} \small \centering
-%\begin{tabular}[t]{|c@{\::\:}l@{\:,\:}l@{\:,\:}r|}
-%\begin{tabular}[t]{|@{\:\:}l@{\:\:}||@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|@{\:\:}r@{\:\:}|}
-\begin{tabular}[t]{|l||c | c||c|c||c|c|}
-  %\multicolumn{4}{c}{\normalsize {(a) $\ars$}} \\ \hline
-  %\multicolumn{4}{|c|}{A set $\Lambda$ of $\ar$s} \\ \hline\hline
-   \hline
-   & \multicolumn{2}{c||}{\bf{\spview}}  & \multicolumn{2}{c||}{\bf{\fjview}}  & \multicolumn{2}{c|}{\bf{\aggview}}  \\ \cline{2-7} 
-   &  \bf{Maintenance} & \bf{Sampling}  &  \bf{Maintenance}  &  \bf{Sampling} & \bf{Maintenance} & \bf{Sampling} \\ \hline \hline
-   
-  %\bf{Scan of Updates} & $\mathcal{O}$($n\cdot \textrm{cost}_{read}$) & $\mathcal{O}$($n\cdot \textrm{cost}_{read}$) & $\mathcal{O}$($n\cdot \textrm{cost}_{read}$) & $\mathcal{O}$($n\cdot \textrm{cost}_{read}$) & $\mathcal{O}$($n\cdot \textrm{cost}_{read}$)  & $\mathcal{O}$($n\cdot \textrm{cost}_{read}$) \\ \hline
-  \bf{Delta View} & $\textrm{cost}_{pred}(n)$ & \specialcell{$\textrm{cost}_{rand}(n)$ + \\$ \textrm{cost}_{pred}(\ratio \cdot n)$}  & $\textrm{cost}_{join}(n)$ & \specialcell{$ \textrm{cost}_{rand}(n)$ + \\ $\textrm{cost}_{join}(\ratio \cdot n)$} &
-  \specialcell{$\textrm{cost}_{group}(n)$ \\+ $\textrm{cost}_{agg}(\delta_{v})$} &
-   \specialcell{$\textrm{cost}_{hash}(n)$ + \\$\textrm{cost}_{group}(\ratio \cdot n)$ + \\ $\textrm{cost}_{agg}(\ratio \cdot \delta_{v})$}        \\ \hline
-  \bf{Refresh}    & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$  & $\textrm{cost}_{write}(\delta_v)$ & $\textrm{cost}_{write}(\ratio \cdot \delta_v)$ &  $\textrm{cost}_{apply}(\delta_v)$ & $\textrm{cost}_{apply}(\ratio \cdot \delta_v)$\\ \hline
-\end{tabular}\vspace{-.5em}
-\end{table*}
+In terms of increased efficiency, since both the aggregate and foreign key join are ``above" the sampling operator, they require less computation and less memory.
 
 
-\subsection{Update Patterns}\label{subsec:pattern}
-An \emph{update pattern} represents how an update to a base table affects a materialized view derived from that table.
-We define this information to be such that if we took a 100\% sample, the information would be sufficient to transform the stale view to the corresponding up-to-date view exactly. 
-In our model, there are three possible update patterns. (1)~Insert a new row into a view;
-(2)~Update attribute values of an existing row in the view; (3)~Keep the view unchanged.
-Figure~\ref{fig:update-pattern} illustrates the update patterns of the three types of views supported by our system.
-
-\vspace{0.5em}
-
-{\noindent \bf \spview :} The only possible updates to the view are inserting new rows.  
-For instance, Figure~\ref{fig:update-pattern}(a-1) shows an example of \spview. When the base table \tbl{Log} is updated, there might be some new rows whose \field{userAgent} field contains ``Mozilla", which should be added into the \spview accordingly. Figure~\ref{fig:update-pattern}(a-2) illustrates the update patterns for the \spview. The figure means that in order to obtain the up-to-date \spview, we should insert $r_1$ and $r_2$ into the original \spview.
-
-\vspace{0.5em}
-
-{\noindent \bf \fjview :} Similar to \spview, its update patterns only involve insertions. For instance, Figure~\ref{fig:update-pattern}(b-1) shows an example of \fjview. When the base tables, \tbl{Log} or \tbl{Video} are updated, there might be some new rows that satisfy the join condition, which should be added into the \fjview accordingly. Figure~\ref{fig:update-pattern}(b-2) illustrates the update patterns for the \fjview. The figure means that we should insert $r_1$ and $r_2$ into the original \fjview to obtain the up-to-date \fjview.
-
-\vspace{0.5em}
-
-{\noindent \bf \aggview :} For \aggview, the updates could be inserting a new group, updating the aggregation attribute values of an existing group, or keep the view unchanged. 
-For instance, Figure~\ref{fig:update-pattern}(c-1) shows an example of \aggview and Figure~\ref{fig:update-pattern}(c-2) illustrates the update patterns for the \aggview. In the figure, ``Insert $r_1$" indicates that the group key, ``videoId = 5", does not exist in the original view, and we need to insert this new group into the view; ``Update $r_2$" indicates that the group key, ``videoId = 1", is already in the original view, and we should update the aggregation attribute value (i.e., \field{maxResponseTime}) of the group from 1298 ms to 6298 ms; ``Keep $r_3$" indicates that the group key, ``videoId = 65", is already in the original  view, and we do not need to change the aggregation attribute value of the group.    
-
-
-
-\subsection{Sampling Techniques for Update Patterns}\label{subsec:sample-pattern}
-The update-pattern model gives us a logical unit to sample the updates to a materialized view.
-In this section, we show how to construct these samples and show how the cost of sampling is less than full incremental maintenance.
-The cost is further parameterized by the sampling ratio allowing the user to tradeoff accuracy or performance.
-Potentially far cheaper than full incremental maintenance, update pattern sampling can be applied in situations where incremental maintenance was deemed infeasible such as between periodic maintenance cycles.
-
-\subsubsection{Select-Project and Foreign-Key Join Views}
-Consider a base table $T$ and the corresponding insertion table $\triangle T$. Given a \spview defined on the table, its full update patterns involve the inserted records of $\triangle T$ that satisfy the predicate of the \spview. To sample the update patterns (e.g., at a sampling ratio of $\ratio = 5 \%$), we randomly select 5\% records from $\triangle T$, and then keep the records that satisfy the view's predicate as a sample. 
-
-\sloppy
-
-For a given \fjview, let $T$ be the base table, and $T_1, T_2, \cdots, T_k$ be base tables that are linked to $T$ with foreign-key relationships. The update patterns of the \fjview involve the inserted records of $\triangle T \bowtie (T_1+\triangle T_1) \bowtie (T_1+\triangle T_1) \cdots \bowtie (T_k+\triangle T_k)$ that satisfy the predicate of the \fjview\footnote{\scriptsize Due to foreign-key integrity constraints, it is guaranteed that the join result of $T \bowtie \triangle T_i ~(1\leq i \leq k)$ is empty.}. Similar to \spview, to sample the update patterns (e.g., $\ratio= 5 \%$), we first randomly select 5\% records from $\triangle T$, and then join the selected records with the up-to-date tables (i.e., $T_i + \triangle T_i ~(1\leq i \leq k)$), and finally return as a sample the joined records that satisfy the \fjview's predicate. 
-
-\fussy
-
-
-
-\vspace{.5em}
-
-
-{\noindent \bf Cost Analysis.} Let $n = |\triangle T|$ be the number of inserted records, $v$ be the cardinality of the stale view, $\delta_v$ be the cardinality of the delta view, and $\ratio$ be the sampling ratio. Table~\ref{tbl:cost-analysis} compares the cost of our update-pattern sampling techniques (denoted by Sampling) with the corresponding cost of incremental view maintenance (denoted by Maintenance).
-
-%The table does not include the I/O cost of loading the updates into memory since in both Sampling and Maintenance we only need to load the updates once and amortize that I/O cost over all views.
-
-%Both incremental view maintenance and our proposed solution require at least one scan of the inserted records. But note that in both solutions we can load the updates into memory once and amortize that I/O cost over all views.
-
-
-
-\vspace{-.5em}
-
-\begin{itemize} %[leftmargin=5.5mm]
-\item \underline{Delta View.} For \spview and \fjview, incremental view maintenance has the processing cost of $\cost_{pred}(n)$ and $\cost_{join}(n)$, respectively, since they have to evaluate the predicate or the join for all $n$ inserted records. For SVC, there is first a cost to sample $\ratio \cdot n$ records $\cost_{rand}(n)$. Then sampling reduces the predicate and join evaluations by a factor of $\ratio$ as we only need to evaluate them on our sample.  \vspace{-0.5em}
-\item \underline{Refresh.} For \spview and \fjview, incremental view maintenance has to insert $\delta_v$ rows into the original view while we have to insert only $\ratio \cdot \delta_v$ records into the sample of update patterns. %\reminder{Move this to ourlier indexing section? ``If there is an outlier index, this cost increases to $\ratio\delta_v + l$"} 
-\end{itemize}
-\vspace{-.5em}
-
-From the above analysis, we can see that when the view definitions are more complex to evaluation, for example when the predicate or the join is expensive to evaluate, our sampling reduces costs significantly. 
-
-%For example, if the time of generating $n$ random numbers is negligible, we can save the cost of incremental view maintenance by 20 times for the sampling ratio of $\ratio = 5 \%$.
-
-\subsubsection{Aggregation View}
-The update patterns for an \aggview contains the update information for existing groups in the view as well as groups to be inserted. 
-Since, we may have to update existing groups, unlike \spview and \fjview, the first step is to construct a sample of all of the existing groups in the \aggview.
-We can create this sample when the stale materialized view is created.
-To sample the groups, we apply a hash function to the group key. We define a hash function, $\hashfunc{\cdot}$, which takes a single group key as an input and outputs a number in the range of [0, 1], and then we filter:
-\begin{equation}\label{eq:hash}
-\hashfunc{\textrm{``group key"}} \leq \ratio.
-\end{equation}
-Thus, if the hash function is uniform the maintained groups are a random sample of all the groups with the sampling ratio of~$\ratio$
-
-Once, we have a random sample of the existing groups, we can use this sample to construct a sample of the update patterns.
-When records are inserted into the base table, we first calculate a delta \emph{sample} \aggview; which only keeps those groups that satisfy the condition on the hash above (i.e $\le \ratio$). This ensures that if a group is already in the sample, our delta \emph{sample} \aggview contains this key.
-For keys that are not already in the sample, the hash condition filters them to select a random sample of them with the sampling ratio of~$\ratio$.
-This process ensures that a group is either fully represented in the sample or not at all, thus its aggregate is an exact result.
-
-
-%To implement this idea, we incorporate hashing into our sampling techniques. The basic idea is similar to hash partitioning, where a sample can be thought as a data partition. Specifically,  We only maintain the update patterns for the group keys such that
-
-%Obviously, the maintained group keys are a random sample of all the group keys with the sampling ratio of~$\ratio$.
-%With this hash-based sampling technique, we can easily devise an efficient update-pattern sampling approach for an \aggview. 
-
-
-%To better understand the approach, we first introduce how to obtain the full update patterns of an \aggview. The idea is the same as incremental view maintenance, which first computes a delta \aggview by executing the \aggview definition on an insertion table and then obtains the full update patterns by refreshing the \aggview with the delta \aggview. Similarly, to sample the update patterns, we first compute a delta \emph{sample} \aggview by executing the \aggview definition on the  records of an insertion table that satisfy $\hashfunc{\textrm{``group key"}}~\leq~\ratio$, and then obtains the \emph{sample} update patterns by refreshing the \emph{sample} \aggview with the delta \emph{sample} \aggview. 
-
-%Given an insertion table $\triangle T$, since we are only interested in the update patterns for a sample of group keys, we execute the view definition on the records in $\triangle T$ that satisfy the Equation~\ref{eq:hash}
-
-
-%to obtain $S_{V}$'s update patterns w.r.t $\triangle T$, we first compute a \emph{delta sample \aggview} by executing the view definition on the records in $\triangle T$ that satisfy the Equation~\ref{eq:hash}, and then obtain $S_{V}$'s update patterns by applying the delta sample \aggview to~$S_{V}$. 
-
-\vspace{.5em}
-{\noindent \bf Cost Analysis: }
- Table~\ref{tbl:cost-analysis} shows the cost comparison between our update-pattern sampling and incremental view maintenance.
-\vspace{-0.5em}
-\begin{itemize}
-%\item Scan of Updates.
-%As in \spview and \fjview, both incremental view maintenance and our proposed solution require at least one scan of the inserted records, and in both solutions we can load the updates into memory once and amortize that I/O cost over all views. \vspace{-0.5em}
-\item \underline{Delta View.} For \aggview, incremental view maintenance has a grouping cost of $\cost_{group}(n)$ as well as an aggregation cost of $\cost_{agg}(\delta_v)$ where aggregates for each of the groups have to be maintained. In contrast, since we only maintain the update patterns for a sample of groups, we can reduce the grouping cost to $\cost_{group}(\ratio \cdot n)$ and the aggregation cost to $\cost_{group}(\ratio \cdot \delta_v)$. The additional overhead of sampling is to evaluate $\hashfunc{\cdot}$ for each inserted record, i.e., $\cost_{hash}(n)$.  \vspace{-0.5em}
-%Furthermore, in a distributed environment, there are potentially additional communication costs as the updates may not be partitioned by the group-by key. \vspace{-0.5em}
-\item \underline{Refresh.} 
-%Compared to \spview and \fjview, the refresh cost of \aggview is a little bit more complicated as we have a combination of insertions into the view and updates to the view. 
-In full incremental view maintenance, $\delta_v$ rows have to be applied (updated or inserted) while our sampling approach only processes $\ratio \cdot \delta_v$ rows. 
-To avoid scanning the view for each update, if the view is indexed by group key, we can determine which updates are new insertions and which correspond to existing ones in constant time. 
-Therefore, our sampling technique can reduce the refresh cost from $\cost_{apply}(\delta_v)$ to $\cost_{apply}(\ratio\cdot \delta_v)$.
-
-\vspace{-0.25em}
-
-%The costs become higher in a distributed environment as we need to consider communication and query processing engines that rely on partitioned joins rather than indices.
-%For aggregation views, we want to partition the data by the group-by key.
-%This allows a partitioned join which only requires communication (a shuffle operation) of the delta table.
-%Therefore, in incremental maintenance we have to communicate $\delta_v$ rows while our solution requires $\ratio \cdot \delta_v$ rows. 
-\end{itemize}
-
-Similar to the analysis results of \spview and \fjview, sampling allows for greater savings when the cost maintaining the view is higher, for example, when the refresh step is expensive.
-
-%However, as shown in our experiments (Section \ref{exp}), even with the additional overhead, our sampling techniques can save maintenance cost compared to full incremental maintenance. %\reminder{I remove the cost analysis in a distributed environment since it is inconsistent with Table 1. Maybe you can discuss them in the experimental section.} 
-
-\iffalse
-We enforce the hash function to each group-by key of the \aggview and return those groups, as $S_{V}$, such that $\hashfunc{\textrm{``group-by key"}} \leq \ratio$. Obviously, $S_{V}$ is a random sample of the \aggview with the sampling ratio of $\ratio$. 
-
--by keys, our sampling techniques only maintain such information for a sample of groups. we seek to 
-
-
- 
-
-Let $S_{V}$ denote a sample of a stale \aggview, $V$. Let $\mathcal{H}$ denote a hash table containing all the group-by keys of $V$. For each record in $\triangle T$, if the record satisfies the predicate of the \aggview, we update $S_{V}$ w.r.t the record as follows: 
-\vspace{.25em}
-
-(1) If $S_{V}$ contains the group-by key of the record, we refresh the corresponding group by updating its aggregation attribute values according to the record;
-
-\vspace{.25em}
-
-(2) If $S_{V}$ does not contain the group-by key of the record,
-
-\vspace{.25em}
-
-(2.1) If $\mathcal{H}$ does not contain the group-by key either, it means that this is a new group. Since we only maintain a sample of groups, we add this group into $S_{V}$ with the probability equal to the sampling ratio. We also insert the group-by key into $\mathcal{H}$ indicating this is an old group for the following records.
-
-\vspace{.25em}
-
-(2.2) If $\mathcal{H}$ contains the group-by key, it means that this is an old group but is not sampled in $S_{V}$. Thus, we do not need to consider the record for $S_{V}$.
-
-
-
-
-After processing all the records in $\triangle T$, we end up obtaining a sample of the update patterns of the \aggview. 
-
-
-One drawback of this method requires to maintain the hash table, $\mathcal{H}$, which is as large as the full view size. However, we find that the hash table can actually be avoided by coupling sampling intelligently with hashing. The basic idea is similar to hash partitioning, where a sample of the view, $S_{V}$ can be thought as a data partition. 
-
-Specifically, we define a hash function, $\hashfunc{\cdot}$, which takes a group-by key as an input and outputs a random number in the range of [0, 1]. We enforce the hash function to each group-by key of the \aggview and return those groups, as $S_{V}$, such that $\hashfunc{\textrm{``group-by key"}} \leq \ratio$. Obviously, $S_{V}$ is a random sample of the \aggview with the sampling ratio of $\ratio$. In this way, we can optimize the steps (2.1) and (2.2) mentioned above:
-
-{\noindent \fbox{\begin{minipage}{25em}
-(OP-2.1) If $\hashfunc{\textrm{``group-by key"}} \leq \ratio$, it means that this is a new group. Since we only maintain a sample of groups, we add this group into $S_{V}$ with the probability equal to the sampling ratio. 
-
-\vspace{.5em}
-
-(OP-2.2) If $\hashfunc{\textrm{``group-by key"}} > \ratio$, it means that this is an old group but is not sampled in $S_{V}$. Thus, we do not need to consider the record for $S_{V}$.
-\end{minipage}}}
-
-
-\fi
-
-
-
-
-
-
-\iffalse
-In the previous section, we discussed how the delta view did not contain enough
-information to calculate a correction.
-Similarly, sampling to estimate the correction for queries on Aggregation Views
-is more challenging.
-We notice that in the refreshed view each GROUP BY key is unique, and
-thus, to sample the refreshed view we have to sample by GROUP BY keys
-in the inserted records. For each inserted record we apply a hash
-to the cols in the GROUP BY clause, and then we take the result of
-the hash modulo a sampling ratio to sample the table. The result is
-that we ensure that every record with the same group by key is either
-fully in the sample or not, thus none of the rows in the delta view
-are approximate. 
-Then, we refresh this sample delta view instead of the full view.
-We can then join this delta view with the old view to approximate $\epsilon$.
-
-Unlike before this is not a sample of a delta view, it is a sample of the entire view joined with the stale results.
-Thus, we denote this sample as $S_{V}$.
-Also, recall that unlike the other views, Aggregation Views did not have 
-an additional proportionality constant for a full correction.
-\[
-f(S_{V})\approx\epsilon
-\]
-However, when we introduce sampling a scaling constant is now necessary.
-The scaling constant $c$ for the SUM and COUNT queries depends on the sample size and is $c = \frac{K}{N}$, 
-but $c = 1$ for the AVG query.
-For SUM, COUNT, AVG, and VAR, this estimate of $\epsilon$ is unbiased as before.
-\fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-\iffalse
-\section{Correction Query Processing} \label{sec:exact-correct}
-To easily understand how our system works, we first simplify the design of our system by not considering sampling and outlier indexing. We study the problem that how to \emph{exactly} correct stale query results. We formulate this problem in Section~\ref{subsec:formulation} and present a correction query processing framework to solve this problem in Section~\ref{subsec:framework}. For practical concerns, we further discuss how to implement this framework using SQL in Section~\ref{subsec:impl-sql}.
-
-\subsection{Problem Formulation}\label{subsec:formulation}
-
-
-
-\subsection{Correction Query Processing Framework}\label{subsec:framework}
-
-
-
-
-\subsection{Implementing Correction Query Processing Using SQL}\label{subsec:impl-sql}
-\fi
-
-
-
-
-\iffalse
-
-\section{Correction Query Processing}
-In this section, we will describe the how to calculate a 
-correction for stale queries.
-Suppose we have an aggregation query $f$ and let $\textbf{V}_{T}^{'}$ be the up-to-date view
-and $\textbf{V}_{T}$ be the old view. 
-The query $f$ is stale with error $\epsilon$ if:
-\[
-f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
-\]
-Before we discuss how sampling can scale this process, we will discuss how to correct
-queries on the full data.
-
-\subsection{Model for Aggregate Queries on Views}
-What is special about SUM, COUNT, AVG, and VAR aggregate functions
-is that up-to proportionality constant, they can be expressed as a mean-value calculation.
-For example, a SUM is just the mean value times the dataset size, a COUNT 
-is the mean occurrence rate times the dataset size, and VAR is mean squared 
-deviation.
-Let $N$ be the number of tuples in the view $V$. 
-These queries can also have predicates so we have to incorporate that
-as an indicator function (true = 1, false = 0) that skips a tuple in the aggregation if the predicate is false. 
-When we couple these queries with predicates, we can express them in the 
-following way:
-\[
-\forall v_i \in V \text{ : } f(V)= \frac{1}{N} \sum_i^N \phi(v_i) \cdot predicate(i)
-\]
-
-We define $\phi$ in the following way:
-\begin{center}
-\begin{tabular}{|c|c|}
-\hline 
-Aggregation Query & $\phi(v_i)$\tabularnewline
-\hline 
-\hline 
-SUM & $N \cdot v_i$\tabularnewline
-\hline 
-COUNT & $N$\tabularnewline
-\hline 
-AVG & $\frac{N}{\sum_i^N predicate(i)} \cdot v_i$\tabularnewline
-\hline 
-\end{tabular}
-\par\end{center}
-
-\subsection{Corrections For Select-Project and Foreign-Key Join Views}
-With the model for aggregate queries described above, we can
-first derive the exact value for $\epsilon$ without sampling.
-Since we only consider a model were records are inserted into the
-base tables, for these two categories of views $\textbf{V}_{T}\subseteq\textbf{V}_{T}^{'}$.
-The row differences between $\textbf{V}_{T}$ and $\textbf{V}_{T}^{'}$
-are completely represented by the delta table $\Delta\textbf{V}$;
-that is rows will only be inserted into the views. 
-Since the aggregate queries are in the form of means, we notice that we 
-can exploit the associativity of summations:
-\[
-f(\textbf{V}_{T}^{'})=f(\textbf{V}_{T})+\epsilon
-\]
-\[
-f(\textbf{V}_{T}^{'})-f(\textbf{V}_{T})=\epsilon
-\]
-Upto a scaling constant c, $\epsilon$ is the aggregation function
-applied to the delta table. 
-\[
-c\cdot f(\Delta\textbf{V})=\epsilon
-\]
-
-\begin{center}
-\begin{tabular}{|c|c|}
-\hline 
-Aggregation Query & Scaling Constant c\tabularnewline
-\hline 
-\hline 
-SUM & 1\tabularnewline
-\hline 
-COUNT & 1\tabularnewline
-\hline 
-AVG & $\frac{|\Delta V|}{|\Delta V|+|V|}$\tabularnewline
-\hline 
-\end{tabular}
-\par\end{center}
-
-\subsubsection{Example Query Processing}
-Recall, our example dataset of video streaming logs and the example
-selection view:
-\begin{lstlisting}
-View1 := SELECT * FROM Log 
-WHERE userAgent 
-LIKE '%Mozilla%'
-\end{lstlisting}
-This query filters out the log records that came from browsers with the Mozilla tag.
-Let us assume that our old materialized view has 1M rows, and 
-we receive an update of 500,000 new rows with the mozilla tag.
-Now we want to answer the following query:
-\begin{lstlisting}
-SELECT avg(responseTime) 
-FROM View1
-\end{lstlisting}
-On the inserted 500,000 rows, we can run the query and call the result $r_{delta}$.
-Then, we apply the scaling constant c to the result to convert this into an $\epsilon$ and get $r_{delta}\frac{500000}{500000+1000000}$, which 
-equals $\frac{r_{delta}}{3}$.
-Therefore, the up-to-date result is:
-\[r_{old} + \epsilon = r_{old} +\frac{r_{delta}}{3}\].
-
-\subsection{Aggregation Views}
-The delta view is not enough information to calculate $\epsilon$ in aggregation views. 
-Consider the following example view which we described in the last section:
-\begin{lstlisting}
-View2 := SELECT videoID, 
-max(responseTime) AS maxResponseTime 
-FROM Log
-GROUP BY videoID;
-\end{lstlisting}
-Now we want to correct the following stale query.
-\begin{lstlisting}
-SELECT COUNT(1) 
-FROM View2 
-WHERE maxResponseTime > 100ms;
-\end{lstlisting}
-Now suppose, View2 looks like this:
-
-\begin{tabular}{|c|c|}
-\hline 
-videoId & maxResponseTime\tabularnewline
-\hline 
-\hline 
-125 & 99\tabularnewline
-\hline 
-6212 & 160\tabularnewline
-\hline 
-222 & 145\tabularnewline
-\hline 
-\end{tabular}
-
-We may get a delta table for this view of the form:
-
-\begin{tabular}{|c|c|}
-\hline 
-videoId & maxResponseTime\_max\tabularnewline
-\hline 
-\hline 
-125 & 96\tabularnewline
-\hline 
-\end{tabular}
-
-However, we see that when we perform the refresh operation, the updated
-View2 remains the same since 96 < 99. 
-Thus the $\epsilon$ for query is 0, even though the delta table has non-zero rows. 
-The key point is that the refresh operation depends on the values in the view, 
-and we need to know how these aggregates change
-after the refresh to estimate $\epsilon$. 
-Let $\textbf{W}$ be the join of up-to-date view $\textbf{V}_{T}^{'}$ and the old view $\textbf{V}_{T}$
-on the group-by key:
-
-\begin{tabular}{|c|c|c|}
-\hline 
-videoId & maxResponseTime\_new & maxResponseTime\_old \tabularnewline
-\hline 
-\hline 
-125 & 99 & 99\tabularnewline
-\hline 
-6212 & 160 & 160\tabularnewline
-\hline 
-222 & 145 & 145\tabularnewline
-\hline 
-\end{tabular}
-
-However, an interesting about aggregation views is that they do not 
-require scaling constant $c$ as in the the other two categories of views.
-This is because we refresh the delta view; inferring a correction from the
-entire view rather than just the updates.
-
-\subsubsection{Example Query Processing}
-We can make the example in the previous section more interesting to illustrate the query processing steps.
-Suppose our delta table was the following:
-
-\begin{tabular}{|c|c|}
-\hline 
-videoId & maxResponseTime\_max\tabularnewline
-\hline 
-\hline 
-125 & 96\tabularnewline
-\hline 
-1336 & 214\tabularnewline
-\hline 
-\end{tabular}
-
-Then the joined result would be:
-
-\begin{tabular}{|c|c|c|}
-\hline 
-videoId & maxResponseTime\_new & maxResponseTime\_old \tabularnewline
-\hline 
-\hline 
-125 & 99 & 99\tabularnewline
-\hline 
-6212 & 160 & 160\tabularnewline
-\hline 
-222 & 145 & 145\tabularnewline
-\hline 
-1336 & 214 & NULL\tabularnewline
-\hline 
-\end{tabular}
-
-We can transform the example:
-
-\begin{lstlisting}
-SELECT COUNT(1) 
-FROM View2 
-WHERE maxResponseTime > 100ms;
-\end{lstlisting}
-
-in terms of SQL case statements that evaluate a boolean to 1 or 0 if true or false/NULL.
-\begin{lstlisting}
-SELECT (maxResponseTime_new > 100ms) 
-- (maxResponseTime_old > 100ms)
-
-FROM Joined_View2 
-\end{lstlisting}
-The result of this query on the example is 1 which is a correction to the stale count 
-of videos with a max response time of greater than 100ms.
-
-\fi

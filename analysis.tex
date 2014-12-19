@@ -1,45 +1,60 @@
+\section{Extensions and Discussion}\label{sec:ext}
+\subsection{Correction vs. Direct Estimate}
+We argued that in many cases correcting query results approximately is more accurate than an
+AQP-style direct estimate. 
+We can provide some back-of-the-envelope mathematical intuition for this.
 
-\section{Extensions}\label{sec:ext}
-In this section, we present two additional features of the SVC framework: Select queries and Deletions.
-These two features greatly broaden the scope of the problem that SVC addresses.
+For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
+proportional to the variance of the \emph{change} and inversely proportional to the sample size:
+\[\frac{\sigma_{c}^2}{k}\]
+On the other hand, an AQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
+\[\frac{\sigma_{S'}^2}{k}\]
+Since the change is the difference between the stale and up-to-date data, this can be rewritten as: 
+\[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
+Therefore, a correction will be more precise when:
+\[\sigma_{S}^2 - 2cov(S,S') \le 0 \]
+If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S') \approx \sigma_{S}^2$ and it is clearly less than 0. 
+On the other hand, there is a break even point where changes are significant enough that direct estimates might be more accurate.
 
-\subsection{Select Queries}\label{sec:sel}
-We can correct stale Select queries with SVC.
-For \fjview and \spview, a stale Select query is missing rows.
-To correct this result, we can apply the query to the update pattern sample, we get a sample of records that satisfy the predicate.
-Then, we can take a union of the sampled selection and the stale selection.
-To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of the up-to-date size of the result.
-This gives us an estimate of how many rows are missing from our approximate result.
+\subsection{Hash-Operator}
+We defined a concept of tuple-lineage with primary keys.
+However, a curious property of the deterministic hashing technique is that we can actually hash any attribute while retain the important
+statistical properties.
+This is because a uniformly random sample of any attribute (possibly not unique) still includes every individual row with the same probability.  
+A consequence of this is that we can push down the hashing operator through arbitrary equality joins (not just many-to-one) by hashing the join key.
 
-For \aggview, stale Select queries can also have out-of-date rows as well as missing rows.
-In this case, we can still apply the query to the update pattern sample and get a sample of rows to update and new rows to insert.
-For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
-To quantify the approximation error, we can give two bounds.
-As before, we can estimate the number of missing rows in the result with a \countfunc query.
-We further can estimate the number of existing rows that are not up-to-date with a \countfunc query.
+We defer further exploration of this property to future work as it introduces new tradeoffs.
+For example, sampling on a non-unique key, while unbiased in expectation, has higher variance in the size of the sample.
+Happening to hash a large group may lead to decreased performance. 
 
-In comparison to no maintenance, this approach gives a less stale result.
-Furthermore, we give estimates on how many rows are missing or stale in the result providing the user with key bounds on their result accuracy.
+Suppose our keys are duplicated $\mu_k$ times on average with variance $\sigma_k^2$, then the variance of the
+sample size is for sampling fraction $m$:
+\[m(1-m)\mu_k^2+(1-m)\sigma_k^2\]
+This equation is derived from the formula for the variance of a mixture distribution.
+In this setting, our sampling would have to consider this variance against the benefits of pushing the hash operator further down the query tree. 
 
-%Of course, this approach is not suited for highly selective queries which are unlikely to have sufficient representation in a sample.
+\subsection{Sampling Updates vs. Sampling Views}
+In SVC, we sample from views and work backwards through the view definition using relational algebra.
+An alternative approach is to sample the base relations of the view.
+However, this approach quickly leads to some bottlenecks.
+For example, if our view is an aggregate view with a nested selection, we can easily construct a distinct count problem rendering any aggregate query inestimable \cite{DBLP:conf/pods/CharikarCMN00}.
 
-\iffalse
-SAQP is limited in its support of Selection queries.
-For example, if we had a 1\% sample, we could only get 1\% of the rows in the result.
-In comparison, for a 1\% sample, we take advantage of the existing stale result allowing us to combine to old result with 1\% of the newly inserted records; thus including a much greater portion of the result rows.
-\fi
+For some types of views, this model is actually a special case of SVC.
+For views where primary key of the base relations is an attribute of the view, we can sample those attributes.
+We can quickly see that based on our pushdown rules if there is a nested aggregate query, pushdown can fail in general.
+However, re-writing views and queries to better support sampling is an interesting avenue of future work.
 
-%\reminder{I removed the discussion of SAQP since people may argue that I would rather to see  a sample of up-to-date records than a mixture of stale results and a sample of up-to-date records}
+\subsection{Multi-View Setting}
+In a production environment, the database system might have many materialized views. 
+With the sampling ratio, SVC gives the database administrator an additional degree of freedom to adjust throughput, storage, and accuracy.
+The sampling ratio of each view can be adaptively adjusted to suit the workload.
+
+We can pose minimizing the expected estimation error as a Geometric Convex Program.
+In one time period, if view $i$ has an expected cardinality of $N_i$, an average query variance of $\alpha_i$, a sampling ratio of $m_i$, there is a total space budget of $B$, the cost for update is $C_i$ secs/Record and throughput demand of $D$ latency:
+\[\arg \min_{m_i} \sum_i \frac{\alpha_i}{m_i \cdot N_i}\]
+\[\text{subject to:} \sum_i m_i \cdot N_i \le B \]
+\[\sum_i m_i\cdot N_i \cdot C_i \le D \]
 
 
-\subsection{Deletions}\label{sec:del}
-In the previous sections, we presented SVC focusing on \insertion operations to the base table.
-These insertions defined ``update pattern" which we sampled to calculate an approximate correction.
-To model \delete operations, we can extend our approach to also maintain a ``deletion" table, a table of records from the base table to be deleted. 
-%With respect to the deletion table, we can define similar update patterns.
-For \fjview and \spview, deletions only result in rows to remove an analog to before when we have rows to insert.
-We can define the update pattern in the same way but modify our correction technique to subtract rather than add.
-Thus, we replace all of the additions in the first column of Table \ref{tbl:query-correct} with subtractions  (e.g., $\ans_{sum}-\dans_{sum}/\ratio$).
-For \aggview, the formulas presented in Table \ref{tbl:query-correct} apply without modifications.
-This is because the update patterns for \aggview include the updated value of the records.
-By supporting \delete, we can support \update operations to the base table as well since an \update can be modeled as an \insertion and then a \delete.
+
+
