@@ -34,7 +34,7 @@ Lineage has been an important tool in the analysis of materialized views \cite{D
 We recursively define a set of consistent primary keys for all nodes in the expression tree:
 \begin{definition} [Primary Key]
 For every relational expression $R$, we define the primary key of every subexpression to be:
-\begin{itemize}[noitemsep,leftmargin=*]
+\begin{itemize}[noitemsep]
 \item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. That uniquely identifies rows.
 \item $\sigma_{\phi}(R)$: Primary key of the result is the primary key of R 
 \item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection.

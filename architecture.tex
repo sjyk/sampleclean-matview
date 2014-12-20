@@ -23,7 +23,7 @@ It is a function of the database $\mathcal{D}$, $S$, and all the delta relations
 
 %In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 We look at materialized views and maintenance strategies composed of the following relational expressions:
-\begin{itemize}[noitemsep,leftmargin=*]
+\begin{itemize}[noitemsep]
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
