@@ -35,7 +35,7 @@ The problem setting was also very different where the objective is efficient pla
 Sampling has been explored in the streaming community, and a similar idea of sampling from incoming updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}.
 While some of these works studied problems similar to materialization, for example, the JetStream project (Rabkin et al.) looks at how sampling can help with real-time analysis of aggregates.
 None of these works formally studied the class views that can benefit from sampling or formalized queries on these views.
-However, there are ideas from Rabkin et al. that could be applied in SVC in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up" queries in aggregate views.
+%However, there are ideas from Rabkin et al. that could be applied in SVC in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up" queries in aggregate views.
 There are a variety of other efforts proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which is similar to our problem setting and motivation.
 
 Finally, the theory community has has studied related problems.
@@ -50,10 +50,10 @@ Furthermore, the goals of this line work (including techniques such as sketching
 \vspace{-.3em}
 In this paper, we propose a new framework, SVC, to address the staleness problem in materialized views.
 Since view maintenance is expensive, in practice, many prefer periodic maintenance solutions.
-In between these maintenance periods, materialized views become stale and can give incorrect query answers.
-SVC uses sampling to trade-off computation and accuracy in the materialized view setting.
+%In between these maintenance periods, materialized views become stale and can give incorrect query answers.
+SVC uses sampled-based data cleaning approach to trade-off computation and aquery result ccuracy in the materialized view setting.
 This trade-off allows more frequent maintenance to be applied in settings where before system resource constraints made impossible and the result is that between maintenance periods users can get more accurate query results.
-We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
+%We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
 
 %Our results suggest insights for both data cleaning and materialized views.
 We greatly expanded the scope of the SampleClean project \cite{wang1999sample} to general aggregate queries, missing data errors, and proved when optimality of the estimates hold.

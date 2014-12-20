@@ -42,23 +42,21 @@ In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \
 %WHERE $\cond(A)$
 %\end{lstlisting}
 %Group-by clauses can be handled as part of the predicate.
-As input \nsc is given a query (\sumfunc, \countfunc, or \avgfunc), the result of running this query on the dirty data, and a dirty sample and a cleaned version of the sample.
-We then calculate the row-by-row difference for each row in the sample between dirty and clean and we showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results. 
+As input \nsc is given a query, the result of running this query on the dirty data, a dirt sample/clean sample pair.
+It then calculates the row-by-row difference for each row in the sample between dirty and clean (i.e. how much did cleaning change the data).
+We showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results. 
 %Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
-However, \nsc only considered data errors that transformed rows, not those that required new rows to be inserted or deleted.
+However, this only considered data errors that transformed rows, not those that required new rows to be inserted or deleted.
 In the materialized view setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
-This makes the a row-by-row subtraction between two samples of data ill-defined. 
 
 In Definition \ref{correspondence}, we formalized a notion of correspondence between two samples.
 We use this property to handle this problem of missing rows from either side of the subtraction.
 Our sampling procedure in the previous section, gives us two sample views that correspond with each other.
 We define a new operator $\dot{-}$, called correspondence subtract, which will allow us to apply \nsc to such samples.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 
-
 $\dot{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_2.a_2} ( R_1 \fullouterjoin R_2 ) \]
 If $R_1.a_1$ or $R_2.a_1$ is $\emptyset$ then they are respectively represented as a $0$.
 \end{definition}
-
 To apply this operation, we rewrite the \sumfunc, \countfunc, and \avgfunc queries using a selection with a \textbf{case} statement, and use the primary key (pk) that we defined in the previous section.
 Let $\cond(\hat{S'})=1$ ($\cond(\hat{S})=1$) be \textbf{case} statements to denote that its old (new) record satisfies the query condition; otherwise, $\cond(\hat{S'})=0$ ($\cond(\hat{S})=0$). 
 
@@ -75,21 +73,29 @@ $\;\;\;\;$q(View) := SELECT pk, $\cond(A)$ FROM View
 \end{lstlisting}
 
 We can use our correspondence subtract operator to get the point-wise difference:
-\[d = q(\hat{S'}) \dot{-} q(\hat{S})\]  
+$d = q(\hat{S'}) \dot{-} q(\hat{S})$.  
 The definition of the correspondence subtract allows us to be agnostic to both insertions and deletions.
-For sampling ratio $m$, we can estimate the query correction for \sumfunc, \countfunc, and \avgfunc, respectively:
+For sampling ratio $m$, we can estimate the query correction:
 %\begin{lstlisting}[mathescape,basicstyle={\scriptsize}] 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$\dans_{sum} = $ SELECT $ \sumfunc\big(*)/m$ FROM d;
+$\;\;\;\;$$\dans_{count,sum} = $ SELECT $ \sumfunc\big(*)/m$ FROM d;
 \end{lstlisting}
+For the \avgfunc query, we can calculate divide the corrections for \sumfunc and \countfunc:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+$\;\;\;\;$$\dans_{avg} = \frac{\dans_{sum}}{\dans_{cnt}}$;
+\end{lstlisting}
+To apply the correction, we take the stale query result and add the correction:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+$\;\;\;\;$$q(S') \approx q(S) + \dans_{avg,sum,count}$;
+\end{lstlisting}
+
+\iffalse
 \vspace{-1em}
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 $\;\;\;\;$$\dans_{count} = $ SELECT $ \sumfunc\big(*)/m$ FROM d;
 \end{lstlisting}
 \vspace{-1em}
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$\dans_{avg} = \frac{\dans_{sum}}{\dans_{cnt}}$;
-\end{lstlisting}
+
 We use the estimated correction to correct the stale query result as follows:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 $\;\;\;\;$$\sumfunc(S') \approx \sumfunc(S) + \dans_{sum}$;
@@ -99,9 +105,7 @@ $\;\;\;\;$$\sumfunc(S') \approx \sumfunc(S) + \dans_{sum}$;
 $\;\;\;\;$$\countfunc(S') \approx \countfunc(S) + \dans_{count}$;
 \end{lstlisting}
 \vspace{-1em}
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$\avgfunc(S') \approx \avgfunc(S) + \dans_{avg}$;
-\end{lstlisting}
+\fi
 
 In each of these formulas, all of the $\dans$ terms correspond to estimates, and these estimates can be bounded.
 In \cite{wang1999sample}, we showed that the corrections for three queries can be rewritten as a sample mean.
@@ -126,10 +130,8 @@ SELECT $*$ FROM View
 WHERE $\cond(A)$
 \end{lstlisting}
 
-We can first run the Select query on the stale view, and the result of this is a set of rows.
-First, we must define what it means to ``correct" this stale result.
+We first run the Select query on the stale view, and this returns a set of rows.
 This result has three types of data error: rows that are missing, rows that are falsely included, and rows whose values are incorrect.
-
 As in the \sumfunc, \countfunc, and \avgfunc query case, we can apply the query to the sample of the up-to-date view.
 From this sample, using our lineage defined earlier, we can quickly identify which rows were added, updated, and deleted.
 For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
@@ -183,7 +185,7 @@ The implications of this are that any query that can be answered in prior work w
 Suppose, we have an aggregate query $q$ and we apply the query to the stale view $S$.
 Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
 The query result is stale by a factor of $c$ if:
-\[ c = q(S') - q(S)\] 
+$ c = q(S') - q(S)$.
 \begin{lemma}\label{lemma:unbiased}
 If there exists an unbiased sample estimator for q(S') then there exists an unbiased sample estimator for c.
 \end{lemma}

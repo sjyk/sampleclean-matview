@@ -141,15 +141,13 @@ Our query correction component takes two corresponding samples $\hat{S'}$ and $\
 Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
 In the SampleClean work, we focused on \sumfunc,\countfunc, and \avgfunc queries of the form: 
 \begin{lstlisting} [mathescape]
-SELECT $f(a)$ FROM View 
-WHERE Condition(A);
+SELECT $f(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
 In this work, we expand the scope of the query processing, and consider general non-nested aggregate queries with simple predicates.
 
 We also consider correcting stale non-nested select queries of the following form with simple predicates:
 \begin{lstlisting} [mathescape]
-SELECT * FROM View 
-WHERE Condition(A);
+SELECT * FROM View WHERE Condition(A);
 \end{lstlisting}
 As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
 From these queries, we exclude the group by clause, as we model group by clauses as part of the \textsf{Condition}.
@@ -175,9 +173,8 @@ We illustrate this setup in Figure \ref{sys-arch} in our introduction.
  
 \subsection{Example Application: Log Analysis}
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
-\begin{lstlisting} 
-SELECT COUNT(1)
-FROM countView
+\begin{lstlisting}
+SELECT COUNT(1) FROM countView 
 WHERE visitCount > 100;
 \end{lstlisting}
 Let us suppose the initial query result is $45$.

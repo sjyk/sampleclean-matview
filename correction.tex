@@ -94,6 +94,10 @@ Let $\eta_{a, m}$ be our hash function that applies the hashing to the primary k
 Then, two samples $\hat{S'}$ and $\hat{S}$ correspond.
 \end{proposition}
 \begin{proof}[Sketch]
+Since the primary keys are key consistent between $\hat{S'}$ and $\hat{S}$, included and excluded rows are preserved by the hashing.
+See the extended version for a full proof \reminder{TR}.
+
+\iffalse
 There are four conditions for correspondence:
 \begin{itemize}[noitemsep]
 \item 1. For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
@@ -104,6 +108,7 @@ There are four conditions for correspondence:
 Condition 1 is satisfied since if $r$ is deleted, then $r \not \in S'$ which implies that $r \not\in \hat{S'}$.
 Condition 2 and 3 are satisfied since if $r$ is in $\hat{S}$ then it was sampled, and then since the primary key is consistent between $S$ and $S'$ it will also be sampled in $\hat{S'}$.
 Condition 4 is just the converse of 2 and 3 so it is satisfied.
+\fi
 \end{proof}
 We will use this property in the next section to get estimates for queries on the materialized view.
 

@@ -3,7 +3,7 @@ Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2
 Power-laws and other long-tailed distributions are common in large datasets\cite{clauset2009power}.
 We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records (records whose attributes deviate from the expected value greatly) and ensure that these records are included in the sample.
-However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
+%However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
 In \cite{chaudhuri2001overcoming}, outlier indices are defined on the sampled relation. 
@@ -24,8 +24,8 @@ If our size limit is $k$, we can find the records with the top $k$ attributes in
 Then, the attribute value of the lowest record becomes the threshold $t$.
 
 \subsection{Adding Outliers to the Sample}
-Given this index, the next question is how we can use this information in our materialized views.
-We ensure that any row in a materialized view that derives from an indexed record is guaranteed to be in the sample.
+%Given this index, the next question is how we can use this information in our materialized views.
+We ensure that any row in a materialized view that is derived from an indexed record is guaranteed to be in the sample.
 This problem is sort of an inverse to the efficient sampling problem studied in Section~\ref{sampling}.
 We need to propagate the indices upwards through the query tree.
 
@@ -38,10 +38,10 @@ Every relation can have an outlier index which is a set of attributes and a set 
 The main idea is to treat the indexed records as a sub-relation that gets propagated upwards with the maintenance plan.
 \begin{definition}[outlier index pushup]
 Define an outlier index to be a triple of a set of indexed attributes, and a set of records $(I,O)$. The outlier index propagates upwards with the following rules: 
-\begin{itemize}\vspace{-.45em}
-\item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled i.e. if the sampling operator can be pushed down to that relation.\vspace{-.45em}
-\item $\sigma_{\phi}(R)$: Push up with a new outlier index $(I,O)$ \vspace{-.45em}
-\item $\Pi_{(a_1,...,a_k)}(R)$: Push upwards with new outlier index $(I \cap (a_1,...,a_k), O)$.\vspace{-.45em}
+\begin{itemize}[noitemsep]
+\item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled i.e. if the sampling operator can be pushed down to that relation.
+\item $\sigma_{\phi}(R)$: Push up with a new outlier index $(I,O)$ 
+\item $\Pi_{(a_1,...,a_k)}(R)$: Push upwards with new outlier index $(I \cap (a_1,...,a_k), O)$.
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Push upwards with new outlier index $(I_{1} \cup I_{2}, O_1 \bowtie O_2)$. 
 \item $\gamma_{f,A}(R)$: For group-by aggregates, we set $I = \{f_i\}$. For the outlier index, we do the following steps. (1) Apply the aggregation to the outlier index $\gamma_{f,A}(O)$, (2) for all distinct $A$ in $O$ select the row in $\gamma_{f,A}(R)$ with the same $A$, and (3) this selection is the new set of outliers $O$. 
 \item $R_1 \cup R_2$: Push up with a new outlier index $(I_1 \cap I_2, O_1 \cup O_2)$. The set of index attributes is combined with an intersection to avoid missed outliers.
@@ -69,9 +69,9 @@ For a given query, let $c_{reg}$ be the correction calculated on $\widehat{(S'-O
 We can also apply the technique to the outlier set $O$ since this set is deterministic the sampling ratio for this set is $m=1$, and we call this result $c_{out}$.
 Let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
 Then, we can merge these two corrections in the following way:
-\[
+$
  v = \frac{N-l}{N}c_{reg} + \frac{l}{N}c_{out}
-\]
+$.
 
 For the queries in the previous section that are unbiased, this approach preserves unbiasedness.
 Since we are averaging two unbiased estimates $c_{reg}$ and $c_{out}$, the linearity of the expectation operator preserves this property.

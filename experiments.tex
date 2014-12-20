@@ -8,7 +8,7 @@ and skewed version of the benchmark TPCD-Skew.
 Then, we evaluate the outlier indexing approach in terms of improved query accuracy and also evaluate the overhead associated with using the index.
 After evaluation on the benchmark, we present an end-to-end application of log analysis with a dataset from a video streaming company.
 In this application, we look at the real query workload of the company and materialize views that could improve performance of these queries.
-We implement SVC in Spark 1.1 and deploy it on a 10-node cluster to analyze 1TB of logs.
+%We implement SVC in Spark 1.1 and deploy it on a 10-node cluster to analyze 1TB of logs.
 
 \subsection{Single-node Experimental Setup}
 Our single node experiments are run on a r3.large Amazon EC2 node (2x Intel Xeon E5-2670, 15.25 GB Memory, and 32GB SSD Disk) with a MySQL version 5.6.15 database.
@@ -51,12 +51,7 @@ Since the outer queries of our views were group by aggregates, we picked a rando
 We use $a$ to generate a predicate.
 For each attribute $a$, the domain is specified in the TPCD standard.
 We select a random subset of this domain eg. if the attribute is country then the predicate can be \textsf{countryCode} > 50 and \textsf{countryCode} < 100.
-We generated \sumfunc, \avgfunc, and \countfunc of the following form: 
-\begin{lstlisting} [mathescape]
-SELECT $f(b)$ FROM View 
-WHERE subset of domain of a;
-\end{lstlisting}
-We generated 100 random aggregate queries for each view.
+We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 
 \subsection{Distributed Experimental Setup}
 We evaluated performance on Apache Spark 1.1.0 with a 10 node r3.large Amazon EC2 cluster.
@@ -118,15 +113,15 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 
 \begin{figure}[t]
 \centering
-\includegraphics[scale=0.15]{exp/msj_1.pdf}
-\includegraphics[scale=0.15]{exp/msj_2.pdf}
+\includegraphics[scale=0.13]{exp/msj_1.pdf}
+\includegraphics[scale=0.13]{exp/msj_2.pdf}
  \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of SVC. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for SVC. \label{exp-1-samplesize}}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.14]{exp/msj_3.pdf}
- \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued). Our experiments suggest that on this view, SVC+Corr is more accurate than SVC+AQP and No Maintenance.\label{exp-1-acc}}
+ \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued).\label{exp-1-acc}}
 \end{figure}
 
 \begin{figure}[t]
@@ -193,8 +188,8 @@ For a 10\% sample, we find that SVC+Corr is more accurate until the update size 
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.15]{exp/msdc_1.pdf}
- \includegraphics[scale=0.15]{exp/msdc_2.pdf}
+ \includegraphics[scale=0.13]{exp/msdc_1.pdf}
+ \includegraphics[scale=0.13]{exp/msdc_2.pdf}
   %\includegraphics[scale=0.17]{exp/msdc_3.pdf}
    \caption{(a) In the aggregate view case, sampling can save significant maintenance time. (b) As the update size grows SVC tends towards an ideal speedup of 10x.\label{exp2-acc-sample}}
 \end{figure}
@@ -277,8 +272,8 @@ For the most part, these results are consistent with our previous experiments sh
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.14]{exp/msoi_1.pdf}
- \includegraphics[scale=0.14]{exp/msoi_2.pdf}
+ \includegraphics[scale=0.13]{exp/msoi_1.pdf}
+ \includegraphics[scale=0.13]{exp/msoi_2.pdf}
  \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \label{exp5-oi}}
 \end{figure}
 In our next experiment, we evaluate our outlier indexing.
@@ -375,8 +370,10 @@ At this sampling point, we find that applying SVC gives results 2.8x more accura
 To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and SVC+periodic IVM. 
 We find that SVC takes advantage of the idle times in the system; which are common during shuffle operations in a synchronous parallelism model.
 
+\iffalse
 In a way, these experiments present a worst-case application for SVC, yet it still gives improvements in terms of query accuracy.
 In many typical deployments throughput demands are variable forcing maintenance periods to be longer, e.g., nightly.
 The same way that SVC takes advantage of micro idle times during communication steps, it can provide large gains during controlled idle times when no maintenance is going on concurrently.
+\fi
 
 

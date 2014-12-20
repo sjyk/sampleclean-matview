@@ -6,17 +6,17 @@ In a world of ever-increasing data sizes, MVs are becoming even more important, 
 
 However, when the underlying data is changed MVs can become \emph{stale}; the pre-computed results do not reflect the recent changes to the data. 
 One solution would be to recompute the MV every time a change occurs, however, in many cases, it is more efficient to incrementally update the MV instead of recomputing the query.
-There has been substantial work in deriving these incremental updates (incremental maintenance algorithms) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
+There has been substantial work in deriving incremental updates (incremental maintenance) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
 
-For frequently changing tables even incremental maintenance can be expensive; every update to the underlying data requires updating all the dependent views.  
+For frequently changing tables even incremental maintenance can be expensive since every update to the underlying data requires updating all the dependent views.  
 This problem is exacerbated in Big Data environments, where new records arrive at an increasingly fast rate and where data are often 
 distributed across multiple machines.  
 As a result, in production environments it is common to defer view maintenance to a later time \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and maintenance work can be scheduled for times of low system utilization.  
 
-While deferring maintenance has compelling benefits, it unfortunately brings its own costs, namely that views become increasingly stale in-between maintenance periods. As a result, queries on those views can return increasingly incorrect answers.
-The problem of stale MVs parallels the problem of dirty data studied in data cleaning~\cite{rahm2000data}; as both staleness and erroneous records lead to inaccurate query answers.
-The observation that stale MVs are a type of dirty data leads us to the key insight behind our work; namely, that data cleaning techniques can be used to mitigate the negative impacts
-of deferred MV maintenance.
+While deferring maintenance has compelling benefits, it unfortunately leads to the problem that the views are stale in between maintenance periods. 
+As a result, as the time since the last maintenance increases, queries using those views return increasingly incorrect answers.
+The problem of stale MVs parallels the problem of dirty data studied in data cleaning~\cite{rahm2000data}; as both staleness and erroneous ``dirty" records are a type of data error.
+The observation that stale MVs are a type of dirty data leads us to the key insight behind our work; namely, that data cleaning techniques can be used to mitigate the negative impacts of deferred MV maintenance.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
@@ -33,7 +33,8 @@ View staleness is a different type of error than typical dirty data, which raise
 
 To address these new challenges, we propose Sample-View-Clean (SVC), a framework that applies sampling to approximately correct query results on stale views.
 SVC takes a sample of up-to-date rows from the view, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how SVC can be used as complementary to existing deferred maintenance approaches. When the MVs become stale between maintenance cycles, we apply SVC for query result estimation for a far smaller cost than having to maintain the entire view.
-The query results from SVC are in expectation up-to-date. While they are approximate results, the approximation error is more manageable than staleness: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size as opposed to potentially unbounded staleness.
+The query results from SVC are up-to-date in the sense that they reflect the most recent data, however they are approximate. 
+The approximation error due to sampling is more manageable than staleness: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
 Sampling is known to be sensitive to skewed datasets, and we incorporate an outlier indexing technique to improve the accuracy of our approximate query results.
 
 In practice, both MVs and queries can be arbitrarily complex.
@@ -48,6 +49,6 @@ In Section~\ref{sec-background}, we give the necessary background for our work.
 Next, in Section~\ref{sec-arch}, we formalize the problem.
 In Section~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
 In Section~\ref{outlier}, we describe the outlier indexing framework.
-In Section~\ref{sec:ext}, we discuss extensions to our framework.
+%In Section~\ref{sec:ext}, we discuss extensions to our framework.
 Then, in Section~\ref{exp}, we evaluate our approach.
 Finally, we discuss Related Work in Section~\ref{related} and present our Conclusions and Future Work in Section~\ref{conclusion}.
