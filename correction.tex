@@ -11,11 +11,14 @@ maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 \subsection{Uniform Sampling on Views}
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
-\begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} if
-\[ \forall s \in \hat{S'} : s \in S' \]
-and
-\[Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m \]
+
+\begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} of $S'$ if
+\begin{enumerate}[label=(\arabic*),itemsep=1pt]
+\item $\forall s \in \hat{S'} : s \in S'$;
+\item $Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m$.
+\end{enumerate}
 \end{definition}
+
 A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Recall, the view in our example \textsf{countView}. 
 If we sampled the base relation the result would have a mix of missing rows from the view and rows with incorrect aggregates.
@@ -31,15 +34,15 @@ Lineage has been an important tool in the analysis of materialized views \cite{D
 We recursively define a set of consistent primary keys for all nodes in the expression tree:
 \begin{definition} [Primary Key]
 For every relational expression $R$, we define the primary key of every subexpression to be:
-\begin{itemize}[noitemsep]
+\begin{itemize}[noitemsep,leftmargin=*]
 \item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. That uniquely identifies rows.
 \item $\sigma_{\phi}(R)$: Primary key of the result is the primary key of R 
 \item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection.
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the union of the primary key of $R_1$ and $R_2$. 
 \item $\gamma_{f,A}(R)$: The primary key of the result is the tuple $A$.
-\item $R_1 \cup R_2$: Primary key of the result is the primary key of R
-\item $R_1 \cap R_2$: Primary key of the result is the primary key of R
-\item $R_1 - R_2$: Primary key of the result is the primary key of R
+\item $R_1 \cup R_2$: Primary key of the result is the primary key of~R
+\item $R_1 \cap R_2$: Primary key of the result is the primary key of~R
+\item $R_1 - R_2$: Primary key of the result is the primary key of~R
 \end{itemize}
 \end{definition}
 This definition of a primary key for a relational expression, allows us to trace the primary key through the expression tree.
@@ -96,7 +99,6 @@ Then, two samples $\hat{S'}$ and $\hat{S}$ correspond.
 \begin{proof}[Sketch]
 Since the primary keys are key consistent between $\hat{S'}$ and $\hat{S}$, included and excluded rows are preserved by the hashing.
 See the extended version for a full proof \reminder{TR}.
-
 \iffalse
 There are four conditions for correspondence:
 \begin{itemize}[noitemsep]
@@ -129,7 +131,7 @@ Then, we reach a many-to-one (foreign key) join allowing us to push down the sam
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.20]{figs/example_expression_tree_2.pdf} \vspace{-.25em}
- \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance plan. \label{exexpr2}}\vspace{-1.75em}
+ \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance plan.  \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
 In terms of increased efficiency, since both the aggregate and foreign key join are ``above" the sampling operator, they require less computation and less memory.

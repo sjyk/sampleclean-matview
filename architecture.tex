@@ -23,7 +23,7 @@ It is a function of the database $\mathcal{D}$, $S$, and all the delta relations
 
 %In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
 We look at materialized views and maintenance strategies composed of the following relational expressions:
-\begin{itemize}[noitemsep]
+\begin{itemize}[noitemsep,leftmargin=*]
 \item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
 \item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
@@ -34,7 +34,7 @@ We look at materialized views and maintenance strategies composed of the followi
 \end{itemize}
 Relational expressions can be expressed in a tree form which we call an \emph{expression tree}.
 
-To illustrate the concept of a maintenance strategy, consider the following view that finds view counts for all videos:
+To illustrate the concept of a maintenance strategy, consider the following view that finds view counts for all videos: 
 \begin{lstlisting} 
 CREATE VIEW countView
 AS SELECT videoId, count(1) AS visitCount,
@@ -140,13 +140,13 @@ Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale
 Our query correction component takes two corresponding samples $\hat{S'}$ and $\hat{S}$, and calculates a correction to $q(S)$.
 Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
 In the SampleClean work, we focused on \sumfunc,\countfunc, and \avgfunc queries of the form: 
-\begin{lstlisting} [mathescape]
+\begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $f(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
 In this work, we expand the scope of the query processing, and consider general non-nested aggregate queries with simple predicates.
 
 We also consider correcting stale non-nested select queries of the following form with simple predicates:
-\begin{lstlisting} [mathescape]
+\begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT * FROM View WHERE Condition(A);
 \end{lstlisting}
 As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
@@ -173,7 +173,7 @@ We illustrate this setup in Figure \ref{sys-arch} in our introduction.
  
 \subsection{Example Application: Log Analysis}
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
-\begin{lstlisting}
+\begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM countView 
 WHERE visitCount > 100;
 \end{lstlisting}

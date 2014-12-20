@@ -80,12 +80,13 @@ In this work, we give an explicit treatment of outliers records.
 
 \subsection{Running Example: Log Analysis}
 To illustrate our framework in the upcoming sections, we use the following running example which is a 
-simplified schema of one of our experimental datasets.%(Figure~\ref{example-1}).
+simplified schema of one of our experimental datasets.
+%(Figure~\ref{example-1}).
 Imagine, we are querying logs from a video streaming company. 
 These logs record visits from users as they happen and grow over time.
 We have two tables, \tbl{Log} and \tbl{Video}, with the following schema:
 
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 Log(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 Video(videoId$\textrm{,}$ title$\textrm{,}$ duration)
 \end{lstlisting}
@@ -95,7 +96,7 @@ Though SVC supports inserts, deletions, and updates, for clarity in our example,
 into Log which is cached in a temporary table:
 
 %\reminder{I replace LogInserts with LogIns for saving a line of space. Make sure it is consistent in the whole paper.}
-\begin{lstlisting}[mathescape]
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
 

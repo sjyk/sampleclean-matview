@@ -10,7 +10,8 @@ After evaluation on the benchmark, we present an end-to-end application of log a
 In this application, we look at the real query workload of the company and materialize views that could improve performance of these queries.
 %We implement SVC in Spark 1.1 and deploy it on a 10-node cluster to analyze 1TB of logs.
 
-\subsection{Single-node Experimental Setup}
+\subsection{Experimental Setup}\vspace{-.5em}
+\subsubsection{Single-node Experimental Setup}
 Our single node experiments are run on a r3.large Amazon EC2 node (2x Intel Xeon E5-2670, 15.25 GB Memory, and 32GB SSD Disk) with a MySQL version 5.6.15 database.
 These experiments evaluate views from 10GB TPCD and TPCD-Skew datasets.
 TPCD-Skew dataset \cite{tpcdskew} is based on the Transaction Processing Council's benchmark
@@ -53,7 +54,7 @@ For each attribute $a$, the domain is specified in the TPCD standard.
 We select a random subset of this domain eg. if the attribute is country then the predicate can be \textsf{countryCode} > 50 and \textsf{countryCode} < 100.
 We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 
-\subsection{Distributed Experimental Setup}
+\subsubsection{Distributed Experimental Setup}
 We evaluated performance on Apache Spark 1.1.0 with a 10 node r3.large Amazon EC2 cluster.
 Systems like Spark are increasingly popular, and Spark supports materialization through a distributed data structure called an RDD \cite{zaharia2012resilient}.
 In the most recent release of Spark, there is a SQL interface that allows users to persist query results in memory.
@@ -86,6 +87,12 @@ While, we cannot give the details of the queries, we can present some of the hig
 \end{itemize}
 \fi
 
+\begin{figure}[t]\vspace{-2em}
+\centering
+\includegraphics[scale=0.13]{exp/msj_1.pdf}
+\includegraphics[scale=0.13]{exp/msj_2.pdf}\vspace{-1em}
+ \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of SVC. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for SVC. \vspace{-1em}\label{exp-1-samplesize}}
+\end{figure}
 
 \subsubsection{Metrics and Evaluation}
 To illustrate how SVC gives the user access to this new trade-off space, we will illustrate that SVC is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
@@ -108,17 +115,12 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \end{itemize}
 
 \subsection{Single-node Accuracy and Performance}
-
+\vspace{-.5em}
 \subsubsection{Join View}
 
-\begin{figure}[t]
-\centering
-\includegraphics[scale=0.13]{exp/msj_1.pdf}
-\includegraphics[scale=0.13]{exp/msj_2.pdf}
- \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of SVC. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for SVC. \label{exp-1-samplesize}}
-\end{figure}
 
-\begin{figure}[t]
+
+\begin{figure}[t]\vspace{-2em}
 \centering
 \includegraphics[scale=0.14]{exp/msj_3.pdf}
  \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued).\label{exp-1-acc}}
@@ -127,8 +129,8 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
- \includegraphics[scale=0.13]{exp/msj_6.pdf}
-  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. SVC+Corr does take longer to query a view (due to the correction) than SVC+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that SVC+Corr is more accurate than SVC+AQP until the update size is 32.5\% (3.2GB).  \label{exp-1-total}}
+ \includegraphics[scale=0.13]{exp/msj_6.pdf}\vspace{-.5em}
+  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. SVC+Corr does take longer to query a view (due to the correction) than SVC+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that SVC+Corr is more accurate than SVC+AQP until the update size is 32.5\% (3.2GB). \vspace{-1em} \label{exp-1-total}}
 \end{figure}
 
 %\begin{figure}[t]
@@ -183,13 +185,15 @@ For a 10\% sample, we find that SVC+Corr is more accurate until the update size 
 %Even though a dataset might be skewed, if (in relative terms) the updates are more uniform SVC+Corr will give more accurate results.
 %We can make SVC+Corr and SVC+AQP even more accurate using the outlier indexing which we will evaluate in the later sections.
 
+
+
 \subsubsection{Aggregate View}
 \label{exp-datacube}
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-2em}
 \centering
  \includegraphics[scale=0.13]{exp/msdc_1.pdf}
- \includegraphics[scale=0.13]{exp/msdc_2.pdf}
+ \includegraphics[scale=0.13]{exp/msdc_2.pdf}\vspace{-.5em}
   %\includegraphics[scale=0.17]{exp/msdc_3.pdf}
    \caption{(a) In the aggregate view case, sampling can save significant maintenance time. (b) As the update size grows SVC tends towards an ideal speedup of 10x.\label{exp2-acc-sample}}
 \end{figure}
@@ -197,9 +201,9 @@ For a 10\% sample, we find that SVC+Corr is more accurate until the update size 
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.13]{exp/msdc_3.pdf}
+ \includegraphics[scale=0.13]{exp/msdc_3.pdf}\vspace{-.5em}
  %\includegraphics[scale=0.13]{exp/msdc_5.pdf}
-   \caption{(a) We measure the accuracy of each of the roll-up aggregate queries on this view. For a 10\% sample size and 10\% update size, we find that SVC+Corr is more accurate than SVC+AQP and No Maintenance.\label{exp2-acc-sample2}}
+   \caption{(a) We measure the accuracy of each of the roll-up aggregate queries on this view. For a 10\% sample size and 10\% update size, we find that SVC+Corr is more accurate than SVC+AQP and No Maintenance.\vspace{-.5em}\label{exp2-acc-sample2}}
 \end{figure}
 
 
@@ -231,7 +235,7 @@ We similarly observe that SVC becomes more efficient as the update size grows (F
 In Figure \ref{exp2-acc-sample2}, we measure the accuracy of each of the ``roll-up" aggregate queries on this view.
 That is, we take each dimension and aggregate over the dimension.
 We fix the sample size at 10\% and the update size at 10\%.
-On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more accurate than SVC+AQP (Figure \ref{exp2-acc-sample}(c)). 
+On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more accurate than SVC+AQP (Figure~\ref{exp2-acc-sample}(c)). 
 
 %Since the data cubing operation is primarily constructed by group-by aggregates, we can also measure the max error for each of the aggregates.
 %We see that while the median staleness is close to 10\%, for some queries some of the group aggregates have nearly 80\% error (Figure \ref{exp2-max}).
@@ -245,7 +249,7 @@ On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more
 
 \subsubsection{Complex Views}
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-2em}
 \centering
  \includegraphics[scale=0.10]{exp/msqv_1.pdf}
  \includegraphics[scale=0.10]{exp/msqv_2.pdf}
@@ -273,8 +277,8 @@ For the most part, these results are consistent with our previous experiments sh
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.13]{exp/msoi_1.pdf}
- \includegraphics[scale=0.13]{exp/msoi_2.pdf}
- \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \label{exp5-oi}}
+ \includegraphics[scale=0.13]{exp/msoi_2.pdf}\vspace{-1em}
+ \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \vspace{-1em}\label{exp5-oi}}
 \end{figure}
 In our next experiment, we evaluate our outlier indexing.
 Our outlier indices are constructed on the base relations.
