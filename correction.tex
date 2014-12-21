@@ -1,14 +1,17 @@
 \section{Efficient Maintenance With Sampling} \label{sampling}
 %\reminder{Make sure that we do a good survey on ``sampling from a view" and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
-In the previous section, we formalized the computation of $\hat{S'}$  as a data cleaning procedure.
-A naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
+In the previous section, we formalized the procedure of taking a uniform sample of rows $\hat{S}$, and ``cleaning" it to produce a corresponding uniform sample of the up-to-date view $\hat{S'}$.
+This procedure is not unique and there are both efficient and inefficient (i.e. not any easier than updating the entire materialized view) ways to accomplish this. 
+For example, a naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
 However, this does not make the maintenance of the sample any more efficient.
+
 Ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
 need not operate on the full data.
 In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
 maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
 \subsection{Uniform Sampling on Views}
+We first discuss some of the difficulties with uniform sampling.
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
 
@@ -50,7 +53,7 @@ Our definition of the primary key is also constructive; that is, if an expressio
 
 \subsection{Hashing Operator}
 \label{push}
-If we have a deterministic way of mapping a primary key defined in the previous subsection to a sample we can also ensure that all contributing expressions are also sampled. 
+If we have a deterministic way of mapping a primary key defined in the previous subsection to a sample, we can also ensure that all contributing expressions are also sampled. 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.

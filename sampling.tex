@@ -1,6 +1,6 @@
 \section{Correction Query Processing}
 \label{correction}
-In the previous section, we discussed how to efficiently find $\hat{S'}$ by applying the hashing operator to the maintenance strategy.
+In the previous section, we discussed how to efficiently maintain a sample of a materialized view by applying the hashing operator to the maintenance strategy.
 The result of this execution is an up-to-date sampled materialized view $\hat{S'}$. 
 In this section, we discuss how to correct stale query results using the two corresponding samples $\hat{S}$ and $\hat{S'}$. 
 The main idea to take a point-wise difference of $\hat{S'}$ and $\hat{S}$, and apply the query to that difference.
@@ -42,7 +42,7 @@ In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \
 %WHERE $\cond(A)$
 %\end{lstlisting}
 %Group-by clauses can be handled as part of the predicate.
-As input \nsc is given a query, the result of running this query on the dirty data, a dirt sample/clean sample pair.
+As input \nsc is given a query, the result of running this query on the dirty data, a dirty sample/clean sample pair.
 It then calculates the row-by-row difference for each row in the sample between dirty and clean (i.e. how much did cleaning change the data).
 We showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results. 
 %Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
@@ -109,6 +109,11 @@ $\;\;\;\;$$\countfunc(S') \approx \countfunc(S) + \dans_{count}$;
 
 In each of these formulas, all of the $\dans$ terms correspond to estimates, and these estimates can be bounded.
 In \cite{wang1999sample}, we showed that the corrections for three queries can be rewritten as a sample mean.
+The basic idea is that by the Central Limit Theorem, the mean value of numbers drawn by uniform random sampling $\bar{X}$ approaches a normal distribution with:
+\[
+\bar{X} \sim N(\mu,\frac{\sigma^2}{k}),
+\]
+where $\mu$ is the true mean, $\sigma^2$ is the variance, and $k$ is the sample size.
 Refer to our prior work \cite{wang1999sample} for further details on how to bound these estimates with the Central Limit Theorem (CLT).
 
 \iffalse
@@ -123,7 +128,7 @@ In the statistical literature, the class of aggregate functions for which we can
 \fi
 
 \subsection{Select Queries}
-We can also correct stale Select queries with SVC.
+In SVC, we also explore how to extend this correction procedure to Select queries.
 Suppose, we have a Select query with a predicate:
 \begin{lstlisting} [mathescape]
 SELECT $*$ FROM View 
@@ -132,6 +137,7 @@ WHERE $\cond(A)$
 
 We first run the Select query on the stale view, and this returns a set of rows.
 This result has three types of data error: rows that are missing, rows that are falsely included, and rows whose values are incorrect.
+
 As in the \sumfunc, \countfunc, and \avgfunc query case, we can apply the query to the sample of the up-to-date view.
 From this sample, using our lineage defined earlier, we can quickly identify which rows were added, updated, and deleted.
 For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
