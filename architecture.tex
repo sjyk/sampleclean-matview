@@ -34,15 +34,10 @@ We look at materialized views and maintenance strategies composed of the followi
 \end{itemize}
 Relational expressions can be expressed in a tree form which we call an \emph{expression tree}.
 
-To illustrate the concept of a maintenance strategy, consider the following view that finds view counts for all videos: 
-\begin{lstlisting} 
-CREATE VIEW countView
-AS SELECT videoId, count(1) AS visitCount,
-FROM Log, Video
-WHERE Log.videoID = Video.videoID
-GROUP BY videoId;
-\end{lstlisting}
-If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogIns}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. We illustrate this process with the expression tree in Figure \ref{exexpr}.
+To illustrate the concept of a maintenance strategy, we show an example view based on our running example dataset in Figure \ref{exexpr}.
+The view joins the Log table with the Video table and counts the visits for each video grouped by id.
+If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogIns}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. 
+We illustrate this process with the expression tree in Figure \ref{exexpr}.
 
 \begin{figure}[t] \vspace{-2em}
 \centering

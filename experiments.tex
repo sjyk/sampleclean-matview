@@ -89,8 +89,8 @@ While, we cannot give the details of the queries, we can present some of the hig
 
 \begin{figure}[t]\vspace{-2em}
 \centering
-\includegraphics[scale=0.13]{exp/msj_1.pdf}
-\includegraphics[scale=0.13]{exp/msj_2.pdf}\vspace{-1em}
+\includegraphics[scale=0.145]{exp/msj_1.pdf}
+\includegraphics[scale=0.145]{exp/msj_2.pdf}\vspace{-1em}
  \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of SVC. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for SVC. \vspace{-1em}\label{exp-1-samplesize}}
 \end{figure}
 
@@ -122,7 +122,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 
 \begin{figure}[t]\vspace{-2em}
 \centering
-\includegraphics[scale=0.14]{exp/msj_3.pdf}
+\includegraphics[scale=0.15]{exp/msj_3.pdf}
  \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, SVC+Corr, and SVC+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued).\label{exp-1-acc}}
 \end{figure}
 
@@ -192,8 +192,8 @@ For a 10\% sample, we find that SVC+Corr is more accurate until the update size 
 
 \begin{figure}[t]\vspace{-2em}
 \centering
- \includegraphics[scale=0.13]{exp/msdc_1.pdf}
- \includegraphics[scale=0.13]{exp/msdc_2.pdf}\vspace{-.5em}
+ \includegraphics[scale=0.14]{exp/msdc_1.pdf}
+ \includegraphics[scale=0.14]{exp/msdc_2.pdf}\vspace{-.5em}
   %\includegraphics[scale=0.17]{exp/msdc_3.pdf}
    \caption{(a) In the aggregate view case, sampling can save significant maintenance time. (b) As the update size grows SVC tends towards an ideal speedup of 10x.\label{exp2-acc-sample}}
 \end{figure}
@@ -201,7 +201,7 @@ For a 10\% sample, we find that SVC+Corr is more accurate until the update size 
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.13]{exp/msdc_3.pdf}\vspace{-.5em}
+ \includegraphics[scale=0.16]{exp/msdc_3.pdf}\vspace{-.5em}
  %\includegraphics[scale=0.13]{exp/msdc_5.pdf}
    \caption{(a) We measure the accuracy of each of the roll-up aggregate queries on this view. For a 10\% sample size and 10\% update size, we find that SVC+Corr is more accurate than SVC+AQP and No Maintenance.\vspace{-.5em}\label{exp2-acc-sample2}}
 \end{figure}
@@ -251,8 +251,8 @@ On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more
 
 \begin{figure}[t]\vspace{-2em}
 \centering
- \includegraphics[scale=0.10]{exp/msqv_1.pdf}
- \includegraphics[scale=0.10]{exp/msqv_2.pdf}
+ \includegraphics[scale=0.15]{exp/msqv_1.pdf}
+ \includegraphics[scale=0.15]{exp/msqv_2.pdf}
  \caption{(a) For 1GB update size, we compare maintenance time and accuracy of SVC with a 10\% sample on different views. V21 and V22 do not benefit as much from SVC due to nested query structures. (b) As before for a 10\% sample size and 10\% update size, SVC+Corr is more accurate than SVC+AQP and No Maintenance.  \label{exp3-acc}}
 \end{figure}
 In the the last single-node experiment, we demonstrate the breadth of views supported by SVC.
@@ -276,8 +276,8 @@ For the most part, these results are consistent with our previous experiments sh
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.13]{exp/msoi_1.pdf}
- \includegraphics[scale=0.13]{exp/msoi_2.pdf}\vspace{-1em}
+ \includegraphics[scale=0.15]{exp/msoi_1.pdf}
+ \includegraphics[scale=0.15]{exp/msoi_2.pdf}\vspace{-1em}
  \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that SVC with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \vspace{-1em}\label{exp5-oi}}
 \end{figure}
 In our next experiment, we evaluate our outlier indexing.
@@ -300,8 +300,8 @@ We implement SVC on a 10-node Spark cluster.
 \subsubsection{Performance and Accuracy}
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.10]{exp/con_3.pdf}
- \includegraphics[scale=0.10]{exp/con_4.pdf}
+ \includegraphics[scale=0.16]{exp/con_3.pdf}
+ \includegraphics[scale=0.16]{exp/con_4.pdf} \vspace{-1.0em}
  \caption{(a) We compare the maintenance time of SVC with a 10\% sample and full incremental maintenance, and find that as with TPCD SVC saves significant maintenance time. (b) We also compare SVC+Corr to SVC+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive these views from 800GB of base data and add 80GB of updates.
@@ -316,8 +316,8 @@ These results show consistency with our results on the synthetic datasets.
 \subsubsection{End-to-end integration with periodic maintenance}
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.14]{exp/con_1.pdf}
- \includegraphics[scale=0.14]{exp/con_2.pdf}
+ \includegraphics[scale=0.15]{exp/con_1.pdf}
+ \includegraphics[scale=0.15]{exp/con_2.pdf}
  \caption{(a) Spark RDDs are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. However, larger batches are less affected by this reduction. \label{conv-2}}
 \end{figure}
 
@@ -361,14 +361,14 @@ At this sampling point, we find that applying SVC gives results 2.8x more accura
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.12]{exp/con_5.pdf}
- \includegraphics[scale=0.12]{exp/con_6.pdf}
+ \includegraphics[scale=0.15]{exp/con_5.pdf}
+ \includegraphics[scale=0.15]{exp/con_6.pdf}
  \caption{For a fixed throughput, SVC+Periodic Maintenance gives more accurate results for V2 and V5. \label{conv-4}} 
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[scale=0.12]{exp/con_7.pdf}
+\includegraphics[scale=0.15]{exp/con_7.pdf}
  \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} 
 \end{figure}
 To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and SVC+periodic IVM. 
