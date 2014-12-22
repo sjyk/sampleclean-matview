@@ -8,10 +8,10 @@ Finally, we overview the system architecture and discuss a numerical example of 
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
 View definitions are composed of the following relational expressions:
 \begin{itemize}[noitemsep] \sloppy
-	\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
+	\item $\sigma_{\phi}(R)$: Selection selects all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
 	\item $\Pi_{a_1,a_2,...,a_k}(R)$: Generalized projection select attributes $\{a_1,a_2,...,a_k\}$ from, allowing for new columns that are arithmetic transformations of attributes e.g. $a_1+a_2$.
 	\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$. We use $\bowtie$ to denote all types of joins even extended outer joins such as $\rightouterjoin,\leftouterjoin,\fullouterjoin$.
-	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The output schema is of the result is $a, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
+	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The result of this operation is a row with the following schema $a\inA, f_a\inf(R)$ where $a$ is the group by key and $f_a$ is the aggregate of all rows with that key.   \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
 	\item $R_1 \cup R_2$: Set union take a union of the two sets.
 	\item $R_1 \cap R_2$: Set intersection take an intersection of the set.
 	\item $R_1 - R_2$: Set difference.
@@ -60,7 +60,7 @@ We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we inclu
 We use the ``hat" notation eg. $\hat{S}$ to denote sampled relations. 
 
 While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
-In principle, our framework can be extended to handle stratified samples similar to the BlinkDB project \cite{AgarwalMPMMS13}.
+Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
 However, this requires that we know our query workload in advance.  
 In this paper, we do not discuss stratified sampling and will explore this further in future work.
 
@@ -79,7 +79,7 @@ notation in the analysis.
 \subsubsection{View Maintenance as Data Cleaning}\label{cleaning}
 In SVC, we model staleness in a materialized view as a type of data error.
 %Materialized views whose base relations have been updated potentially give stale query results.
-We formalize the problem of correcting staleness as a data cleaning operation so we can apply our a data cleaning approach.
+We formalize the problem of correcting staleness as a data cleaning operation so we can apply our data cleaning approach.
 %However, this requires us to define what it means to ``clean" a sample view.
 The staleness as a data error is clearly defined in the unsampled case.
 If we are given a materialized view $S$ and we know the base relations have had insertions and deletions, then there are three possible types of error:
@@ -91,22 +91,22 @@ If we are given a materialized view $S$ and we know the base relations have had 
 In the absence of these errors, we call a view \emph{up-to-date}.
 
 However, now suppose we have a sampled view $\hat{S}$.
-We define cleaning in the following way: suppose we have a uniform sample of a stale view $\hat{S}$, cleaning this sample
-should give us $\hat{S'}$ a uniform sample of the up-to-date view $\hat{S'}$ with the same sampling ratio.
+We define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$, cleaning this sample
+should give us $\hat{S'}$ a uniform sample of the up-to-date view $S'$ with the same sampling ratio.
 Formally, this can be represented as the following operations:
 \begin{itemize}[noitemsep]
 \item If an update is needed, update the row.
 \item If the row needs to be deleted, delete the row.
-\item For all new rows that need to be inserted into the view $S'$ insert a random sample of ratio $m$.
+\item For all new rows that need to be inserted into the view $S$ insert a random sample of ratio $m$.
 \end{itemize}
 
-The way we defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$, so the next question is how to formalize the link between $\hat{S}$ and $\hat{S'}$. 
+Due to the insertions, the way we defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$, so the next question is how to formalize the link between $\hat{S}$ and $\hat{S'}$. 
 To link a corrsponding stale samples (dirty data) and up-to-date samples (clean data), we define the following property:
 \begin{definition}[Correspondence]
 $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\hat{S'}$ and $\hat{S}$ correspond if and only if:
 \begin{itemize}[noitemsep]
 \item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
-\item For every row $r$ in $\hat{S}$ that required an update, $r\in \hat{S'}$
+\item For every row $r$ in $\hat{S}$ that required an update to $r'$, $r' \in \hat{S'}$
 \item For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
 \item For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
 \end{itemize}
@@ -146,8 +146,8 @@ In the query correction phase, we take a query result on a stale view and use th
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
 Our query correction component takes the two corresponding samples $\hat{S'}$ and $\hat{S}$, and calculates a correction to $q(S)$.
 
-Like similar restrictions in other sampled-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
-In the SampleClean work, we focused on \sumfunc,\countfunc, and \avgfunc queries of the form: 
+Like similar restrictions in other sample-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
+In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form: 
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $f(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
@@ -174,7 +174,7 @@ We use the set of outliers to return a more accurate correction result.
 \subsection{System Architecture}
 To summarize, the basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
 The key insight is that SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
-In implementation, SVC works in conjunction with existing periodic maintenance or periodic re-calculation.
+In implementation, SVC works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
