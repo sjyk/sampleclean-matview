@@ -6,10 +6,11 @@ The basic idea is that we create an index of outlier records (records whose attr
 %However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
-In \cite{chaudhuri2001overcoming}, outlier indices are defined on the sampled relation. 
-In SVC, we sample the materialized view and only maintain those rows in the sample.
-Therefore, there is a problem since the outlier records are not materialized.
-To address this problem, we define the outlier index on the base relation.
+In \cite{chaudhuri2001overcoming}, the authors applied outlier indexing to improve the accuracy of AQP.
+We apply a similar technique, however, their problem setting is different in a few ways.
+First, in the AQP setting, queries are issued to base relations.
+In our problem, we issue queries to materialized views.
+We need to define how to propagate information from an outlier index on the base relation to a materialized view.
 
 The first step is that the user selects an attribute of any base relation to index and specifies a threshold $t$ and a size limit $k$.
 In a single pass of updates (without maintaining the view), the index is built storing references to the records with attributes greater than $t$.
@@ -27,7 +28,7 @@ Then, the attribute value of the lowest record becomes the threshold $t$.
 %Given this index, the next question is how we can use this information in our materialized views.
 We ensure that any row in a materialized view that is derived from an indexed record is guaranteed to be in the sample.
 This problem is sort of an inverse to the efficient sampling problem studied in Section~\ref{sampling}.
-We need to propagate the indices upwards through the query tree.
+We need to propagate the indices upwards through the expression tree.
 
 The next challenge is the outlier index must not require any additional effort to materialize.
 We add the condition that the only eligible indices are ones on base relations that are being sampled (i.e., we can push the hash operator down to that relation).
@@ -35,15 +36,15 @@ Therefore, in the same iteration as sampling, we can also test the threshold and
 We formalize the propagation property recursively. 
 Every relation can have an outlier index which is a set of attributes and a set of records that exceed the threshold value on those attributes.
 
-The main idea is to treat the indexed records as a sub-relation that gets propagated upwards with the maintenance plan.
+The main idea is to treat the indexed records as a sub-relation that gets propagated upwards with the maintenance strategy.
 \begin{definition}[outlier index pushup]
-Define an outlier index to be a triple of a set of indexed attributes, and a set of records $(I,O)$. The outlier index propagates upwards with the following rules: 
+Define an outlier index to be a tuple of a set of indexed attributes, and a set of records $(I,O)$. The outlier index propagates upwards with the following rules: 
 \begin{itemize}[noitemsep]
-\item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled i.e. if the sampling operator can be pushed down to that relation.
-\item $\sigma_{\phi}(R)$: Push up with a new outlier index $(I,O)$ 
+\item Base Relations: Outlier indices on base relations are pushed up only if that relation is being sampled, i.e., if the sampling operator can be pushed down to that relation.
+\item $\sigma_{\phi}(R)$: Push up with a new outlier index and apply the selection to the outliers $(I,\sigma_{\phi}(O))$ 
 \item $\Pi_{(a_1,...,a_k)}(R)$: Push upwards with new outlier index $(I \cap (a_1,...,a_k), O)$.
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Push upwards with new outlier index $(I_{1} \cup I_{2}, O_1 \bowtie O_2)$. 
-\item $\gamma_{f,A}(R)$: For group-by aggregates, we set $I = \{f_i\}$. For the outlier index, we do the following steps. (1) Apply the aggregation to the outlier index $\gamma_{f,A}(O)$, (2) for all distinct $A$ in $O$ select the row in $\gamma_{f,A}(R)$ with the same $A$, and (3) this selection is the new set of outliers $O$. 
+\item $\gamma_{f,A}(R)$: For group-by aggregates, we set $I$ to be the aggregation attribute. For the outlier index, we do the following steps. (1) Apply the aggregation to the outlier index $\gamma_{f,A}(O)$, (2) for all distinct $A$ in $O$ select the row in $\gamma_{f,A}(R)$ with the same $A$, and (3) this selection is the new set of outliers $O$. 
 \item $R_1 \cup R_2$: Push up with a new outlier index $(I_1 \cap I_2, O_1 \cup O_2)$. The set of index attributes is combined with an intersection to avoid missed outliers.
 \item $R_1 \cap R_2$: Push up with a new outlier index $(I_1 \cap I_2, O_1 \cap O_2)$.
 \item $R_1 - R_2$: Push up with a new outlier index $(I_1 \cup I_2, O_1 - O_2)$.
@@ -57,7 +58,7 @@ We implement the outlier index as an additional attribute on our sample with a b
 If a row is contained both in the sample and the outlier index, the outlier index takes precedence.
 This ensures that we do not double count the outliers.
 
-\subsection{Query Processing with the Outlier Index} 
+\subsection{Query Processing} 
 For result estimation, we can think of our sample $\hat{S'}$ and our outlier index $O$ as two distinct parts.
 Since $O \subset S'$, and we give membership in our outlier index precedence, our sample is actually a sample restricted to the set $\widehat{(S'-O)}$. 
 The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
