@@ -129,17 +129,19 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 \vspace{-1em}
 
 \begin{abstract}
-Materialized views (MVs), stored pre-computed query results, are widely used to facilitate fast queries on large datasets. 
+Materialized views (MVs), stored pre-computed results, are widely used to facilitate fast queries on large datasets. 
+However, when base data is changed, MVs become stale requiring potentially expensive updates (maintenance).
+In this framework, which we call Sample-View-Clean (SVC), we address the expense of materialized view maintenance from a data cleaning perspective treating staleness as a type of data error.
 %In the Big Data era when new data arrives at an increasingly fast rate, maintaining materialized views can be costly.
 %Due to this cost, maintenance is often deferred to a later time, but at the new cost of returning inaccurate query results on stale views.
-We address the problem of stale MVs from a data cleaning perspective.
-We take inspiration from recent data cleaning results that greatly improve query accuracy by cleaning only a small sample of dirty data.
-To complement existing deferred maintenance approaches, we maintain a sample of a materialized view to correct stale query results between maintenance periods, without the cost of full maintenance. 
+We take inspiration from recent results in data cleaning that greatly improve query accuracy by cleaning only a small sample of dirty data.
+The main idea is to maintain just a sample of a materialized view, and use the sample to correct incorrect query results on the stale view.  
+Our framework supports a wide variety of materialized views and query processing for many different types of aggregate queries; with optimality for SUM, COUNT, AVG.
 %This requires an analysis of the view maintenace procedure to efficiently maintain only a sample of a view.
-We use this sample to estimate how the updates affect a query on the view, and correct the query results based on this estimate.
-We show any query that has an unbiased sample estimator can be reformulated to give an unbiased correction, and for the most common aggregate queries (SUM,COUNT, AVG) our corrections are optimal with respect to estimate variance. 
-As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. 
-We evaluate our method on real and synthetic datasets and results suggest that we are able to provide more accurate query results without having to maintain the full view. 
+%We use this sample to estimate how the updates affect a query on the view, and correct the query results based on this estimate.
+As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed.
+SVC complements existing periodic maintenance approaches by giving accurate and bounded query answers between periods.
+We evaluate our method on real and synthetic datasets and results suggest that we are able to provide accurate query results without having to maintain the full view. 
 \end{abstract}
 
 

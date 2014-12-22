@@ -26,28 +26,28 @@ This observation leads us to the main insight behind our work; namely, that a da
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes and arrival rates have led to development of new, efficient sampling-based approaches for coping with dirty data.   
 In our prior work, we developed the SampleClean framework for scalable aggregate query processing on dirty data \cite{wang1999sample}.
-We applied data cleaning to sample of data and used this clean data to improve the results of aggregate queries.
+We applied data cleaning to a sample of data and used this clean sample to improve the results of aggregate queries.
 This perspective raises a new possibility for MVs: we can use a sample of clean (up-to-date) rows in the view to return more accurate query results without incurring the cost of full view maintenance.
 Of course, the metaphor of stale MVs as dirty data only goes so far. 
 View staleness is a different type of error than typical dirty data, which raises interesting new challenges in materializing a sample, updating the sample, and efficient query processing.
 
 To address these new challenges, we propose Sample-View-Clean (SVC), a framework that applies sampling to approximately correct query results on stale views.
-SVC takes a sample of up-to-date rows from the view, analyzes how thows rows have changed, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how SVC can be used as complementary to existing deferred maintenance approaches. When the MVs become stale between maintenance cycles, we apply SVC for query result estimation for a far smaller cost than having to maintain the entire view.
+SVC takes a sample of up-to-date rows from the view, analyzes how those rows have changed, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how SVC can be used as complementary to existing deferred maintenance approaches. When the MVs become stale between maintenance cycles, we apply SVC for query result estimation for a far smaller cost than having to maintain the entire view.
 The query results from SVC are up-to-date in the sense that they reflect the most recent data, however they are approximate. 
 The approximation error due to sampling is more manageable than staleness: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
 Sampling is known to be sensitive to skewed datasets, and we incorporate an outlier indexing technique to improve the accuracy of our approximation.
 
 %Both MVs and queries can be complex.
 Since SVC is based on sampling, there are a subclass of views for which SVC can save significant computation and a subclass of queries on these views for which SVC can give accurate corrections.
-In this work, we explore these classes from both a theoretical perspective (i.e. when is our query correction optimal w.r.t estimate variance) and an empirical perspective for queries that do not satisfy the optimality conditions when is SVC still beneficial.
+In this work, we explore these classes from both a theoretical perspective (i.e., when is our query correction optimal w.r.t estimate variance) and an empirical perspective for queries that do not satisfy the optimality conditions when is SVC still beneficial.
 
-To summarize, our contributions are as follows: (1) we model the incremental maintenance problem as a data cleaning problem and staleness as a type of data error; allowing us to apply query processing techniques designed for dirty data, (1) we modify these techniques to apply in the materialized view setting and show that they can give us a tradeoff between query result accuracy and computation by applying sampling, (3) we use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (4) we evaluate our approach on a single-node MySQL database with a 10GB skewed TPCD benchmark dataset and on a 20-node Apache Spark cluster with a 1TB log dataset from a video streaming company. 
+To summarize, our contributions are as follows: (1) we formalize maintenance of a sample of an MV as a data cleaning operation and we develop a framework to efficiently maintain (clean) this sample, (2) we extend the SampleClean approach to query processing on dirty data to support a wider set of general aggregate queries and show how this applies in the MV setting, (3) we use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (4) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
 %\end{itemize}
 
 The paper is organized as follows: 
 In Section~\ref{sec-background}, we give the necessary background for our work.
 Next, in Section~\ref{sec-arch}, we formalize the problem.
-In Section~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
+In Sections~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
 In Section~\ref{outlier}, we describe the outlier indexing framework.
 %In Section~\ref{sec:ext}, we discuss extensions to our framework.
 Then, in Section~\ref{exp}, we evaluate our approach.
