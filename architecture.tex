@@ -1,50 +1,55 @@
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
 Then, we formalize the three problems that SVC addresses: (1) how to efficiently maintain only a sample of a materialized view, (2) query processing on stale materialized views with a sample of up-to-date data, and (3) using an outlier index to improve query accuracy.
-Finally, we overview the system architecture and discuss a toy numerical example of how this works in practice.
+Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
 
-\subsection{Notation}
+\subsection{Notation}\label{notation}
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
-Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$, and let $S$ be a materialized view of this database.
-We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
-%In this paper, we refer to $\Delta R_i$ and $\nabla R_i$ as ``delta relations".
-An update to a relation can be modeled as a deletion and then an insertion.
-When the base relations have been updated (there exists insertions and/or deletions), we define $S$ as stale.
+\noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
+View definitions are composed of the following relational expressions:
+\begin{itemize}[noitemsep] \sloppy
+	\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
+	\item $\Pi_{a_1,a_2,...,a_k}(R)$: Generalized projection select attributes $\{a_1,a_2,...,a_k\}$ from, allowing for new columns that are arithmetic transformations of attributes e.g. $a_1+a_2$.
+	\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$. We use $\bowtie$ to denote all types of joins even extended outer joins such as $\rightouterjoin,\leftouterjoin,\fullouterjoin$.
+	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The output schema is of the result is $a, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
+	\item $R_1 \cup R_2$: Set union take a union of the two sets.
+	\item $R_1 \cap R_2$: Set intersection take an intersection of the set.
+	\item $R_1 - R_2$: Set difference.
+\end{itemize}
+The composition of relational expressions can be represented as a tree, which we call the \emph{expression tree}.
+At the leaves of the tree are all of the \emph{base relations} for a view.
+Each node of the tree is the result of applying one of the above relational expressions to a relation (or the result of another expression).
 
-There may be many different strategies to apply updates (maintenance) to $S$ based on the insertions and deletions, and we denote the up-to-date view as $S'$.
+\noindent \textbf{Staleness: } We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
+An ``update" to a relation can be modeled as a deletion and then an insertion.
+A view $S$ is considered \emph{stale} when there exist insertions and deletions to its base relations.
+
+\noindent \textbf{Maintenance: } There may be many different strategies to apply updates (maintenance) to $S$ based on the insertions and deletions, and we denote the up-to-date view as $S'$.
 We formalize the procedure to maintain the view as a \emph{maintenance strategy} $\mathcal{M}$.
 A maintenance strategy is a relational expression the execution of which will update the view $S$ to produce $S'$.
 $\mathcal{M}$ is formalism that can represent incremental update, recomputation, or a mix where some sub-expressions are recomputed and some are incrementally maintained. 
 
-\begin{definition}[Maintenance Strategy]
-Let, $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$.
+%\begin{definition}[Maintenance Strategy]\sloppy
 Let, $S$ be a materialized view.
-We denote the insertions to a relation $R_i$ as $\Delta R_i$ and the deletions as $\nabla R_i$.
 A maintenance strategy $\mathcal{M}$ is a relational expression the execution of which updates the view.
-It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and delection relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
-\end{definition}
+It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
+%\end{definition}
+In this work, we consider maintenance strategies composed of the same relational expressions as materialized views described above.
 
-%In this work, we ignore \textbf{null} types and assume that each tuple in the relation has non-null attribute values.
-In this work, we look at materialized views and maintenance strategies composed of the following relational expressions:
-\begin{itemize}[noitemsep]
-\item $\sigma_{\phi}(R)$: Selection select all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
-\item $\Pi_{a_1,a_2,...,a_k}(R)$: Projection select attributes $\{a_1,a_2,...,a_k\}$ from R
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$.
-\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The output schema is of the result is $a, f_i$. \footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
-\item $R_1 \cup R_2$: Set union take a union of the two sets.
-\item $R_1 \cap R_2$: Set intersection take an intersection of the set.
-\item $R_1 - R_2$: Set difference.
-\end{itemize}
-As a convenient conceptualization of composable relational exrepssions, in this paper, we often expressed them in a well-studied tree form called an \emph{expression tree}.
-
-To make the concept of a maintenance strategy concrete, we show an example view based on our running example dataset in Figure \ref{exexpr}.
+\noindent \textbf{Example: }
+To make the concept of a maintenance strategy concrete, we show an example materialized view based on our running example dataset in Figure \ref{exexpr}.
 Our example view joins the Log table with the Video table and counts the visits for each video grouped by id.
-If new records have been added to \tbl{Log} and \tbl{Video}, then the maintenance strategy consists of the following expressions: (1) create a ``delta view" by applying the view definition to \tbl{LogIns}, (2) update the view by taking the join of the ``delta view" with \tbl{countView}, (3) project the result by incrementing \tbl{visitCount}. 
-We illustrate this process with the expression tree in Figure \ref{exexpr}.
+If new records have been added to \tbl{Log}, then the expressions are needed to update the view (Figure \ref{exexpr}):
+\begin{enumerate}[noitemsep]
+\item Create a ``delta view" by applying the view definition to \tbl{LogIns}. That is, calculate the count 
+per video on the new logs.
+\item Take the full outer join (equality on \textsf{videoId}) of the ``delta view" and the stale view.
+\item Apply the generalized projection operator to increment \textsf{visitCount} (adding the delta view \textsf{visitCount} and the stale \textsf{visitCount} treating null as 0).
+\end{enumerate}
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.35]{figs/example_expression_tree.pdf} \vspace{-.25em}
+ \includegraphics[scale=0.30]{figs/example_expression_tree.pdf} \vspace{-.25em}
  \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.75em}
 \end{figure}
 
@@ -71,7 +76,7 @@ notation in the analysis.
 \fi
 
 \subsection{Problem Statements}
-\subsubsection{View Maintenance as Data Cleaning}
+\subsubsection{View Maintenance as Data Cleaning}\label{cleaning}
 In SVC, we model staleness in a materialized view as a type of data error.
 %Materialized views whose base relations have been updated potentially give stale query results.
 We formalize the problem of correcting staleness as a data cleaning operation so we can apply our a data cleaning approach.
