@@ -164,9 +164,8 @@ we can re-write $\dans$ as a sample mean of the set of differences (where nulls 
 Thus, $\dans$ is an MVUE for the correction and since the stale result is deterministic it does not affect the estimate.
 See \cite{technicalReport} for the full version of the proof.
 \end{proof}
-
-One implication of this proof is that there does not exist any other estimation algorithm for $\dans$ that has lower variance.
-For example, we could imagine training a machine learning algorithm to predict how each row changes and apply this algorithm to answer aggregate queries; this theorem shows that for \sumfunc, \countfunc, and \avgfunc this would be suboptimal.
+The implication of this theorem is that there does not exist any other estimation algorithm for $\dans$ that has lower variance.
+%For example, we could imagine training a machine learning algorithm to predict how each row changes and apply this algorithm to answer aggregate queries; this theorem shows that for \sumfunc, \countfunc, and \avgfunc this would be suboptimal.
 
 \subsection{General Aggregate Queries}
 In SampleClean, we proposed the \nsc algorithm to give unbiased corrections to \sumfunc, \countfunc, and \avgfunc.

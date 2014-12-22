@@ -15,7 +15,7 @@ We first discuss some of the difficulties with uniform sampling.
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
 \begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} of $S'$ if
-\[\text{(1)} \forall s \in \hat{S'} : s \in S'\text{; (2) }Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m\]
+\[\text{(1) } \forall s \in \hat{S'} : s \in S'\text{; (2) }Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m\]
 \end{definition}
 A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly with many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Recall, the view in our example \textsf{countView}. 

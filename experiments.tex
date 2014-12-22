@@ -260,10 +260,10 @@ On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more
  \includegraphics[scale=0.10]{exp/msqv_2.pdf}\vspace{-1em}
  \caption{(a) For 1GB update size, we compare maintenance time and accuracy of SVC with a 10\% sample on different views. V21 and V22 do not benefit as much from SVC due to nested query structures. (b) As before for a 10\% sample size and 10\% update size, SVC+Corr is more accurate than SVC+AQP and No Maintenance.  \label{exp3-acc}}
 \end{figure}
-In this experiment, we demonstrate the breadth of views supported by SVC.
-Recall from our experiment description that each parameterized TPCD query is treated as a materialized view, and we use the \textsf{qgen} program 
-to generate 10 instances for each query.
-When we report results, we average over these 10 instances for each of the query types.
+In this experiment, we demonstrate the breadth of views supported by SVC by using the TPCD queries as materialized views.
+%Recall from our experiment description that each parameterized TPCD query is treated as a materialized view, and we use the \textsf{qgen} program 
+%to generate 10 instances for each query.
+%When we report results, we average over these 10 instances for each of the query types.
 
 \textbf{Performance: }
 Figure \ref{exp3-acc}, shows the maintenance time for a 10\% sample compared to the full view.
@@ -300,7 +300,7 @@ While there is an overhead, it is still small compared to the gains made by samp
 
 \subsection{Conviva}
 In our next set of experiments, we applied SVC to a 1TB dataset of logs from Conviva.
-Recall, that we implement SVC on a 10-node Spark cluster. 
+%Recall, that we implement SVC on a 10-node Spark cluster. 
 \subsubsection{Performance and Accuracy}
 \begin{figure}[t] \vspace{-2em}
 \centering
