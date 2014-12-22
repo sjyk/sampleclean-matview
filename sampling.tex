@@ -10,11 +10,12 @@ We first present our extensions to the existing SampleClean queries: \sumfunc, \
 Then, we discuss how to extend this framework to other aggregate functions.
 %We also show how SampleClean can work with biased estimates as well and what statistical tools we can use to bound these estimates.
 %Next, we discuss selection queries and how SampleClean can give limited support to these.
-We summarize these results in Table \ref{table:nonlin}, where we list common aggregation queries and describe 
-how SVC estimates their results. 
+%We summarize these results in Table \ref{table:nonlin}, where we list common aggregation queries and describe 
+%how SVC estimates their results. 
 %Finally, we analyze the cost of query correction.
 
 
+\iffalse
 \begin{table*}[ht!]\scriptsize\vspace{-2em}
 \caption{Query Result Semantics}  % title of Table
 \centering % used for centering table
@@ -34,6 +35,7 @@ Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table
 \end{tabular}\vspace{-1em}
 \label{table:nonlin} % is used to refer this table in the text
 \end{table*}
+\fi
 
 \subsection{SUM, COUNT, and AVG}
 In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \avgfunc queries.
@@ -160,7 +162,7 @@ This gives us a set of real numbers which defines our empirical distribution.
 Then, we apply our correspondence subtract operator and since point-wise subtraction is commutative with these three queries,
 we can re-write $\dans$ as a sample mean of the set of differences (where nulls are 0).
 Thus, $\dans$ is an MVUE for the correction and since the stale result is deterministic it does not affect the estimate.
-See \reminder{TR} for the full version of the proof.
+See \cite{technicalReport} for the full version of the proof.
 \end{proof}
 
 One implication of this proof is that there does not exist any other estimation algorithm for $\dans$ that has lower variance.
@@ -192,7 +194,7 @@ If there exists an unbiased sample estimator for q(S') then there exists an unbi
 \begin{proof}[Sketch] 
 Deterministic constants do not change the expected value of a random variable.
 The query result on the entire stale view is deterministic.
-Refer to our extended paper for more details \reminder{TR}.
+Refer to our extended paper for more details \cite{technicalReport}.
 \end{proof}
 
 \iffalse
@@ -224,14 +226,14 @@ We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13} to e
 In this approach, we repeatedly subsample with replacement from our sample and apply the sample estimator.
 We use these repeated executions to build a distribution of values that the correction can take allowing us to bound the result.
 There has been recent research in using techniques such as Poissonized resampling \cite{agarwalknowing}, analytical bootstrap\cite{DBLP:conf/sigmod/ZengGMZ14}, and bagging \cite{DBLP:conf/kdd/KleinerTASJ13} to make this algorithm better suited for latency-sensitive query processing application.
-Refer to the extended technical report for the details on the bootstrap procedure \reminder{TR}.
+Refer to the extended technical report for the details on the bootstrap procedure \cite{technicalReport}.
 
 \subsubsection{MIN and MAX}
 \minfunc and \maxfunc fall into their own category since there does not exist any unbiased sample estimator nor can that bias be bounded.
 We devise an estimation procedure that corrects these queries.
 However, we can only achieve bound that has a slightly different interpretation than the confidence intervals seen before.
 We can calculate the probability that a larger (or smaller) element exists in the unsampled view.
-Refer to the extended technical report for the details on \minfunc and \maxfunc \reminder{TR}.
+Refer to the extended technical report for the details on \minfunc and \maxfunc \cite{technicalReport}.
 
 \iffalse
 We devise the following correction estimate for \maxfunc: (1) For all rows in both $S$ and $S'$, calculate the row-by-row difference, (2) let $c$ be the max difference, and (3) add $c$ to the max of the stale view.
