@@ -366,15 +366,16 @@ At this sampling point, we find that applying SVC gives results 2.8x more accura
 \begin{figure}[t]\vspace{-2em}
 \centering
  \includegraphics[scale=0.12]{exp/con_5.pdf}
- \includegraphics[scale=0.12]{exp/con_6.pdf}
+ \includegraphics[scale=0.12]{exp/con_6.pdf}\vspace{-0.5em}
  \caption{For a fixed throughput, SVC+Periodic Maintenance gives more accurate results for V2 and V5. \label{conv-4}} 
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[scale=0.12]{exp/con_7.pdf}
+\includegraphics[scale=0.11]{exp/con_7.pdf}\vspace{-1em}
  \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} 
 \end{figure}
+
 To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and SVC+periodic IVM. 
 We find that SVC takes advantage of the idle times in the system; which are common during shuffle operations in a synchronous parallelism model.
 

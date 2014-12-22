@@ -14,14 +14,9 @@ maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 We first discuss some of the difficulties with uniform sampling.
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
-
 \begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} of $S'$ if
-\begin{enumerate}[label=(\arabic*),itemsep=1pt]
-\item $\forall s \in \hat{S'} : s \in S'$;
-\item $Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m$.
-\end{enumerate}
+\[\text{(1)} \forall s \in \hat{S'} : s \in S'\text{; (2) }Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m\]
 \end{definition}
-
 A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly with many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Recall, the view in our example \textsf{countView}. 
 Suppose, we sampled from the base relation \tbl{Log}, and then applied the view definition to the sample to form the ``delta view".
@@ -98,11 +93,9 @@ Suppose we have $S$ which is the stale view and $S'$ which is the up-to-date vie
 Both these views have the same schema and a primary key $a$.
 Let $\eta_{a, m}$ be our hash function that applies the hashing to the primary key $a$.
 \[
-\hat{S} = \eta_{a, m}(S)
+\hat{S} = \eta_{a, m}(S),\text{ } \hat{S'} = \eta_{a, m}(S')
 \]
-\[
-\hat{S'} = \eta_{a, m}(S')
-\]
+
 Then, two samples $\hat{S'}$ and $\hat{S}$ correspond.
 \end{proposition}
 \begin{proof}[Sketch]

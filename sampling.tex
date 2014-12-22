@@ -157,8 +157,8 @@ Thus, for \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correc
 
 \begin{proof}[Sketch]
 It is known that the sample mean is an MVUE for the population mean for an arbitrary distribution \cite{shuster1982nonparametric}; however we calculate a correction and we explore the optimality of this correction.
-In the first step of \nsc, we rewrite \sumfunc, \countfunc, and \avgfunc as Select queries.
-This gives us a set of real numbers which defines our empirical distribution.
+%In the first step of \nsc, we rewrite \sumfunc, \countfunc, and \avgfunc as Select queries.
+%This gives us a set of real numbers which defines our empirical distribution.
 Then, we apply our correspondence subtract operator and since point-wise subtraction is commutative with these three queries,
 we can re-write $\dans$ as a sample mean of the set of differences (where nulls are 0).
 Thus, $\dans$ is an MVUE for the correction and since the stale result is deterministic it does not affect the estimate.
