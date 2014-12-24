@@ -256,8 +256,8 @@ On average SVC+Corr is 12.9x more accurate than the stale baseline and 3.6x more
 
 \begin{figure}[t]\vspace{-2em}
 \centering
- \includegraphics[scale=0.10]{exp/msqv_1.pdf}
- \includegraphics[scale=0.10]{exp/msqv_2.pdf}\vspace{-1em}
+ \includegraphics[scale=0.13]{exp/msqv_1.pdf}
+ \includegraphics[scale=0.13]{exp/msqv_2.pdf}\vspace{-1em}
  \caption{(a) For 1GB update size, we compare maintenance time and accuracy of SVC with a 10\% sample on different views. V21 and V22 do not benefit as much from SVC due to nested query structures. (b) As before for a 10\% sample size and 10\% update size, SVC+Corr is more accurate than SVC+AQP and No Maintenance.  \label{exp3-acc}}
 \end{figure}
 In this experiment, we demonstrate the breadth of views supported by SVC by using the TPCD queries as materialized views.
@@ -304,8 +304,8 @@ In our next set of experiments, we applied SVC to a 1TB dataset of logs from Con
 \subsubsection{Performance and Accuracy}
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.10]{exp/con_3.pdf}
- \includegraphics[scale=0.10]{exp/con_4.pdf} \vspace{-1.0em}
+ \includegraphics[scale=0.105]{exp/con_3.pdf}
+ \includegraphics[scale=0.105]{exp/con_4.pdf} \vspace{-1.0em}
  \caption{(a) We compare the maintenance time of SVC with a 10\% sample and full incremental maintenance, and find that as with TPCD SVC saves significant maintenance time. (b) We also compare SVC+Corr to SVC+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive the views from 800GB of base data and add 80GB of updates.
@@ -373,7 +373,7 @@ At this sampling point, we find that applying SVC gives results 2.8x more accura
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.11]{exp/con_7.pdf}\vspace{-1em}
- \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} 
+ \caption{SVC better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} \vspace{-1em}
 \end{figure}
 
 To give some intuition on why SVC gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and SVC+periodic IVM. 

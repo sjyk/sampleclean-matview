@@ -83,13 +83,14 @@ For sampling ratio $m$, we can estimate the query correction for \sumfunc and \c
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 $\;\;\;\;$$\dans_{count,sum} = $ SELECT $ \sumfunc\big(*)/m$ FROM d;
 \end{lstlisting}
-For the \avgfunc query, we can divide the corrections for \sumfunc and \countfunc:
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$\dans_{avg} = \frac{\dans_{sum}}{\dans_{cnt}}$;
-\end{lstlisting}
 To apply the correction, we take the stale query result and add the correction:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$agg(S') \approx agg(S) + \dans_{avg,sum,count}$;
+$\;\;\;\;$$agg(S') \approx agg(S) + \dans_{sum,count}$;
+\end{lstlisting}
+
+For the \avgfunc query, we can divide corrected results for \sumfunc and \countfunc:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+$\;\;\;\;$$AVG(S') = \frac{SUM(S')}{COUNT(S')}$;
 \end{lstlisting}
 
 \iffalse
@@ -150,7 +151,7 @@ It turns out that the proposed corrections are the optimal strategy when nothing
 \begin{theorem}
 Suppose we have a set of real numbers $X$ of size $N$. 
 $X$ defines an empirical (non-parametric) distribution as follows for a random draw from $X$ takes on the value each $x \in X$ with probability $\frac{1}{N}$.
-For an arbitrary non-parametric distribution, the sample mean is an MVUE of the expected value of $X$ (the population mean).
+For the family of non-parametric distributions, the sample mean is an MVUE of the expected value of $X$ (the population mean).
 Thus, for \sumfunc, \countfunc, and \avgfunc queries, our estimate of the correction is optimal when no other information is known about the distribution. 
 %In other words, there exists no other linear function of the set input rows $\{ X_i \}$ that gives a lower variance correction.
 \end{theorem}
@@ -164,7 +165,8 @@ we can re-write $\dans$ as a sample mean of the set of differences (where nulls 
 Thus, $\dans$ is an MVUE for the correction and since the stale result is deterministic it does not affect the estimate.
 See \cite{technicalReport} for the full version of the proof.
 \end{proof}
-The implication of this theorem is that there does not exist any other estimation algorithm for $\dans$ that has lower variance.
+The implication of this theorem is that there does not exist any other estimation algorithm for $\dans$ that has lower variance when nothing else is known about the data a priori.
+However, as we will see in Section \ref{outlier}, when we know additional information (e.g., outliers), we may be able to get better results.
 %For example, we could imagine training a machine learning algorithm to predict how each row changes and apply this algorithm to answer aggregate queries; this theorem shows that for \sumfunc, \countfunc, and \avgfunc this would be suboptimal.
 
 \subsection{General Aggregate Queries}

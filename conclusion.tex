@@ -24,7 +24,8 @@ However, this work did not consider applications when the correction was applied
 
 In the context of materialized view maintenance, sampling has primarily been studied from the perspective of maintaining samples \cite{DBLP:conf/icde/OlkenR92}.
 Similarly, in~\cite{joshi2008materialized}, Joshi and Jermaine studied indexed materialized views that are amenable to random sampling.
-While similar in spirit (queries on the view are approximate), this work does not consider the cost of maintaining the materialized view only the cost of fast, approximate queries on the view.
+While similar in spirit (queries on the view are approximate), the goal of this work was to optimize query processing not address the cost of incremental maintenance.
+There has been work using sampled views in a limited context of cardinality estimation \cite{larson2007cardinality}, which is the special case of our framework, namely, the \countfunc query.
 Nirkhiwale et al. \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}, studied an algebra for sampling in aggregate queries.
 They studied how to build query plans for aggregate queries (with nested subqueries and joins) that involved a Generalized Uniform Sampling (GUS) primitive.
 This work did use lineage and similar to our work defined the GUS primitive as a random selection over the primary key.

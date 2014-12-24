@@ -88,7 +88,7 @@ When the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ a
 this expression to propagate changes to our sample.
 
 One benefit of deterministic hashing is that we get the Correspondence Property (Definition \ref{correspondence}) for free.
-\begin{proposition}[Hashing Correspondence]
+\begin{theorem}[Hashing Correspondence]
 Suppose we have $S$ which is the stale view and $S'$ which is the up-to-date view.
 Both these views have the same schema and a primary key $a$.
 Let $\eta_{a, m}$ be our hash function that applies the hashing to the primary key $a$.
@@ -97,7 +97,7 @@ Let $\eta_{a, m}$ be our hash function that applies the hashing to the primary k
 \]
 
 Then, two samples $\hat{S'}$ and $\hat{S}$ correspond.
-\end{proposition}
+\end{theorem}
 \begin{proof}[Sketch]
 Since the primary keys are key consistent between $\hat{S'}$ and $\hat{S}$, included and excluded rows are preserved by the hashing.
 See the extended version for a full proof \cite{technicalReport}.
