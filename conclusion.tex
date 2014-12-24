@@ -16,7 +16,7 @@ Sampling has been well studied in the context of query processing~\cite{AgarwalM
 Both the problems of efficiently sampling relations \cite{olken1993random} and processing complex queries \cite{agarwalknowing}, have been well studied. 
 In SVC, we look at a new problem, where we efficiently sample from a maintenance strategy, a relational expression that updates a materialized view.
 We generalize uniform sampling procedures to work in this new context using lineage \cite{DBLP:journals/vldb/CuiW03} and hashing.
-We look the problem of approximate query processing \cite{AgarwalMPMMS13, agarwalknowing} from a different perspective by estimating a ``correction" rather than estimating query results. 
+We look the problem of approximate query processing \cite{AgarwalMPMMS13, agarwalknowing} from a different perspective by estimating a ``correction'' rather than estimating query results. 
 Srinivasan and Carey studied a problem related to query correction which they called compensation-based query processing \cite{srinivasanC92} for concurrency control.
 %This work was applied in the context of concurrency control.
 However, this work did not consider applications when the correction was applied to a sample as in SVC.
@@ -35,7 +35,7 @@ The problem setting was also very different where the objective is efficient pla
 Sampling has been explored in the streaming community, and a similar idea of sampling from incoming updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}.
 While some of these works studied problems similar to materialization, for example, the JetStream project (Rabkin et al.) looks at how sampling can help with real-time analysis of aggregates.
 None of these works formally studied the class views that can benefit from sampling or formalized queries on these views.
-%However, there are ideas from Rabkin et al. that could be applied in SVC in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up" queries in aggregate views.
+%However, there are ideas from Rabkin et al. that could be applied in SVC in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up'' queries in aggregate views.
 There are a variety of other efforts proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which is similar to our problem setting and motivation.
 
 Finally, the theory community has has studied related problems.

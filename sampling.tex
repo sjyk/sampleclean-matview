@@ -46,7 +46,7 @@ In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \
 %Group-by clauses can be handled as part of the predicate.
 \nsc corrects a dirty query result, by taking a sample of dirty data, applying data cleaning, and estimating a compensation for the dirtiness from the sample.
 It then calculates the row-by-row difference for each row in the sample between dirty and clean (i.e., how much did cleaning change the data).
-We showed that the result of applying the query to the set of differences can be interpreted as a ``correction" for dirty query results. 
+We showed that the result of applying the query to the set of differences can be interpreted as a ``correction'' for dirty query results. 
 %Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
 However, this only considered data errors that updated rows, not those that required new rows to be inserted or deleted.
 In the materialized view setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
@@ -278,7 +278,7 @@ From this sample, using our lineage defined earlier, we can quickly identify whi
 For the updated rows in the sample, we overwrite the out-of-date rows in the stale query result.
 For the new rows, we take a union of the sampled selection and the updated stale selection.
 For the missing rows, we remove them from the stale selection.
-To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of number of rows that were updated, added, or deleted (thus three ``confidence" intervals). 
+To quantify the approximation error, we can rewrite the Select query as \countfunc to get an estimate of number of rows that were updated, added, or deleted (thus three ``confidence'' intervals). 
 
 
 \iffalse

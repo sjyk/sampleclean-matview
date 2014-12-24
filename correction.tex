@@ -1,7 +1,7 @@
 \section{Efficient Maintenance With Sampling} \label{sampling}
-%\reminder{Make sure that we do a good survey on ``sampling from a view" and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
-In the previous section, we formalized the procedure of taking a uniform sample of rows $\hat{S}$, and ``cleaning" it to produce a corresponding uniform sample of the up-to-date view $\hat{S'}$.
-This procedure is not unique and there are both efficient and inefficient (i.e., not any easier than updating the entire materialized view) ways to accomplish this. 
+%\reminder{Make sure that we do a good survey on ``sampling from a view'' and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
+In the previous section, we formalized the procedure of taking a uniform sample of rows $\hat{S}$, and ``cleaning'' it to produce a corresponding uniform sample of the up-to-date view $\hat{S'}$.
+This procedure is not unique and there are both efficient and inefficient ways to accomplish this. 
 For example, a naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
 However, this does not make the maintenance of the sample any more efficient.
 
@@ -17,10 +17,10 @@ For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $
 \begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} of $S'$ if
 \[\text{(1) } \forall s \in \hat{S'} : s \in S'\text{; (2) }Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m\]
 \end{definition}
-A traditional ``coin-flip" sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly with many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
+A traditional ``coin-flip'' sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly with many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Recall, the view in our example \textsf{countView}. 
-Suppose, we sampled from the base relation \tbl{Log}, and then applied the view definition to the sample to form the ``delta view".
-The ``delta view" would have a mix of missing videos (\textsf{videoId} is not in the sample) and rows with incomplete aggregates (not all of the videos with \textsf{videoId} are in the sample).
+Suppose, we sampled from the base relation \tbl{Log}, and then applied the view definition to the sample to form the ``delta view''.
+The ``delta view'' would have a mix of missing videos (\textsf{videoId} is not in the sample) and rows with incomplete aggregates (not all of the videos with \textsf{videoId} are in the sample).
 However, this is not what we require since it is not a uniform sample of the rows in the view. 
 
 To get a uniform sample of a view, the main problem is that for every row sampled in the view, our sampling technique needs to include all of the rows in sub-expressions that contribute to its materialization.
@@ -130,7 +130,7 @@ We can apply our sampling operator to this key, and use the pushdown rules descr
 In Figure \ref{exexpr2}, we illustrate the pushdown process.
 The the first operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
 for push down since \textsf{videoId} is in the projection.
-The second expression is a hash of the equality join key which merges the aggregate from the ``delta view" to the old view allowing us to push down on both branches of the tree.
+The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree.
 On the left side, we reach the the stale view so we stop.
 Since the stale view does not change, we can calculate the sample of the stale view once (eg. during periodic maintenance). 
 On the right side, we reach the aggregate query (count) and since \textsf{videoId} is in group by clause, we can push down the sampling.
@@ -142,6 +142,6 @@ Then, we reach another point where we hash the equality join key allowing us to 
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy.  \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
-In terms of increased efficiency, since both the aggregation and joins are ``above" the sampling operator, they require less computation and less memory.
+In terms of increased efficiency, since both the aggregation and joins are ``above'' the sampling operator, they require less computation and less memory.
 
 

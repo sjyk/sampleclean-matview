@@ -43,9 +43,9 @@ By using sampling, we give the user access to a new trade-off space between imme
 
 \subsection{SampleClean: Fast and Accurate Query Processing on Dirty Data}
 In our prior work on the SampleClean project \cite{wang1999sample}, we proposed a framework for scalable aggregate query processing on dirty data.
-Similar to the accuracy-performance contrast between immediate maintenance and periodic maintenance in the materialized view setting, data cleaning also faces a similar challenge.
 Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy, and those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
 We proposed SampleClean to add an additional trade-off to this design space by using sampling.
+This challenge mirrors the challenge face in the materialized view setting with the tradeoff between immediate maintenance (inexpensive and inaccurate) and deferred maintenance (expensive and accurate).
 
 SampleClean has three parts: (1) sampling, (2) data cleaning, and (3) query result estimation.
 First, SampleClean creates a sample of dirty data (which are erroneous, missing, or otherwise corrupted records).
@@ -69,15 +69,15 @@ In the materialized view setting, we compare these approaches (see Section \ref{
 \subsection{New Challenges}
 Applying SampleClean to materialized maintenance requries significant extensions to both the data cleaning, and query processing.
 In prior work, we modeled data cleaning as a row-by-row transformation of table.
-The data cleaning was a user-specified  ``black box" that operated on each row, and we applied this to a sample of dirty data.
+The data cleaning was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
 In this work, staleness is the data error and view maintenance is the cleaning; however, staleness is a very different sort of error than we considered before.
-Staleness can lead to rows that are missing from the ``dirty" view or conversely need to be deleted.
-When coupled with sampling, this poses significant challenges since the statistics of the ``dirty" (stale) sample are different from the ``clean" (up-to-date) sample.
+Staleness can lead to rows that are missing from the ``dirty'' view or conversely need to be deleted.
+When coupled with sampling, this poses significant challenges since the statistics of the ``dirty'' (stale) sample are different from the ``clean'' (up-to-date) sample.
 We address this problem by formalizing the necessary updates to a sample materialized view as a data cleaning procedure.
-Since, we only have to propagate updates for a sample, there is further a new challenge in how to most efficiently execute this procedure to avoid irrelevant computation. 
+There is further a new challenge in how to most efficiently execute this procedure to avoid irrelevant computation. 
 
 We also significantly extend SampleClean in terms of query processing.
-In SampleClean, \nsc calculated the difference between the ``dirty" and the ``clean" sample, we extend this approach to settings where those samples do not match perfectly due to missing data.
+In SampleClean, \nsc calculated the difference between the ``dirty'' and the ``clean'' sample, we extend this approach to settings where those samples do not match perfectly due to missing data.
 We also extend the generality of the framework to support queries other than the \sumfunc, \avgfunc, and \countfunc which studied before.
 Sampling is particularly sensitive to variance in the dataset, and large outliers can significantly reduce query accuracy, so in this work, we extend the query processing with an index of outliers.
 
@@ -96,7 +96,6 @@ The \tbl{Log} table stores each visit to a specific video with primary key \text
 The \tbl{Video} stores each video with the primary key \textsf{videoId}, the title \textsf{title}, and the \textsf{duration}.
 Though SVC supports inserts, deletions, and updates (we formalize all three as data cleaning in Section \ref{cleaning}), for clarity in our example, we consider insertions
 into Log which is cached in a temporary table:
-
 %\reminder{I replace LogInserts with LogIns for saving a line of space. Make sure it is consistent in the whole paper.}
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
