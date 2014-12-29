@@ -11,7 +11,7 @@ Then, we discuss how to extend this framework to other aggregate functions.
 %We also show how SampleClean can work with biased estimates as well and what statistical tools we can use to bound these estimates.
 %Next, we discuss selection queries and how SampleClean can give limited support to these.
 %We summarize these results in Table \ref{table:nonlin}, where we list common aggregation queries and describe 
-%how SVC estimates their results. 
+%how \svc estimates their results. 
 %Finally, we analyze the cost of query correction.
 
 
@@ -171,14 +171,14 @@ However, as we will see in Section \ref{outlier}, when we know additional inform
 %For example, we could imagine training a machine learning algorithm to predict how each row changes and apply this algorithm to answer aggregate queries; this theorem shows that for \sumfunc, \countfunc, and \avgfunc this would be suboptimal.
 
 \subsubsection{Correction vs. Direct Estimate}
-In many cases correcting query results approximately is more accurate than an AQP-style direct estimate. 
+Correcting query results approximately is often more accurate than an AQP-style direct estimate. 
 We can provide some mathematical intuition for this.
 For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
-proportional to the variance of the \emph{change} and inversely proportional to the sample size:
-\[\frac{\sigma_{c}^2}{k}\]
-On the other hand, an AQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
-\[\frac{\sigma_{S'}^2}{k}\]
-Since the change is the difference between the stale and up-to-date data, this can be rewritten as: 
+proportional to the variance of the \emph{change} and inversely proportional to the sample size 
+$\frac{\sigma_{c}^2}{k}$.
+On the other hand, an AQP approach would give us an estimate that is proportional to the variance of the up-to-date data 
+$\frac{\sigma_{S'}^2}{k}$.
+Since the change is the difference between the stale and up-to-date data, this can be rewritten as
 \[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
 Therefore, a correction will be more precise when:
 \[\sigma_{S}^2 - 2cov(S,S') \le 0 \]
@@ -282,7 +282,7 @@ To build the confidence interval, we repeatedly apply this procedure $b_2$ times
 
 
 \subsection{Select Queries}
-In SVC, we also explore how to extend this correction procedure to Select queries.
+In \svc, we also explore how to extend this correction procedure to Select queries.
 Suppose, we have a Select query with a predicate:
 \begin{lstlisting} [mathescape]
 SELECT $*$ FROM View 
@@ -316,7 +316,7 @@ Functionally, we can apply the same technique discussed in the previous section 
 \iffalse 
 
 \subsection{Query Execution Cost}
-It is true that SVC adds to the query execution time by issuing a correction. 
+It is true that \svc adds to the query execution time by issuing a correction. 
 However, this correction is only calculated on a sample and thus is small compared to the query execution time over the entire old view.
 In our experiments, we show that the overheads are small in comparison to the execution time over the entire old view and the savings from only maintaining a sample (Section \ref{exp-datacube}).
 \fi

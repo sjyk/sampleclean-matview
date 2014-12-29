@@ -32,7 +32,7 @@ In this paper, we propose \svcfull (SVC), which uses sampling for less expensive
 
 %We treated data cleaning as a ``black-box" and applied it to a sample of data and used this clean sample to improve the results of aggregate queries.
 
-SVC takes a sample of up-to-date rows from the view, analyzes how those rows have changed, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how \svc can be used as complementary to existing deferred maintenance approaches. 
+SVC takes a sample of up-to-date rows from the view, analyzes how those rows changed from the stale MV, and extrapolates a correction factor for query answers on the stale view. Figure~\ref{sys-arch} shows how \svc can be used as complementary to existing deferred maintenance approaches. 
 When the MVs become stale between maintenance cycles, we apply \svc for query result estimation for a far smaller cost than having to maintain the entire view.
 The query results from \svc are up-to-date in the sense that they reflect the most recent data, however they are approximate. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
