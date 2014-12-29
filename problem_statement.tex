@@ -69,17 +69,28 @@ In the materialized view setting, we compare these approaches (see Section \ref{
 \subsection{New Challenges}
 Applying SampleClean to materialized maintenance requries significant extensions to both the data cleaning, and query processing.
 In prior work, we modeled data cleaning as a row-by-row transformation of table.
-The data cleaning was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
-In this work, staleness is the data error and view maintenance is the cleaning; however, staleness is a very different sort of error than we considered before.
-Staleness can lead to rows that are missing from the ``dirty'' view or conversely need to be deleted.
-When coupled with sampling, this poses significant challenges since the statistics of the ``dirty'' (stale) sample are different from the ``clean'' (up-to-date) sample.
-We address this problem by formalizing the necessary updates to a sample materialized view as a data cleaning procedure.
-There is further a new challenge in how to most efficiently execute this procedure to avoid irrelevant computation. 
+This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
 
-We also significantly extend SampleClean in terms of query processing.
+The consequence of staleness is data error and then view maintenance can be posed as the data cleaning as it removes these errors.
+However, in this setting, we found that the ``black-box" data cleaning model does not suffice.
+First, applying incremental maintenance to a sample may not be any more efficient that applying it to a whole MV if it does unneccesary computation.
+In this work, we analyze the relational algebra of a MV maintenance procedure and propose a series of rules to optimize maintaining a sample.
+Second, stale MVs have not only incorrect rows, but also rows that are missing from the ``dirty'' view or conversely need to be deleted.
+When coupled with sampling, this poses significant challenges since the statistics of the ``dirty'' (stale) sample are different from the ``clean'' (up-to-date) sample.
+%We address this problem by formalizing the necessary updates to a sample materialized view as a data cleaning procedure.
+%There is further a new challenge in how to most efficiently execute this procedure to avoid irrelevant computation. 
+
+This requires us to significantly extend SampleClean in terms of query processing.
 In SampleClean, \nsc calculated the difference between the ``dirty'' and the ``clean'' sample, we extend this approach to settings where those samples do not match perfectly due to missing data.
-We also extend the generality of the framework to support queries other than the \sumfunc, \avgfunc, and \countfunc which studied before.
-Sampling is particularly sensitive to variance in the dataset, and large outliers can significantly reduce query accuracy, so in this work, we extend the query processing with an index of outliers.
+Furthermore, in SampleClean, we considered only \sumfunc, \avgfunc, and \countfunc.
+In this work, we explore a broader set of aggregate queries such as \medfunc and design a bootstrap algorithm to bound the approximation error.
+We found that the queries that we studied before (\sumfunc, \avgfunc, and \countfunc) were actually a special case where our estimates are optimal.
+
+Sampling is particularly sensitive to variance of the dataset, and large outliers can significantly reduce query accuracy, so in this work, we extend the query processing with an index of outliers.
+However, in this setting, an important challenge is to efficiently compute the outlier index.
+We show that with only a single pass of the base data, we can index records that exceed some threshold.
+Then, for all rows in an MV that are dependent on an indexed record, we can ensure that they are included in our sample MV.
+We found that empirically this approach lead to significant accuracy improvements in skewed datasets.
 
 \subsection{Running Example: Log Analysis}
 To illustrate our framework in the upcoming sections, we use the following running example which is a 

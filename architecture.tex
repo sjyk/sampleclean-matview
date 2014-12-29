@@ -1,6 +1,6 @@
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
-Then, we formalize the three problems that SVC addresses: (1) how to efficiently maintain only a sample of a materialized view, (2) query processing on stale materialized views with a sample of up-to-date data, and (3) using an outlier index to improve query accuracy.
+Then, we formalize the two main problems that SVC addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale materialized views with a sample of up-to-date data.
 Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
 
 \subsection{Notation}\label{notation}
@@ -151,6 +151,7 @@ SELECT * FROM View WHERE Condition(A);
 As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
 From these queries, we exclude the group by clause, as we model group by clauses as part of the \textsf{Condition}.
 
+\iffalse
 \subsubsection{Outlier Indexing}
 The query correction in the previous subsection is derived from a sample.
 Sampling is known to be sensitive to outliers, which we define as records whose values deviate significantly from the mean.
@@ -160,6 +161,7 @@ This index tracks records whose attributes cross some threshold $t$.
 Then, for a given view $S$, this component gives a series of rules to propagate the information from the outlier index upwards.
 Basically, for every row in the view that is derived from a record in the outlier index, we ensure that it is incorporated into the sample.
 We use the set of outliers to return a more accurate correction result.
+\fi
 %We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
 
 \subsection{System Architecture}
@@ -172,7 +174,7 @@ While maintaining the entire view throughout the day may be infeasible, sampling
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
 
  
-\subsection{Example Application: Log Analysis}
+\subsection{Example Application: Server Log Analysis}
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM countView 
