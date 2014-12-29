@@ -1,9 +1,10 @@
 \section{Outlier Indexing}\label{outlier}
 Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2001overcoming}.
 Power-laws and other long-tailed distributions are common in large datasets\cite{clauset2009power}.
-We address this problem using a technique called outlier indexing which has been applied in SAQP \cite{chaudhuri2001overcoming}.
-The basic idea is that we create an index of outlier records (records whose attributes deviate from the expected value greatly) and ensure that these records are included in the sample.
-%However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
+We address this problem using a technique called outlier indexing which has been applied in AQP \cite{chaudhuri2001overcoming}.
+The basic idea is that we create an index of outlier records (records whose attributes deviate from the mean value greatly) and ensure that these records are included in the sample.
+The intuition is that these records greatly increase the variance of the data and since they are likeley rare the probability of sampling them is low leading to wildly varying estimates when the sample contains and outlier and when it does not contain any outliers.  
+However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
 In \cite{chaudhuri2001overcoming}, the authors applied outlier indexing to improve the accuracy of AQP.
@@ -18,11 +19,16 @@ If the size limit is reached, the incoming record is compared to the smallest in
 The same approach can be extended to attributes that have tails in both directions by making the threshold $t$ a range, which takes the highest and the lowest values.
 However, in this section, we present the technique as a threshold for clarity.
 
-To select the threshold, there are many heuristics that we can use.
+There are many approaches to select a threshold.
 For example, we can use our knowledge about the dataset to set a threshold.
 Or we can use prior information from the base table, a calculation which can be done in the background during the periodic maintenance cycles.
 If our size limit is $k$, we can find the records with the top $k$ attributes in the base table as to set a threshold to maximally fill up our index. 
 Then, the attribute value of the lowest record becomes the threshold $t$.
+Alternatively, we can calculate the variance of the dataset and set the threshold to represent $c$ standard deviations above the mean.
+
+The query processing approach that we propose in the following sub-sections is agnostic to how we choose this threshold.
+In fact, our approach allows us to incorporate any deterministic subset into our sample-based correction calculations.
+The caveat is that the outlier index should not be too expensive to calculate nor should it be too large as it negates the performance benefits of sampling.  
 
 \subsection{Adding Outliers to the Sample}
 %Given this index, the next question is how we can use this information in our materialized views.
@@ -30,7 +36,7 @@ We ensure that any row in a materialized view that is derived from an indexed re
 This problem is sort of an inverse to the efficient sampling problem studied in Section~\ref{sampling}.
 We need to propagate the indices upwards through the expression tree.
 
-The next challenge is the outlier index must not require any additional effort to materialize.
+%The next challenge is the outlier index must not require any additional effort to materialize.
 We add the condition that the only eligible indices are ones on base relations that are being sampled (i.e., we can push the hash operator down to that relation).
 Therefore, in the same iteration as sampling, we can also test the threshold and add records to the outlier index. 
 We formalize the propagation property recursively. 

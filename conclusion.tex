@@ -8,19 +8,19 @@ focus on various perspectives including complex analytical queries~\cite{nikolic
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
 The streaming community has also studied the view maintenance problem \cite{abadi2003aurora,golab2011consistency, golab2012scalable, he2010comet, ghanem2010supporting, KrishnamurthyFDFGLT10}. In Spark Streaming, Zaharia et~al. studied how they could exploit in-memory materialization~\cite{zaharia2012discretized}, and in MonetDB, Liarou et~al. studied how ideas from columnar storage can be applied to enable real-time analytics \cite{liarou2012monetdb}.
 These works focus on correctness, consistency, and fault tolerance of materialized view maintenance.
-SVC proposes an alternative model where we allow approximation error (with guarantees) for queries on materialized views for vastly reduced maintenance time.
+\svc proposes an alternative model where we allow approximation error (with guarantees) for queries on materialized views for vastly reduced maintenance time.
 In many decision problems, exact results are not needed as long as the probability of error is boundable. 
 \fi
 
 Sampling has been well studied in the context of query processing~\cite{AgarwalMPMMS13, olken1993random, garofalakis2001approximate}. 
 Both the problems of efficiently sampling relations \cite{olken1993random} and processing complex queries \cite{agarwalknowing}, have been well studied. 
-In SVC, we look at a new problem, where we efficiently sample from a maintenance strategy, a relational expression that updates a materialized view.
+In \svc, we look at a new problem, where we efficiently sample from a maintenance strategy, a relational expression that updates a materialized view.
 We generalize uniform sampling procedures to work in this new context using lineage \cite{DBLP:journals/vldb/CuiW03} and hashing.
 We look the problem of approximate query processing \cite{AgarwalMPMMS13, agarwalknowing} from a different perspective by estimating a ``correction'' rather than estimating query results. 
 Srinivasan and Carey studied a problem related to query correction which they called compensation-based query processing \cite{srinivasanC92} for concurrency control.
 %This work was applied in the context of concurrency control.
-However, this work did not consider applications when the correction was applied to a sample as in SVC.
-%The sampling in SVC introduces new challenges such as sensitivity to outliers, questions of bias, and estimate optimality. 
+However, this work did not consider applications when the correction was applied to a sample as in \svc.
+%The sampling in \svc introduces new challenges such as sensitivity to outliers, questions of bias, and estimate optimality. 
 
 In the context of materialized view maintenance, sampling has primarily been studied from the perspective of maintaining samples \cite{DBLP:conf/icde/OlkenR92}.
 Similarly, in~\cite{joshi2008materialized}, Joshi and Jermaine studied indexed materialized views that are amenable to random sampling.
@@ -36,43 +36,45 @@ The problem setting was also very different where the objective is efficient pla
 Sampling has been explored in the streaming community, and a similar idea of sampling from incoming updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}.
 While some of these works studied problems similar to materialization, for example, the JetStream project (Rabkin et al.) looks at how sampling can help with real-time analysis of aggregates.
 None of these works formally studied the class views that can benefit from sampling or formalized queries on these views.
-%However, there are ideas from Rabkin et al. that could be applied in SVC in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up'' queries in aggregate views.
+%However, there are ideas from Rabkin et al. that could be applied in \svc in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up'' queries in aggregate views.
 There are a variety of other efforts proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which is similar to our problem setting and motivation.
 
 Finally, the theory community has has studied related problems.
 There has been work on the maintenance of approximate histograms, synopses, and sketches ~\cite{gibbons1997fast, DBLP:journals/ftdb/CormodeGHJ12}, which closely resemble aggregate materialized views.
-This work did not model queries on the approximate data structures as in SVC.
+This work did not model queries on the approximate data structures as in \svc.
 Furthermore, the goals of this line work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
 %There is also close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
-%While this line work studies query processing on probabilistic views, it does not study their maintenance as in SVC.
+%While this line work studies query processing on probabilistic views, it does not study their maintenance as in \svc.
 
 \vspace{-1em}
 \section{Conclusion and Future Work}\label{conclusion}
 \vspace{-.3em}
-%In this paper, we propose a new framework, SVC, to address the staleness problem in materialized views.
-Since view maintenance is often expensive, in practice, many prefer periodic maintenance solutions.
+%In this paper, we propose a new framework, \svc, to address the staleness problem in materialized views.
+Since materialized view maintenance is often expensive, in practice, many prefer deferred maintenance solutions.
+However, this leads to stale materialized views which have incorrect, missing, and superfluous rows.
+In this work, we formalize view maintenance as a data cleaning problem and show that this problem parallels query processing on dirty data.
 %In between these maintenance periods, materialized views become stale and can give incorrect query answers.
-SVC uses sampled-based data cleaning approach to trade-off computation and a query result ccuracy in the materialized view setting.
-This trade-off allows more frequent maintenance to be applied in settings where before system resource constraints made impossible and the result is that between maintenance periods users can get more accurate query results.
+\svc uses sample-based data cleaning approach to trade-off computation and a query result accuracy in the materialized view setting.
+This trade-off allows users to get more accurate query results that reflect the most recent data in settings where once infeasible.
 %We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
 
 %Our results suggest insights for both data cleaning and materialized views.
-We greatly expanded the scope of the SampleClean project \cite{wang1999sample} to general aggregate queries, missing data errors, and proved when optimality of the estimates hold.
-For materialized views, we found that our data cleaning approach can significantly reduce the maintenance time for a large class of materialized views, while still providing accurate aggregate query answers.
-The materialized view setting also encouraged us to consider the relational algebra of sampling, and we devised a hash-based approach to efficiently restrict general view maintenance procedures to a sample.
-One concern with sampling is its sensitivity to data skew, and our results suggest that outlier indexing can mitigate these concerns.
+To achieve this, we significantly extended our prior work in data cleaning, SampleClean \cite{wang1999sample}, for efficient cleaning of stale MVs, to general aggregate queries, missing data errors, and proved for which queries optimality of the estimates hold.
+Another sigificant contribution of \svc is our outlier indexing approach which reduces the sensitivity of sampling to skewed data distributions.
+We presented both empirical and theoretical results showing that our sample data cleaning approach can significantly reduce the maintenance time for a large class of materialized views, while still providing accurate aggregate query answers that reflect the most recent data.
 
 \iffalse
 We evaluated our approach on real and synthetic datasets.
 We use the TPCD benchmark to illustrate three common use cases of materialized views: joins, data-cube aggregates, and nested queries.
 We also evaluated our approach on an industrial dataset from Conviva, where we demonstrated similar performance and accuracy.
-We simulated a real deployment where we integrate SVC with periodic maintenance, and showed that SVC can exploit idle times in the system to give more accurate query results.
+We simulated a real deployment where we integrate \svc with periodic maintenance, and showed that \svc can exploit idle times in the system to give more accurate query results.
 \fi
 
 Our results are promising and suggest many avenues for future work.
-In particular, we are interested in deeper exploration of the multiple view setting.
+In particular, we are interested in deeper exploration of the multiple materialized view setting.
 Here, given a storage constraint and throughput demands, we can optimize sampling ratios over all views.
 We are also interested in the possibility of sharing computation between materialized views and maintenance on views derived from other views.
+Finally, our results suggest relatively a straight forward implementation of adaptive selection of the parameters in \svc such as the view sampling ratio and the outlier index threshold.
 %We also believe there is a strong link between pre-computed machine learning models and materialized views, and the principles of our approach could be applied to build fast, approximate streaming machine learning applications.
 %There is also a link to time series analysis and forecasting.
 

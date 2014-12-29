@@ -84,6 +84,7 @@
 
 \newcommand{\svcfull}{Sample-View-Clean\xspace}
 \newcommand{\svc}{SVC\xspace}
+\newcommand{\svcnospace}{SVC}
 
 
 \newcommand{\tbl}[1]{\textsf{#1}\xspace}
@@ -134,17 +135,18 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 \begin{abstract}
 Materialized views (MVs), stored pre-computed results, are widely used to facilitate fast queries on large datasets. 
 However, when base data is changed, MVs become stale requiring potentially expensive updates (maintenance).
-In this framework, which we call Sample-View-Clean (SVC), we address the expense of materialized view maintenance from a data cleaning perspective treating staleness as a type of data error.
+We propose \svcfull (\svc) which addresses the expense of MV maintenance from a data cleaning perspective since staleness, like dirty data, leads to incorrect, missing, and superfluous rows.
+We take inspiration from recent results in data cleaning that greatly improve query accuracy by cleaning only a small sample of dirty data.
 %In the Big Data era when new data arrives at an increasingly fast rate, maintaining materialized views can be costly.
 %Due to this cost, maintenance is often deferred to a later time, but at the new cost of returning inaccurate query results on stale views.
-We take inspiration from recent results in data cleaning that greatly improve query accuracy by cleaning only a small sample of dirty data.
-The main idea is to maintain just a sample of a materialized view, and use the sample to correct incorrect query results on the stale view.  
-Our framework supports a wide variety of materialized views and query processing for many different types of aggregate queries; with optimality for SUM, COUNT, AVG.
+In \svc, we efficiently clean the data error in sample of rows from a stale MV, and use the clean sample to correct incorrect query results on the stale view.
+Since we only clean a sample, both theoretically and empirically, we show that \svc is much less expensive than full view maintenance.
+While approximate, the corrected query results reflect the most recent data and our framework supports a wide variety of materialized views and aggregate queries; with optimality for SUM, COUNT, AVG.
 %This requires an analysis of the view maintenace procedure to efficiently maintain only a sample of a view.
 %We use this sample to estimate how the updates affect a query on the view, and correct the query results based on this estimate.
 As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed.
-SVC complements existing periodic maintenance approaches by giving accurate and bounded query answers between periods.
-We evaluate our method on real and synthetic datasets and results suggest that we are able to provide accurate query results without having to maintain the full view. 
+SVC complements existing deferred maintenance approaches by giving accurate and bounded query answers between maintenance periods.
+We evaluate our method on real dataset of server logs from Conviva and the TPCD benchmark dataset and our experiments confirm our theoretical result: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance. 
 \end{abstract}
 
 

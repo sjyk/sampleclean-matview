@@ -31,7 +31,7 @@ In real-world systems, for large datasets or fast data update rate, it may not a
 Therefore, deferring maintenance (periodically or adaptively) is an alternative and often preferred solution.
 The main insight of deferral is to avoid maintaining the view immediately and to schedule an update at a more convenient time.
 In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
-%SVC offers a data cleaning perspective on this problem, namely, there is a trade-off between the query result accuracy and computation.
+%\svc offers a data cleaning perspective on this problem, namely, there is a trade-off between the query result accuracy and computation.
 By using sampling, we give the user access to a new trade-off space between immediate (or close to immediate, i.e., mini-batch) maintenance and long-periodic maintenance.
 
 %In particular, we highlight a technique called lazy maintenance which applies updates to the view only when a user's query requires a row \cite{zhou2007lazy}.
@@ -105,7 +105,7 @@ Video(videoId$\textrm{,}$ title$\textrm{,}$ duration)
 \end{lstlisting}
 The \tbl{Log} table stores each visit to a specific video with primary key \textsf{sessionId}, a foreign-key to the \tbl{Video} table \textsf{videoId}, latency of the visit \textsf{responseTime}, and the browser used to access the video \textsf{userAgent}.
 The \tbl{Video} stores each video with the primary key \textsf{videoId}, the title \textsf{title}, and the \textsf{duration}.
-Though SVC supports inserts, deletions, and updates (we formalize all three as data cleaning in Section \ref{cleaning}), for clarity in our example, we consider insertions
+Though \svc supports inserts, deletions, and updates (we formalize all three as data cleaning in Section \ref{cleaning}), for clarity in our example, we consider insertions
 into Log which is cached in a temporary table:
 %\reminder{I replace LogInserts with LogIns for saving a line of space. Make sure it is consistent in the whole paper.}
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]

@@ -47,8 +47,9 @@ In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \
 \nsc corrects a dirty query result, by taking a sample of dirty data, applying data cleaning, and estimating a compensation for the dirtiness from the sample.
 It then calculates the row-by-row difference for each row in the sample between dirty and clean (i.e., how much did cleaning change the data).
 We showed that the result of applying the query to the set of differences can be interpreted as a ``correction'' for dirty query results. 
+Corrections from the traditional AQP approach which would be to apply a query directly to the up-to-date sample view.
 %Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
-However, this only considered data errors that updated rows, not those that required new rows to be inserted or deleted.
+However, in prior work, our corrections only considered data error that updated rows, not those that required new rows to be inserted or deleted.
 In the materialized view setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
 
 In Definition \ref{correspondence}, we formalized a notion of correspondence between two samples.
@@ -168,6 +169,22 @@ See \cite{technicalReport} for the full version of the proof.
 The implication of this theorem is that there does not exist any other estimation algorithm for $\dans$ that has lower variance when nothing else is known about the data a priori.
 However, as we will see in Section \ref{outlier}, when we know additional information (e.g., outliers), we may be able to get better results.
 %For example, we could imagine training a machine learning algorithm to predict how each row changes and apply this algorithm to answer aggregate queries; this theorem shows that for \sumfunc, \countfunc, and \avgfunc this would be suboptimal.
+
+\subsubsection{Correction vs. Direct Estimate}
+In many cases correcting query results approximately is more accurate than an AQP-style direct estimate. 
+We can provide some mathematical intuition for this.
+For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
+proportional to the variance of the \emph{change} and inversely proportional to the sample size:
+\[\frac{\sigma_{c}^2}{k}\]
+On the other hand, an AQP approach would give us an estimate that is proportional to the variance of the up-to-date data:
+\[\frac{\sigma_{S'}^2}{k}\]
+Since the change is the difference between the stale and up-to-date data, this can be rewritten as: 
+\[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
+Therefore, a correction will be more precise when:
+\[\sigma_{S}^2 - 2cov(S,S') \le 0 \]
+If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S') \approx \sigma_{S}^2$ and it is clearly less than 0. 
+On the other hand, there is a break even point where changes are significant enough that direct estimates might be more accurate.
+In our experiments (Figure \ref{exp-1-total}(b)), we evaluate this break even point empirically. 
 
 \subsection{General Aggregate Queries}
 In SampleClean, we proposed the \nsc algorithm to give unbiased corrections to \sumfunc, \countfunc, and \avgfunc.

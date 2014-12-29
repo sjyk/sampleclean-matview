@@ -8,10 +8,10 @@ One solution would be to recompute the MV every time a change occurs; however, i
 There has been substantial work in deriving incremental updates (incremental maintenance) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
 
 For frequently changing tables even incremental maintenance can be expensive since every update to the base data requires updating all the dependent views.  
-This problem is exacerbated when new updates to the base data arrive at an increasingly fast rate and data are often distributed across multiple machines.  
+In many important applications, such as summary statistics from server logs, new records arrive at a fast rate and data are often distributed across multiple machines making incremental maintenance infeasible. 
 As a result, in production environments, it is common to defer view maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and can be scheduled at times of low system utilization (e.g., nightly).  
 
-While deferring maintenance has benefits, the views are stale in between maintenance periods. 
+While deferring maintenance has benefits, the views are stale in between maintenance periods.
 As a result, as the time since the last maintenance increases, queries on those views can return incorrect answers.
 The problem of stale MVs parallels the problem of dirty data studied in data cleaning~\cite{rahm2000data}.
 As in the data cleaning, a stale MV leads to incorrect, missing, or superfluous rows.
@@ -21,7 +21,7 @@ In this paper, we explore how answering queries on a stale MV can be formalized 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.25]{figs/sys-arch.pdf} \vspace{-.25em}
- \caption{If a view is being periodically maintained, in the interim, query results may be stale. \svcfull sits above an existing view maintenance architecture, and provides an interface for approximately up-to-date query results by maintaining a sample. The user can tune the sampling ratio to meet the resource constraints of the system.\label{sys-arch}}\vspace{-1.75em}
+ \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superflous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on the stale view. We also devise an outlier indexing technique for more accurate corrections in skewed datasets. \label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes and arrival rates have led to development of new, efficient sampling-based approaches for coping with dirty data.   
@@ -44,7 +44,7 @@ A significant challenge is efficiently computing this index in a single pass of 
 Since \svc is based on sampling, there are a subclass of views for which \svc can save significant computation and a subclass of queries on these views for which \svc can give accurate corrections.
 In this work, we explore these classes from both a theoretical perspective (i.e., when is our query correction optimal w.r.t estimate variance) and an empirical perspective for queries that do not satisfy the optimality conditions when is \svc still beneficial.
 
-To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation allowing us to apply sample-based clean aggregate query processing, (2) we explore the class of queries that we can accurately answer using SVC, (3) we use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (4) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
+To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation allowing us to apply sample-based clean aggregate query processing, (2) we devise an query processing approach to answer queries accurately using the sample of up-to-date data, (3) we use an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (4) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
 %\end{itemize}
 
 The paper is organized as follows: 
