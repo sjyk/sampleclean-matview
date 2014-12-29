@@ -139,7 +139,7 @@ We propose \svcfull (\svc) which addresses the expense of MV maintenance from a 
 We take inspiration from recent results in data cleaning that greatly improve query accuracy by cleaning only a small sample of dirty data.
 %In the Big Data era when new data arrives at an increasingly fast rate, maintaining materialized views can be costly.
 %Due to this cost, maintenance is often deferred to a later time, but at the new cost of returning inaccurate query results on stale views.
-In \svc, we efficiently clean the data error in sample of rows from a stale MV, and use the clean sample to correct incorrect query results on the stale view.
+In \svc, we efficiently clean data error in a sample of rows from a stale MV, and use the clean sample to correct incorrect query results on the stale view.
 Since we only clean a sample, both theoretically and empirically, we show that \svc is much less expensive than full view maintenance.
 While approximate, the corrected query results reflect the most recent data and our framework supports a wide variety of materialized views and aggregate queries; with optimality for SUM, COUNT, AVG.
 %This requires an analysis of the view maintenace procedure to efficiently maintain only a sample of a view.
