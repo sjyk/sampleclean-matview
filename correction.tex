@@ -52,7 +52,7 @@ If we have a deterministic way of mapping a primary key defined in the previous 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.
-If the hash function is sufficiently uniform, \reminder{<}then $h(a) \le m$ samples close to a fraction $m$ of the tuples\reminder{> Unclear}. 
+If the hash function is sufficiently uniform, then the condition $h(a) \le m$ is true for close to a fraction $m$ of the rows. 
 %This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
 To achieve the performance benefits of sampling, we push down the hashing operator through the query tree.
@@ -130,12 +130,15 @@ We first use the rules described in Section \ref{lin} to get the primary key of 
 %Based on the rules described in Section \ref{lin}, the primary key of the view is \textsf{videoId}.
 The primary key for base relations \tbl{Log} and \tbl{Video} are \textsf{sessionId} and \textsf{videoId}, respectively.
 If we move up the tree in Figure \ref{exexpr}, the first expression in the maintenance strategy is a join making the primary key of that expression (\textsf{sessionId}, \textsf{videoId}).
-Then, next there is an aggregation which groups by \textsf{videoId} making that the primary key.
-This result is an equality the stale view (which has \textsf{videoId} as the primary key) making \textsf{videoId} the primary key of the expression\reminder{unclear}.
+Then, next there is an aggregation which groups by \textsf{videoId} making that the primary key of the MV.
+
+%This result is an equality the stale view (which has \textsf{videoId} as the primary key) making \textsf{videoId} the primary key of the expression\reminder{unclear}.
 
 We can apply our hash operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy.
 In Figure \ref{exexpr2}, we illustrate the pushdown process.
-The first operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
+At the top of the expression tree is the MV, whose primary key is \textsf{videoId}. 
+We start by applying the hashing operator to this key.
+The next operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
 for push down since \textsf{videoId} is in the projection.
 The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree.
 On the left side, we reach the stale view so we stop.
