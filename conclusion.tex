@@ -53,16 +53,16 @@ Furthermore, the goals of this line work (including techniques such as sketching
 Materialized view maintenance is often expensive, and in practice, many prefer deferred maintenance solutions.
 However, this leads to stale materialized views which have incorrect, missing, and superfluous rows.
 In this work, we formalize view maintenance as a data cleaning problem.
-%In between these maintenance periods, materialized views become stale and can give incorrect query answers.
-\svc uses sample-based data cleaning approach to trade-off computation and a query result accuracy in the materialized view setting.
-This trade-off allows users to get more accurate query results that reflect the most recent data in settings where once infeasible \reminder{typo?}.
-%We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
 
+%In between these maintenance periods, materialized views become stale and can give incorrect query answers.
+\svc uses a sample-based data cleaning approach to get accurate query results that reflect the most recent data for a greatly reduced computational cost.
+%We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
 %Our results suggest insights for both data cleaning and materialized views.
 To achieve this, we significantly extended our prior work in data cleaning, SampleClean \cite{wang1999sample}, for efficient cleaning of stale MVs. 
 This included processing a wider set of aggregate queries, handling missing data errors, and proving for which queries optimality of the estimates hold.
 Another sigificant contribution of \svc is our outlier indexing approach which reduces the sensitivity of sampling to skewed data distributions.
 We presented both empirical and theoretical results showing that our sample data cleaning approach can significantly reduce the maintenance time for a large class of materialized views, while still providing accurate aggregate query answers that reflect the most recent data.
+We evaluate \svc on a real dataset of server logs from Conviva and the TPCD benchmark dataset, and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance leading to increased query accuracy. 
 
 \iffalse
 We evaluated our approach on real and synthetic datasets.

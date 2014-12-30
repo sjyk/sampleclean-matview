@@ -157,7 +157,7 @@ SVC supports a wide variety of materialized views and aggregate queries; with op
 %We use this sample to estimate how the updates affect a query on the view, and correct the query results based on this estimate.
 As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed.
 SVC complements existing deferred maintenance approaches by giving accurate and bounded query answers between maintenance periods.
-We evaluate our method on a real dataset of server logs from Conviva and the TPCD benchmark dataset and our experiments confirm our theoretical result: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance. 
+We evaluate our method on a real dataset of server logs from Conviva, and the TPCD benchmark dataset and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance. 
 \end{abstract}
 
 
