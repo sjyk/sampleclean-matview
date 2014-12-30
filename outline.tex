@@ -143,7 +143,7 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 
 \begin{abstract}
 Materialized views (MVs), stored pre-computed results, are widely used to facilitate fast queries on large datasets. 
-When new records arrive at a fast rate, it is infeasible to continously update (maintain) MVs and a common solution is to defer maintenance by batching updates together.
+When new records arrive at a fast rate, it is infeasible to continuously update (maintain) MVs and a common solution is to defer maintenance by batching updates together.
 Between batches, the MV is stale with incorrect, missing, and superfluous rows leading to inaccurate query results.
 We propose \svcfull (\svc) which addresses this problem from a data cleaning perspective since a stale MV is dirty data, and we take inspiration from recent results in data cleaning which use sampling+cleaning for accurate query processing. 
 In \svc, we efficiently clean a sample of rows from a stale MV, and use the clean sample to compute a correction for incorrect query results.
