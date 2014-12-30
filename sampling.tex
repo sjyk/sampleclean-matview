@@ -38,19 +38,19 @@ Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table
 \fi
 
 \subsection{SUM, COUNT, and AVG}
-In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \avgfunc queries.
+%In our prior work, in data cleaning, \nsc considered \sumfunc, \countfunc, and \avgfunc queries.
 %\begin{lstlisting} [mathescape]
 %SELECT $f(a)$ FROM View 
 %WHERE $\cond(A)$
 %\end{lstlisting}
 %Group-by clauses can be handled as part of the predicate.
-\nsc corrects a dirty query result, by taking a sample of dirty data, applying data cleaning, and estimating a compensation for the dirtiness from the sample.
+\nsc corrects a dirty query result (for \sumfunc, \countfunc, and \avgfunc queries), by taking a sample of dirty data, applying data cleaning, and estimating a compensation for the dirtiness from the sample.
 It then calculates the row-by-row difference for each row in the sample between dirty and clean (i.e., how much did cleaning change the data).
 We showed that the result of applying the query to the set of differences can be interpreted as a ``correction'' for dirty query results. 
-Corrections from the traditional AQP approach which would be to apply a query directly to the up-to-date sample view.
+\reminder{<}Corrections from the traditional AQP approach which would be to apply a query directly to the up-to-date sample view \reminder{> unclear}.
 %Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
 However, in prior work, our corrections only considered data error that updated rows, not those that required new rows to be inserted or deleted.
-In the materialized view setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
+In the MV setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
 
 In Definition \ref{correspondence}, we formalized a notion of correspondence between two samples.
 We use this property to handle this problem of missing rows from either side of the difference.
@@ -58,7 +58,7 @@ Our sampling procedure in the previous section, gives us two sample views that c
 We define a new operator $\dot{-}$, called correspondence subtract, which will allow us to apply \nsc to such samples.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 
 $\dot{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_2.a_2} ( R_1 \fullouterjoin R_2 ) \]
-Null values $\emptyset$ are represented as a $0$.
+Null values $\emptyset$ are represented as~zero.
 \end{definition}
 To apply this operation, we rewrite the \sumfunc and \countfunc queries using a selection with a \textbf{case} statement, and use the primary key (pk) that we defined in the previous section.
 A case statement is defined as follows, we define $\cond(*)$ to be 1 when the predicate is true and 0 when false.
@@ -86,12 +86,12 @@ $\;\;\;\;$$\dans_{count,sum} = $ SELECT $ \sumfunc\big(*)/m$ FROM d;
 \end{lstlisting}
 To apply the correction, we take the stale query result and add the correction:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$agg(S') \approx agg(S) + \dans_{sum,count}$;
+$\;\;\;\;$$\ans'_{sum,count} \approx \ans_{sum,count} + \dans_{sum,count}$;
 \end{lstlisting}
 
 For the \avgfunc query, we can divide corrected results for \sumfunc and \countfunc:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-$\;\;\;\;$$AVG(S') = \frac{SUM(S')}{COUNT(S')}$;
+$\;\;\;\;$$\ans'_{avg} = \frac{\ans'_{sum}}{\ans'_{count}}$;
 \end{lstlisting}
 
 \iffalse
@@ -172,6 +172,7 @@ However, as we will see in Section \ref{outlier}, when we know additional inform
 
 \subsubsection{Correction vs. Direct Estimate}
 Correcting query results approximately is often more accurate than an AQP-style direct estimate. 
+\sloppy
 We can provide some mathematical intuition for this.
 For \sumfunc, \countfunc, and \avgfunc, our correction algorithm gives a confidence interval (via CLT) that is
 proportional to the variance of the \emph{change} and inversely proportional to the sample size 
@@ -182,9 +183,11 @@ Since the change is the difference between the stale and up-to-date data, this c
 \[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
 Therefore, a correction will be more precise when:
 \[\sigma_{S}^2 - 2cov(S,S') \le 0 \]
-If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S') \approx \sigma_{S}^2$ and it is clearly less than 0. 
+If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S')~\approx~\sigma_{S}^2$ and it is clearly less than 0. 
 On the other hand, there is a break even point where changes are significant enough that direct estimates might be more accurate.
 In our experiments (Figure \ref{exp-1-total}(b)), we evaluate this break even point empirically. 
+
+\fussy
 
 \subsection{General Aggregate Queries}
 In SampleClean, we proposed the \nsc algorithm to give unbiased corrections to \sumfunc, \countfunc, and \avgfunc.
@@ -196,14 +199,14 @@ These queries include: \histfunc, \corrfunc, \varfunc, \covfunc, and the estimat
 The general estimation procedure is the following:
 \begin{enumerate}[noitemsep]
 \item Apply q to the stale sample, 
-\item Apply q to the clean sample, 
+\item Apply q to the up-to-date sample, 
 \item Apply q to the full stale view
 \item Take the difference between (2) and (1) and add it to (3).
 \end{enumerate}
 The implications of this are that any query that can be answered in prior work with SAQP (e.g., in BlinkDB \cite{AgarwalMPMMS13}) in an unbiased way can also be answered with our approach.
 
 Suppose, we have an aggregate query $q$ and we apply the query to the stale view $S$.
-Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
+%Without loss of generality, we assume this query is without a group by expression as we can always model this expression as part of the predicate.
 The query result is stale by $c$ if:
 $ c = q(S') - q(S)$.
 \begin{lemma}\label{lemma:unbiased}
@@ -280,13 +283,12 @@ To build the confidence interval, we repeatedly apply this procedure $b_2$ times
 \end{proposition}
 \fi
 
-
+\vspace{-.25em}
 \subsection{Select Queries}
 In \svc, we also explore how to extend this correction procedure to Select queries.
 Suppose, we have a Select query with a predicate:
 \begin{lstlisting} [mathescape]
-SELECT $*$ FROM View 
-WHERE $\cond(A)$
+SELECT $*$ FROM View WHERE Condition(A);
 \end{lstlisting}
 
 We first run the Select query on the stale view, and this returns a set of rows.

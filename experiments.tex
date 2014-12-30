@@ -102,6 +102,7 @@ While, we cannot give the details of the queries, we can present some of the hig
 To illustrate how \svc gives the user access to this new trade-off space, we will illustrate that \svc is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 In our evaluation, we separate maintenance from query processing.
 We use the following notation to represent the different approaches:
+\vspace{-.25em}
 \begin{itemize}[noitemsep]
 \item No maintenance (Stale): The baseline for evaluation is not applying any maintenance to the materialized view.
 \item Incremental View Maintenance (IVM): We apply incremental view maintenance to the full view.
@@ -109,6 +110,7 @@ We use the following notation to represent the different approaches:
 the correction technique proposed in this paper.
 \item \svcnospace+Corr: We maintain a sample of the materialized view using \svc and process queries on the view using the correction method presented in this paper.
 \end{itemize}
+\vspace{-.25em}
 %\reminder{Do you think we need to say something about another solution which maintains a sample of ``base'' table and transform a query on a view to a query on the base table?}
 Since \svc has a sampling parameter, we denote a sample size of $x \% $ as \svcnospace+Corr-x or \svcnospace+AQP-x, respectively. 
 To evaluate accuracy and performance, we define the following metrics:
@@ -134,7 +136,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
  \includegraphics[scale=0.13]{exp/msj_6.pdf}\vspace{-.5em}
-  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. \svcnospace+Corr does take longer to query a view (due to the correction) than \svcnospace+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that \svcnospace+Corr is more accurate than \svcnospace+AQP until the update size is 32.5\% (3.2GB). \vspace{-1em} \label{exp-1-total}}
+  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. \svcnospace+Corr does take longer to query a view (due to the correction) than \svcnospace+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that \svcnospace+Corr is more accurate than \svcnospace+AQP until the update size is 32.5\% (3.2GB). \vspace{-1.5em} \label{exp-1-total}}
 \end{figure}
 
 %\begin{figure}[t]
@@ -205,11 +207,11 @@ For a 10\% sample, we find that \svcnospace+Corr is more accurate until the upda
 \end{figure}
 
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-.5em}
 \centering
  \includegraphics[scale=0.13]{exp/msdc_3.pdf}\vspace{-.5em}
  %\includegraphics[scale=0.13]{exp/msdc_5.pdf}
-   \caption{(a) We measure the accuracy of each of the roll-up aggregate queries on this view. For a 10\% sample size and 10\% update size, we find that \svcnospace+Corr is more accurate than \svcnospace+AQP and No Maintenance.\vspace{-.5em}\label{exp2-acc-sample2}}
+   \caption{We measure the accuracy of each of the roll-up aggregate queries on this view. For a 10\% sample size and 10\% update size, we find that \svcnospace+Corr is more accurate than \svcnospace+AQP and No Maintenance.\vspace{-.5em}\label{exp2-acc-sample2}}
 \end{figure}
 
 
@@ -257,8 +259,8 @@ On average \svcnospace+Corr is 12.9x more accurate than the stale baseline and 3
 
 \begin{figure}[t]\vspace{-2em}
 \centering
- \includegraphics[scale=0.13]{exp/msqv_1.pdf}
- \includegraphics[scale=0.13]{exp/msqv_2.pdf}\vspace{-1em}
+ \includegraphics[scale=0.13]{exp/msqv_1.pdf}\vspace{.5em}
+ \includegraphics[scale=0.13]{exp/msqv_2.pdf} %\vspace{-1em}
  \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) As before for a 10\% sample size and 10\% update size, \svcnospace+Corr is more accurate than \svcnospace+AQP and No Maintenance.  \label{exp3-acc}}
 \end{figure}
 In this experiment, we demonstrate the breadth of views supported by \svc by using the TPCD queries as materialized views.
@@ -280,11 +282,11 @@ For the most part, these results are consistent with our previous experiments sh
 
 \subsubsection{Outlier Indexing}
 
-\begin{figure}[t]
+\begin{figure}[t] \vspace{-.5em}
 \centering
  \includegraphics[scale=0.13]{exp/msoi_2.pdf}
  \includegraphics[scale=0.13]{exp/msoi_1.pdf}\vspace{-1em}
- \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that \svc with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \vspace{-1em}\label{exp5-oi}}
+ \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that \svc with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \vspace{-1.5em}\label{exp5-oi}}
 \end{figure}
 In our next experiment, we evaluate our outlier indexing.
 Our outlier indices are constructed on the base relations.
@@ -323,7 +325,7 @@ These results show consistency with our results on the synthetic datasets.
 \centering
  \includegraphics[scale=0.13]{exp/con_1.pdf}
  \includegraphics[scale=0.13]{exp/con_2.pdf}\vspace{-1em}
- \caption{(a) Spark RDDs are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. However, larger batches are less affected by this reduction. \label{conv-2}}
+ \caption{(a) Spark RDDs are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. However, larger batches are less affected by this reduction. \label{conv-2}}\vspace{-1.25em}
 \end{figure}
 
 We devised an end-to-end experiment simulating a real integration with periodic maintenance.
@@ -349,6 +351,7 @@ While for small batch sizes the throughput of the cluster is reduced by nearly a
 smaller.
 As we found in later experiments (Figure \ref{conv-5}), larger batch sizes are more amenable to parallel computation since there was more idle CPU time.
 
+
 \textbf{Choosing a Batch Size:}
 The results in Figure \ref{conv-2}(a) and Figure \ref{conv-2}(b) show that larger batch sizes are more efficient, however, larger batch sizes also lead to more staleness.
 Combining the results in Figure \ref{conv-2}(a) and Figure \ref{conv-2}(b), for both \svcnospace+IVM and IVM, we get cluster throughput as a function of batch size.
@@ -373,8 +376,8 @@ At this sampling point, we find that applying \svc gives results 2.8x more accur
 
 \begin{figure}[t]
 \centering
-\includegraphics[scale=0.11]{exp/con_7.pdf}\vspace{-1em}
- \caption{\svc better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} \vspace{-1em}
+\includegraphics[scale=0.14]{exp/con_7.pdf}\vspace{-1em}
+ \caption{\svc better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} \vspace{-1.5em}
 \end{figure}
 
 To give some intuition on why \svc gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and \svcnospace+periodic IVM. 

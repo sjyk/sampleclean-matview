@@ -1,6 +1,11 @@
+\vspace{-1em}
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
+<<<<<<< HEAD
 Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale materialized views with a sample of up-to-date data.
+=======
+Then, we formalize the two main problems that SVC addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
+>>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
 Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
 
 \subsection{Notation}\label{notation}
@@ -8,55 +13,67 @@ Finally, we overview the system architecture and discuss a numerical example of 
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
 View definitions are composed of the following relational expressions:
 \begin{itemize}[noitemsep] \sloppy
-	\item $\sigma_{\phi}(R)$: Selection selects all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$ 
-	\item $\Pi_{a_1,a_2,...,a_k}(R)$: Generalized projection select attributes $\{a_1,a_2,...,a_k\}$ from, allowing for new columns that are arithmetic transformations of attributes e.g. $a_1+a_2$.
-	\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join select all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$. We use $\bowtie$ to denote all types of joins even extended outer joins such as $\rightouterjoin,\leftouterjoin,\fullouterjoin$.
-	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. The result of this operation is a row with the following schema $a \in A, f_a \in f(R)$ where $a$ is the group by key and $f_a$ is the aggregate of all rows with that key.  A special case is the DISTINCT operation. 
+	\item $\sigma_{\phi}(R)$: Selection selects all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$.
+	\item $\Pi_{a_1,a_2,...,a_k}(R)$: Generalized projection selects attributes $\{a_1,a_2,...,a_k\}$ from $R$, allowing for new columns that are arithmetic transformations of attributes (e.g., $a_1+a_2$).
+	\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join selects all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$. We use $\bowtie$ to denote all types of joins even extended outer joins such as $\rightouterjoin,\leftouterjoin,\fullouterjoin$.
+	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. %The result of this operation is a row with the following schema $a \in A, f_a \in f(R)$ where $a$ is the group by key and $f_a$ is the aggregate of all rows with that key.  
+	The DISTINCT operation can be considered as a special case of the Aggregation operation. 
 	%\footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
-	\item $R_1 \cup R_2$: Set union take a union of the two sets.
-	\item $R_1 \cap R_2$: Set intersection take an intersection of the set.
+	\item $R_1 \cup R_2$: Set union takes a union of the two sets.
+	\item $R_1 \cap R_2$: Set intersection takes an intersection of the set.
 	\item $R_1 - R_2$: Set difference.
 \end{itemize}
 The composition of relational expressions can be represented as a tree, which we call the \emph{expression tree}.
 At the leaves of the tree are all of the \emph{base relations} for a view.
 Each node of the tree is the result of applying one of the above relational expressions to a relation.
 
+\vspace{.25em}
+
 \noindent \textbf{Staleness: } We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 An ``update'' to a relation can be modeled as a deletion and then an insertion.
 A view $S$ is considered \emph{stale} when there exist insertions and deletions to its base relations.
 
-\noindent \textbf{Maintenance: } There may be many different strategies to apply updates (maintenance) to $S$ based on the insertions and deletions, and we denote the up-to-date view as $S'$.
+\vspace{.25em}
+
+\noindent \textbf{Maintenance: } There may be multiple ways (e.g., incremental maintenance or recomputation) to maintain a view $S$, and we denote the up-to-date view as $S'$.
 We formalize the procedure to maintain the view as a \emph{maintenance strategy} $\mathcal{M}$.
 A maintenance strategy is a relational expression the execution of which will update the view $S$ to produce $S'$.
-$\mathcal{M}$ is formalism that can represent incremental update, recomputation, or a mix (where some sub-expressions are recomputed and some are incrementally maintained). 
+It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$. 
+In this work, we consider maintenance strategies composed of the same relational expressions as materialized views described above.
+
+%$\mathcal{M}$ is formalism that can represent incremental update, recomputation, or a mix (where some sub-expressions are recomputed and some are incrementally maintained). 
 
 %\begin{definition}[Maintenance Strategy]\sloppy
 %Let, $S$ be a materialized view.
-Formally, for a view $S$, a maintenance strategy $\mathcal{M}$ is a relational expression which is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
+%Formally, for a view $S$, a maintenance strategy $\mathcal{M}$ is a relational expression which is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
 %\end{definition}
-In this work, we consider maintenance strategies composed of the same relational expressions as materialized views described above.
+
+\vspace{.25em}
 
 \noindent \textbf{Example: }
-To make the concept of a maintenance strategy concrete, we show an example materialized view based on our running example dataset in Figure \ref{exexpr}.
-Our example view joins the Log table with the Video table and counts the visits for each video grouped by id.
+To make the concept of a maintenance strategy concrete, we show an example MV in Figure \ref{exexpr} based on our running example dataset.
+Our example view joins the Log table with the Video table and counts the visits for each video grouped by \textsf{videoId}.
 If new records have been added to \tbl{Log}, then the expressions are needed to update the view (Figure \ref{exexpr}):
-\begin{enumerate}[noitemsep]
-\item Create a ``delta view'' by applying the view definition to \tbl{LogIns}. That is, calculate the count 
-per video on the new logs.
+
+\vspace{-.45em}
+\begin{enumerate}
+\itemsep0.1em
+\item Create a ``delta view'' by applying the view definition to \tbl{LogIns}. That is, calculate the count per video on the new logs.
 \item Take the full outer join (equality on \textsf{videoId}) of the ``delta view'' and the stale view.
-\item Apply the generalized projection operator to increment \textsf{visitCount} (adding the delta view \textsf{visitCount} and the stale \textsf{visitCount} treating null as 0).
+\item Apply the generalized projection operator to increment \textsf{visitCount} (adding the delta view \textsf{visitCount}  and the stale \textsf{visitCount} where NULL is treated as zero).
 \end{enumerate}
+\vspace{-.5em}
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.32]{figs/example_expression_tree.pdf} \vspace{-.25em}
- \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.75em}
+ \includegraphics[scale=0.32]{figs/example_expression_tree.pdf} \vspace{-.5em}
+ \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.5em}
 \end{figure}
 
 \subsection{Sampling}
-In this work, we focus on uniform samples of the rows in materialized views.
+In this work, we focus on uniform samples of the rows in MVs.
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
-We use the ``hat'' notation eg. $\hat{S}$ to denote sampled relations. 
+We use the ``hat'' notation (e.g., $\hat{S}$) to denote sampled relations. 
 
 While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
 Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
@@ -75,8 +92,13 @@ notation in the analysis.
 \fi
 
 \subsection{Problem Statements}
+\vspace{-.25em}
 \subsubsection{View Maintenance as Data Cleaning}\label{cleaning}
+<<<<<<< HEAD
 In \svc, we model staleness in a materialized view as a type of data error.
+=======
+In SVC, we model staleness in an MV as a type of data error.
+>>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
 %Materialized views whose base relations have been updated potentially give stale query results.
 We formalize the problem of correcting staleness as a data cleaning operation so we can apply our data cleaning approach.
 %However, this requires us to define what it means to ``clean'' a sample view.
@@ -88,18 +110,20 @@ In the absence of these errors, we call a view \emph{up-to-date}.
 However, now suppose we have a sampled view $\hat{S}$.
 We define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$, cleaning this sample
 should give us $\hat{S'}$ a uniform sample of the up-to-date view $S'$ with the same sampling ratio.
-Formally, this can be represented as the following operations: (1) if an update is needed, update the row, (2) the row needs to be deleted, delete the row, and (3) for all new rows that need to be inserted into the view $S$ insert a random sample of ratio $m$.
+Formally, this can be represented as the following operations: (1) if an update is needed, update the row, (2) if a row needs to be deleted, delete the row, and (3) for all new rows that need to be inserted into the view $S$ insert a random sample of ratio $m$.
 
 Due to the insertions, the defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$, so the next question is how to formalize the link between $\hat{S}$ and $\hat{S'}$. 
-To link a corrsponding stale samples (dirty data) and up-to-date samples (clean data), we define the following property:
+To link a corresponding stale sample (dirty data) and up-to-date sample (clean data), we define the following property:
 \begin{definition}[Correspondence]
 $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\hat{S'}$ and $\hat{S}$ correspond if and only if:
+\vspace{-.25em}
 \begin{itemize}[noitemsep]
 \item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
 \item For every row $r$ in $\hat{S}$ that required an update to $r'$, $r' \in \hat{S'}$
 \item For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
 \item For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
 \end{itemize}
+\vspace{-.25em}
 %\item For every row $r$ in $S'$ that is newly inserted, $r \not\in \hat{S}$.
 %\item If a row $r$ requires an update and then a deletion. The deletion takes precedence and $r \not\in \hat{S'}$.
 %\item Rows that are inserted trivially satisfy the conditions since those rows are not contained in $S$ or $\hat{S}$.
@@ -135,10 +159,10 @@ This is because V2 was unchanged and therefore should be included in the sample.
 \subsubsection{Query Correction}
 In the query correction phase, we take a query result on a stale view and use the up-to-date sample to compensate for the staleness.
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
-Our query correction component takes the two corresponding samples $\hat{S'}$ and $\hat{S}$, and calculates a correction to $q(S)$.
+Our query correction component takes the two corresponding samples $\hat{S'}$ and $\hat{S}$, and calculates a correction to~$q(S)$.
 
 Like similar restrictions in other sample-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
-In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form: 
+In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $f(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
@@ -149,7 +173,7 @@ We also consider correcting stale non-nested select queries of the following for
 SELECT * FROM View WHERE Condition(A);
 \end{lstlisting}
 As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
-From these queries, we exclude the group by clause, as we model group by clauses as part of the \textsf{Condition}.
+%From these queries, we exclude the group by clause, as we model group by clauses as part of the \textsf{Condition}.
 
 \iffalse
 \subsubsection{Outlier Indexing}
@@ -166,15 +190,26 @@ We use the set of outliers to return a more accurate correction result.
 
 \subsection{System Architecture}
 We summarize the system architecture in Figure \ref{sys-arch} in our introduction.
+<<<<<<< HEAD
 %To summarize, the basic structure of \svc is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
 \svc reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
 In implementation, \svc works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
+=======
+%To summarize, the basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
+SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
+In implementation, SVC works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
+We envision the scenario where MVs are being refreshed periodically, for example nightly.
+>>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
-Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
+Then, between maintenance periods, we can provide approximately up-to-date answers for some queries.
 
  
+<<<<<<< HEAD
 \subsection{Example: Server Log Analysis}
+=======
+\subsection{Example Application}
+>>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM countView 

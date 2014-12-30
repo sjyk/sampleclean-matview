@@ -1,9 +1,10 @@
+\vspace{-.5em}
 \section{Outlier Indexing}\label{outlier}
 Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2001overcoming}.
 Power-laws and other long-tailed distributions are common in large datasets\cite{clauset2009power}.
 We address this problem using a technique called outlier indexing which has been applied in AQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records (records whose attributes deviate from the mean value greatly) and ensure that these records are included in the sample.
-The intuition is that these records greatly increase the variance of the data and since they are likeley rare the probability of sampling them is low leading to wildly varying estimates when the sample contains and outlier and when it does not contain any outliers.  
+The intuition is that these records greatly increase the variance of the data and since they are likely rare the probability of sampling them is low leading to wildly varying estimates when the sample contains and outlier and when it does not contain any outliers.  
 However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
