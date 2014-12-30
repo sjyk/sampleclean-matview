@@ -1,11 +1,7 @@
 \vspace{-1em}
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
-<<<<<<< HEAD
-Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale materialized views with a sample of up-to-date data.
-=======
-Then, we formalize the two main problems that SVC addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
->>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
+Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
 Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
 
 \subsection{Notation}\label{notation}
@@ -94,11 +90,7 @@ notation in the analysis.
 \subsection{Problem Statements}
 \vspace{-.25em}
 \subsubsection{View Maintenance as Data Cleaning}\label{cleaning}
-<<<<<<< HEAD
-In \svc, we model staleness in a materialized view as a type of data error.
-=======
-In SVC, we model staleness in an MV as a type of data error.
->>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
+In \svc, we model staleness in an MV as a type of data error.
 %Materialized views whose base relations have been updated potentially give stale query results.
 We formalize the problem of correcting staleness as a data cleaning operation so we can apply our data cleaning approach.
 %However, this requires us to define what it means to ``clean'' a sample view.
@@ -190,26 +182,13 @@ We use the set of outliers to return a more accurate correction result.
 
 \subsection{System Architecture}
 We summarize the system architecture in Figure \ref{sys-arch} in our introduction.
-<<<<<<< HEAD
-%To summarize, the basic structure of \svc is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
 \svc reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
 In implementation, \svc works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
-=======
-%To summarize, the basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
-SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
-In implementation, SVC works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
-We envision the scenario where MVs are being refreshed periodically, for example nightly.
->>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date answers for some queries.
 
- 
-<<<<<<< HEAD
-\subsection{Example: Server Log Analysis}
-=======
 \subsection{Example Application}
->>>>>>> ebd583de2911aae57b7b147056195d09703b8ad0
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM countView 
