@@ -117,7 +117,7 @@
 \author{\large Sanjay Krishnan, Jiannan Wang, Michael J. Franklin, Ken Goldberg, Tim Kraska{$\,^\dag$} \\
 \vspace{.2em}\affaddr{\large UC Berkeley, ~~ $^\dag$Brown University} \\
 \vspace{.1em}\email{\large \{sanjaykrishnan, jnwang, franklin, goldberg\}@berkeley.edu}\\
-\email{tim\_kraska@brown.edu}
+\email{\large tim\_kraska@brown.edu}
 }
 
 
@@ -151,7 +151,7 @@ While approximate, the corrected query results reflect the most recent data.
 \svc supports a wide variety of materialized views and aggregate queries with optimality for SUM, COUNT, AVG. 
 As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed.
 \svc complements existing deferred maintenance approaches by giving accurate and bounded query answers between maintenance.
-We evaluate our method on a real dataset of server logs from Conviva, and the TPCD benchmark dataset and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance. 
+We evaluate our method on a real dataset of server logs from Conviva, and the TPCD benchmark dataset and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) \svc can be efficiently integrated with deferred maintenance. 
 \end{abstract}
 
 

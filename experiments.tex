@@ -3,8 +3,7 @@
 \label{exp}
 We evaluate \svc first on a single node MySQL database to evaluate its accuracy, performance, and efficiency in a variety of materialized view 
 scenarios.
-We look at three main applications, join view maintenance, aggregate view maintenance, and an application with complex materialized views, on the standard TPCD benchmark 
-and skewed version of the benchmark TPCD-Skew.
+We look at three main applications, join view maintenance, aggregate view maintenance, and an application with complex materialized views, on a skewed version of the benchmark TPCD-Skew.
 Then, we evaluate the outlier indexing approach in terms of improved query accuracy and also evaluate the overhead associated with using the index.
 After evaluation on the benchmark, we present an end-to-end application of server log analysis with a dataset from a video streaming company, Conviva.
 In this application, we look at the real query workload of the company and materialize views that could improve performance of these queries.
@@ -198,7 +197,7 @@ For a 10\% sample, we find that \svcnospace+Corr is more accurate until the upda
 \subsubsection{Aggregate View}
 \label{exp-datacube}
 
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.13]{exp/msdc_1.pdf}
  \includegraphics[scale=0.13]{exp/msdc_2.pdf}\vspace{-.5em}

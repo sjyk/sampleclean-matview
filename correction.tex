@@ -1,6 +1,6 @@
-\section{Efficient Maintenance With Sampling} \label{sampling}
+\section{Efficiently Cleaning a Sample} \label{sampling}
 %\reminder{Make sure that we do a good survey on ``sampling from a view'' and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
-In the previous section, we formalized the procedure of taking a uniform sample of rows $\hat{S}$, and ``cleaning'' it to produce a corresponding uniform sample of the up-to-date view $\hat{S'}$.
+In the previous section, we formalized the procedure of taking a uniform sample of ``dirty" rows $\hat{S}$, and ``cleaning'' it to produce a corresponding uniform sample of the up-to-date view $\hat{S'}$.
 This procedure is not unique and there are both efficient and inefficient ways to accomplish this. 
 For example, a naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
 However, this does not make the maintenance of the sample any more efficient.
@@ -10,7 +10,7 @@ need not operate on the full data.
 In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
 maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
-\subsection{Uniform Sampling on Views}
+\subsection{Uniform MV Sampling}
 %We first discuss some of the difficulties with uniform sampling.
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
@@ -92,6 +92,7 @@ We showed that we can optimize a hashed maintenance plan $\eta(\mathcal{M})$ by 
 This gives us an expression to maintain a sample of rows in the up-to-date view $S'$.
 When the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ are not empty, we can use
 this expression to propagate changes to our sample.
+Thus, this procedure ``cleans'' the dirty sample $S$.
 
 One benefit of deterministic hashing is that we get the Correspondence Property (Definition \ref{correspondence}) for free.
 \begin{theorem}[Hashing Correspondence]

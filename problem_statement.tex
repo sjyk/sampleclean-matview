@@ -43,9 +43,10 @@ By using sampling, we give the user access to a new trade-off space between imme
 
 \subsection{SampleClean~\cite{wang1999sample}}
 SampleClean is a framework for scalable aggregate query processing on dirty data.
-Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy, and those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
+Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy.
+Those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
 We proposed SampleClean to add an additional trade-off to this design space by using sampling.
-This challenge mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (inexpensive and inaccurate) and deferred maintenance (expensive and accurate).
+The problem of high computational costs for accurate results mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (inexpensive and inaccurate) and deferred maintenance (expensive and accurate).
 
 SampleClean has three parts: (1) sampling, (2) data cleaning, and (3) query result estimation.
 First, SampleClean creates a sample of dirty data (which may have erroneous values or duplicated records). %(which are erroneous, missing, or otherwise corrupted records).

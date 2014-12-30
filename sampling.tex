@@ -181,10 +181,10 @@ On the other hand, an AQP approach would give us an estimate that is proportiona
 $\frac{\sigma_{S'}^2}{k}$.
 Since the change is the difference between the stale and up-to-date data, this can be rewritten as
 \[\frac{\sigma_{S}^2 + \sigma_{S'}^2 - 2cov(S,S')}{k}\]
-Therefore, a correction will be more precise when:
-\[\sigma_{S}^2 - 2cov(S,S') \le 0 \]
-If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S')~\approx~\sigma_{S}^2$ and it is clearly less than 0. 
-On the other hand, there is a break even point where changes are significant enough that direct estimates might be more accurate.
+Therefore, a correction will have less variance when:
+\[\sigma_{S}^2 \le 2cov(S,S')\]
+%If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S')~\approx~\sigma_{S}^2$ making . 
+This result shows that there is a point when updates to the stale MV are significant enough that direct estimates are more accurate.
 In our experiments (Figure \ref{exp-1-total}(b)), we evaluate this break even point empirically. 
 
 \fussy
