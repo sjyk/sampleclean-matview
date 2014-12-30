@@ -1,6 +1,6 @@
-\vspace{-.75em}
+\vspace{-1em}
 \section{Related Work}\label{related}
-\vspace{-.25em}
+\vspace{-.3em}
 
 \iffalse
 Addressing the cost of materialized view maintenance is the subject of many recent papers, which
@@ -45,9 +45,26 @@ This work did not model queries on the approximate data structures as in \svc.
 Furthermore, the goals of this line work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
 %There is also close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
 %While this line work studies query processing on probabilistic views, it does not study their maintenance as in \svc.
+\vspace{-1em}
+\section{Limitations and Opportunities}\vspace{-.3em}
+\svc proposes a new approach for accurate query processing with MVs.
+Our results are promising and suggest many avenues for future work.
+In particular, we are interested in deeper exploration of the multiple MV setting.
+There are many interesting design problems such as given storage constraints and throughput demands, optimize sampling ratios over all views.
+Furthermore, there is an interesting challenge about queries on mutliple MVs.
+We are also interested in the possibility of sharing computation between MVs and maintenance on views derived from other views.
+%Finally, our results suggest relatively a straight forward implementation of adaptive selection of the parameters in \svc such as the view sampling ratio and the outlier index threshold.
+
+However, as with all sampling and approximation techniques, there are a few limitations which we summarize in this section.
+\svc does not support views with ordering or ``top-k'' clauses, as our sampling assumes no ordering on the rows of the MV.
+Furthermore, while there are a few key special cases (equality joins) arbitrary joins do not commute with sampling, making \svc ineffecient.
+\svc also requires the maintenance strategy to be parameterized in terms of relational algebra which may not always be possible if that is a black blox.
+In terms of queries on the view, as with previous work in AQP, sampling is best suited for aggregate queries \cite{olken1993random}.
+While we proposed a technique that can give answers for some select queries, in general, \svc will give poor results for very selective queries.
+Finally, distinct count estimation from a sample is a known problem which potentially limits the types of queries on the MVs that \svc can support, excluding arbitrary nested queries.
 
 \vspace{-1em}
-\section{Conclusion and Future Work}\label{conclusion}
+\section{Conclusion}\label{conclusion}
 \vspace{-.3em}
 %In this paper, we propose a new framework, \svc, to address the staleness problem in materialized views.
 Materialized view maintenance is often expensive, and in practice, immediate view maintenance is avoided due to its costs.
@@ -60,12 +77,6 @@ This included processing a wider set of aggregate queries, handling missing data
 Another sigificant contribution of \svc is our outlier indexing approach which reduces the sensitivity of sampling to skewed data distributions.
 We presented both empirical and theoretical results showing that our sample data cleaning approach is significantly less expensive than full view maintenance for a large class of materialized views, while still providing accurate aggregate query answers that reflect the most recent data.
 We evaluate \svc on a real dataset of server logs from Conviva and the TPCD benchmark dataset, and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance leading to increased query accuracy. 
-
-Our results are promising and suggest many avenues for future work.
-In particular, we are interested in deeper exploration of the multiple materialized view setting.
-Here, given a storage constraint and throughput demands, we can optimize sampling ratios over all views.
-We are also interested in the possibility of sharing computation between materialized views and maintenance on views derived from other views.
-Finally, our results suggest relatively a straight forward implementation of adaptive selection of the parameters in \svc such as the view sampling ratio and the outlier index threshold.
 
 
 
