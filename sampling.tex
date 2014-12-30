@@ -47,7 +47,7 @@ Queries & Unbiased & Bounded Bias & Type of Bound \\ [0.5ex] % inserts table
 \nsc corrects a dirty query result (for \sumfunc, \countfunc, and \avgfunc queries), by taking a sample of dirty data, applying data cleaning, and estimating a compensation for the dirtiness from the sample.
 It then calculates the row-by-row difference for each row in the sample between dirty and clean (i.e., how much did cleaning change the data).
 We showed that the result of applying the query to the set of differences can be interpreted as a ``correction'' for dirty query results. 
-\reminder{<}Corrections from the traditional AQP approach which would be to apply a query directly to the up-to-date sample view \reminder{> unclear}.
+Corrections differ from the traditional AQP approach which would be to apply a query directly to the up-to-date sample view.
 %Then, we apply the query to the sample set of differences scaling appropriately (eg. for \sumfunc).
 However, in prior work, our corrections only considered data error that updated rows, not those that required new rows to be inserted or deleted.
 In the MV setting, it is possible that there are rows in the new view and the old view that do not exist in the other.
