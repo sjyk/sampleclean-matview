@@ -15,7 +15,7 @@ maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 %In this work, we focus on result estimation on uniform samples of views. \reminder{You have already explained uniform sampling in Sec 3.2.}
 For a sampling ratio $m$, we call a sample view $\hat{S'}$ a uniform sample of $S'$, under the following condition:
 \begin{definition}[Uniform Sample] We say the relation $\hat{S'}$ is a \emph{uniform sample} of $S'$ if
-\[\text{(1) } \forall s \in \hat{S'} : s \in S'\text{; (2) }Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m\]
+\[\text{(1) } \forall s \in \hat{S'} : s \in S'\text{;~~~~~ (2) }Pr(s_1 \in \hat{S'}) =  Pr(s_2 \in \hat{S'}) = m\]
 \end{definition}
 A traditional ``coin-flip'' sampling algorithm is not suited for this property as it is known that such sampling commutes very poorly with many relational operations such as joins and aggregates \cite{chaudhuri1999random}.
 Recall, the view in our example \textsf{countView}. 
@@ -52,7 +52,7 @@ If we have a deterministic way of mapping a primary key defined in the previous 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.
-If the hash function is sufficiently uniform, then $h(a) \le m$ samples close to a fraction $m$ of the tuples.
+If the hash function is sufficiently uniform, \reminder{<}then $h(a) \le m$ samples close to a fraction $m$ of the tuples\reminder{> Unclear}. 
 %This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
 To achieve the performance benefits of sampling, we push down the hashing operator through the query tree.
@@ -75,11 +75,17 @@ Let $a$ be a primary key of a materialized view. The following rules can be appl
 In special cases, we can push the hashing operator down through joins. 
 Given the hash function $\eta_{a, m}(R)$:
 
-\textbf{Equality Join Key: } If the join is an equality join and $a$ is one of the attributes in the equality join condition $R_1.a = R_2.b$, then $\eta$ can be pushed down to both $R_1$ and $R_2$. On $R_1$ the pushed down operator is $\eta_{a, m}(R_1)$ and on $R_2$ the operator is $\eta_{b, m}(R_2)$. This case often happens near the top of maintenance strategy expression tree where there is a equality outer join on the primary key of the stale view and a ``delta view''.
+\vspace{.25em}
 
-\textbf{Primary Key Many-to-one: } If we are hashing the primary key of the result of a Foreign-Key join, the push down is possible. We have a join with two relations $R_1$ and $R_2$ and we know that for every $r_1 \in R_1$ there is exactly one $r_2$ in $R_2$ that satisfies the join condition. Based on the lineage rules defined earlier, the primary key is the union of the sets of primary keys of $R_1$ and $R_2$. However, since we know that there is only 1 $r_2$ for every $r_1$, it is equivalent to hash just the primary key of $R_1$. Thus, $a$ in our hash function is the primary key of a Foreign-Key join, then we can push it down to $R_1$, $\eta_{a, m}(R_1)$. 
+{\noindent \textbf{Equality Join:}} If the join is an equality join and $a$ is one of the attributes in the equality join condition $R_1.a = R_2.b$, then $\eta$ can be pushed down to both $R_1$ and $R_2$. On $R_1$ the pushed down operator is $\eta_{a, m}(R_1)$ and on $R_2$ the operator is $\eta_{b, m}(R_2)$. This case often happens near the top of maintenance strategy expression tree where there is a equality outer join on the primary key of the stale view and a ``delta view''.
 
-\textbf{(Semi/Anti)-Join: } Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
+\vspace{.25em}
+
+{\noindent \textbf{Foregin Key Join:}} If we are hashing the primary key of the result of a Foreign-Key join, the push down is possible. We have a join with two relations $R_1$ and $R_2$ and we know that for every $r_1 \in R_1$ there is exactly one $r_2$ in $R_2$ that satisfies the join condition. Based on the lineage rules defined earlier, the primary key is the union of the sets of primary keys of $R_1$ and $R_2$. However, since we know that there is only one $r_2$ for every $r_1$, it is equivalent to hash just the primary key of $R_1$. Thus, if $a$ in our hash function is the primary key of a Foreign-Key join, then we can push it down to $R_1$, $\eta_{a, m}(R_1)$. 
+
+\vspace{.25em}
+
+{\noindent \textbf{(Semi/Anti)-Join:}} Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
 \subsection{Corresponding Samples}
 We showed that we can optimize a hashed maintenance plan $\eta(\mathcal{M})$ by using push-down rules.
@@ -120,25 +126,26 @@ We will use this property in the Section \ref{correction} to get estimates for q
 We will illustrate our proposed approach on our example view \textsf{countView} (Figure \ref{exexpr}).
 The maintenance strategy of this view is described in the previous section.
 
-Based on the rules described in Section \ref{lin}, the primary key of the view is \textsf{videoId}.
-The primary key for base relations \tbl{Log} and \tbl{Video} are \textsf{sessionId} and \textsf{videoId} respectively.
+We first use the rules described in Section \ref{lin} to get the primary key of the view.  
+%Based on the rules described in Section \ref{lin}, the primary key of the view is \textsf{videoId}.
+The primary key for base relations \tbl{Log} and \tbl{Video} are \textsf{sessionId} and \textsf{videoId}, respectively.
 If we move up the tree in Figure \ref{exexpr}, the first expression in the maintenance strategy is a join making the primary key of that expression (\textsf{sessionId}, \textsf{videoId}).
 Then, next there is an aggregation which groups by \textsf{videoId} making that the primary key.
-This result is an equality the stale view (which has \textsf{videoId} as the primary key) making \textsf{videoId} the primary key of the epression
+This result is an equality the stale view (which has \textsf{videoId} as the primary key) making \textsf{videoId} the primary key of the expression\reminder{unclear}.
 
-We can apply our sampling operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy.
+We can apply our hash operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy.
 In Figure \ref{exexpr2}, we illustrate the pushdown process.
-The the first operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
+The first operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
 for push down since \textsf{videoId} is in the projection.
 The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree.
-On the left side, we reach the the stale view so we stop.
-Since the stale view does not change, we can calculate the sample of the stale view once (eg. during periodic maintenance). 
+On the left side, we reach the stale view so we stop.
+Since the stale view does not change, we can calculate the sample of the stale view once (e.g., during periodic maintenance). 
 On the right side, we reach the aggregate query (count) and since \textsf{videoId} is in group by clause, we can push down the sampling.
 Then, we reach another point where we hash the equality join key allowing us to push down the sampling to the relation \tbl{LogIns} and \tbl{Video}.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.24]{figs/example_expression_tree_2.pdf} \vspace{-.25em}
+ \includegraphics[scale=0.24]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy.  \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
