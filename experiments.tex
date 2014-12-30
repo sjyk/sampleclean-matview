@@ -126,13 +126,13 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 
 
 
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]
 \centering
 \includegraphics[scale=0.13]{exp/msj_3.pdf}\vspace{-.5em}
  \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, \svcnospace+Corr, and \svcnospace+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued).\label{exp-1-acc}}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[t]\vspace{-2em}
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
  \includegraphics[scale=0.13]{exp/msj_6.pdf}\vspace{-.5em}
@@ -292,13 +292,14 @@ In our next experiment, we evaluate our outlier indexing.
 Our outlier indices are constructed on the base relations.
 We index the \textsf{l\_extendedprice} attribute in the \textsf{lineitem} table.
 We evaluate the outlier index on the complex TPCD views.
-
 We find that four views: V3, V5, V10, V15, can benefit from this index with our push-up rules. 
 These are four views dependent on \textsf{l\_extendedprice} that were also in the set of ``Complex'' views chosen before.
+
+In our first outlier indexing experiment (Figure \ref{exp5-oi}(a)), we analyze V3.
 We set an index of 100 records, and applied \svcnospace+Corr and \svcnospace+AQP to datasets with a skew parameter $z=\{1,2,3,4\}$. 
 We run the same queries as before, but this time we measure the error at the 75\% quartile.
-In Figure \ref{exp5-oi}(a), we find in the most skewed dataset \svc with outlier indexing reduces query error by a factor of 2.
-In the next Figure \big(Figure \ref{exp5-oi} (b)\big), we plot the overhead for outlier indexing for an index size of 0, 10, 100, and 1000.
+We find in the most skewed dataset \svc with outlier indexing reduces query error by a factor of 2.
+Next, in \big(Figure \ref{exp5-oi} (b)\big), we plot the overhead for outlier indexing for V3 with an index size of 0, 10, 100, and 1000.
 While there is an overhead, it is still small compared to the gains made by sampling the maintenance strategy.
 
 \subsection{Conviva}
@@ -376,7 +377,7 @@ At this sampling point, we find that applying \svc gives results 2.8x more accur
 
 \begin{figure}[t]
 \centering
-\includegraphics[scale=0.14]{exp/con_7.pdf}\vspace{-1em}
+\includegraphics[scale=0.12]{exp/con_7.pdf}\vspace{-1em}
  \caption{\svc better utilizes idle times in the cluster by maintaining the sample.\label{conv-5}} \vspace{-1.5em}
 \end{figure}
 

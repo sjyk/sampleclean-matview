@@ -71,7 +71,8 @@ In the MV setting, we compare these approaches (see Section \ref{exp}).
 The consequence of staleness is data error and then view maintenance can be posed as the data cleaning as it removes these errors.
 But note that we cannot simply extend SampleClean to MVs, and there are many significant new challenges that we have to address.
 
-The first challenge is about data cleaning. In SampleClean, we modeled data cleaning as a row-by-row transformation of table. 
+The first challenge is about data cleaning. 
+In SampleClean, we modeled data cleaning as a row-by-row transformation of table. 
 This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
 %The consequence of staleness is data error and then view maintenance can be posed as the data cleaning as it removes these errors.
 However, in a MV setting, we found that the ``black-box'' data cleaning model does not suffice.
@@ -94,7 +95,7 @@ We show that with only a single pass of the base data, we can index records that
 Then, for all rows in an MV that are dependent on an indexed record, we can ensure that they are included in our sample MV.
 We found that empirically this approach leads to significant accuracy improvements in skewed datasets.
 
-\subsection{Running Example: Server Log Analysis}
+\subsection{Example: Server Log Analysis}
 To illustrate our framework in the upcoming sections, we use the following running example which is a 
 simplified schema of one of our experimental datasets.
 %(Figure~\ref{example-1}).
