@@ -1,6 +1,6 @@
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
-Then, we formalize the two main problems that SVC addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale materialized views with a sample of up-to-date data.
+Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale materialized views with a sample of up-to-date data.
 Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
 
 \subsection{Notation}\label{notation}
@@ -70,13 +70,13 @@ For large sample sizes, there is little difference between the techniques since 
 The uniform sample model represents our algorithm which uses hashing better and also makes the presentation of our analysis more clear.
 
 Furthermore, any ``black-box'' uniform sampling algorithm can be used to achieve a reservoir sample.
-The use of one technique over another does not affect the general principles or the statistics of SVC, only the 
+The use of one technique over another does not affect the general principles or the statistics of \svc, only the 
 notation in the analysis.
 \fi
 
 \subsection{Problem Statements}
 \subsubsection{View Maintenance as Data Cleaning}\label{cleaning}
-In SVC, we model staleness in a materialized view as a type of data error.
+In \svc, we model staleness in a materialized view as a type of data error.
 %Materialized views whose base relations have been updated potentially give stale query results.
 We formalize the problem of correcting staleness as a data cleaning operation so we can apply our data cleaning approach.
 %However, this requires us to define what it means to ``clean'' a sample view.
@@ -108,8 +108,8 @@ $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We 
 %This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
 %There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
 
-The goal of SVC is to efficiently produce a corresponding up-to-date sample from a stale one.
-In the first component of SVC (Section \ref{sampling}), we take as input a uniform sample of a stale view $\hat{S}$, a maintenance strategy $\mathcal{M}$, and a set of updates $\{\Delta R_i\} \cup \{\nabla R_i\}$.
+The goal of \svc is to efficiently produce a corresponding up-to-date sample from a stale one.
+In the first component of \svc (Section \ref{sampling}), we take as input a uniform sample of a stale view $\hat{S}$, a maintenance strategy $\mathcal{M}$, and a set of updates $\{\Delta R_i\} \cup \{\nabla R_i\}$.
 We return an efficient maintenance plan that produces $\hat{S'}$, a uniform sample of the up-to-date view that satisfies the correspondence property with $\hat{S}$.
 
 \iffalse
@@ -166,15 +166,15 @@ We use the set of outliers to return a more accurate correction result.
 
 \subsection{System Architecture}
 We summarize the system architecture in Figure \ref{sys-arch} in our introduction.
-%To summarize, the basic structure of SVC is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
-SVC reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
-In implementation, SVC works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
+%To summarize, the basic structure of \svc is: (1) analyze a view maintenance procedure to efficiently compute an up-to-date sample, (2) use this sample to correct stale query results, and (3) use an index of outliers make the sample robust to outliers in the data. 
+\svc reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
+In implementation, \svc works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date query results for some queries.
 
  
-\subsection{Example Application: Server Log Analysis}
+\subsection{Example: Server Log Analysis}
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM countView 

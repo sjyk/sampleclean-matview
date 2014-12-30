@@ -6,7 +6,6 @@ During the last 30 years, the research community has thoroughly studied MVs, and
 However, when the underlying data is changed MVs can become \emph{stale}; the pre-computed results do not reflect the recent changes to the data. 
 One solution would be to recompute the MV every time a change occurs; however, in many cases, it is more efficient to incrementally update the MV instead of recomputation.
 There has been substantial work in deriving incremental updates (incremental maintenance) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
-
 For frequently changing tables even incremental maintenance can be expensive since every update to the base data requires updating all the dependent views.  
 In many important applications, such as summary statistics from server logs, new records arrive at a fast rate and data are often distributed across multiple machines making incremental maintenance infeasible. 
 As a result, in production environments, it is common to defer view maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and can be scheduled at times of low system utilization (e.g., nightly).  

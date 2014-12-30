@@ -59,7 +59,8 @@ This trade-off allows users to get more accurate query results that reflect the 
 %We achieve this by modeling query answering on stale materialized views as a data cleaning problem, where stale rows are data error.
 
 %Our results suggest insights for both data cleaning and materialized views.
-To achieve this, we significantly extended our prior work in data cleaning, SampleClean \cite{wang1999sample}, for efficient cleaning of stale MVs, to general aggregate queries, missing data errors, and proved for which queries optimality of the estimates hold.
+To achieve this, we significantly extended our prior work in data cleaning, SampleClean \cite{wang1999sample}, for efficient cleaning of stale MVs. 
+This included processing a wider set of aggregate queries, handling missing data errors, and proving for which queries optimality of the estimates hold.
 Another sigificant contribution of \svc is our outlier indexing approach which reduces the sensitivity of sampling to skewed data distributions.
 We presented both empirical and theoretical results showing that our sample data cleaning approach can significantly reduce the maintenance time for a large class of materialized views, while still providing accurate aggregate query answers that reflect the most recent data.
 

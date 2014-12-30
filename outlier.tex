@@ -26,9 +26,10 @@ If our size limit is $k$, we can find the records with the top $k$ attributes in
 Then, the attribute value of the lowest record becomes the threshold $t$.
 Alternatively, we can calculate the variance of the dataset and set the threshold to represent $c$ standard deviations above the mean.
 
+This threshold can be adaptively set at each maintenance period to include more or less outliers.
+The caveat is that the outlier index should not be too expensive to calculate nor should it be too large as it negates the performance benefits of sampling.  
 The query processing approach that we propose in the following sub-sections is agnostic to how we choose this threshold.
 In fact, our approach allows us to incorporate any deterministic subset into our sample-based correction calculations.
-The caveat is that the outlier index should not be too expensive to calculate nor should it be too large as it negates the performance benefits of sampling.  
 
 \subsection{Adding Outliers to the Sample}
 %Given this index, the next question is how we can use this information in our materialized views.
@@ -38,7 +39,7 @@ We need to propagate the indices upwards through the expression tree.
 
 %The next challenge is the outlier index must not require any additional effort to materialize.
 We add the condition that the only eligible indices are ones on base relations that are being sampled (i.e., we can push the hash operator down to that relation).
-Therefore, in the same iteration as sampling, we can also test the threshold and add records to the outlier index. 
+Therefore, in the same iteration as sampling, we can also test the index threshold and add records to the outlier index. 
 We formalize the propagation property recursively. 
 Every relation can have an outlier index which is a set of attributes and a set of records that exceed the threshold value on those attributes.
 
