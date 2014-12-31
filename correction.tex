@@ -2,13 +2,14 @@
 %\reminder{Make sure that we do a good survey on ``sampling from a view'' and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
 In the previous section, we formalized the procedure of taking a uniform sample of ``dirty" rows $\hat{S}$, and ``cleaning'' it to produce a corresponding uniform sample of the up-to-date view $\hat{S'}$.
 This procedure is not unique and there are both efficient and inefficient ways to accomplish this. 
-For example, a naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy and then sample.
-However, this does not make the maintenance of the sample any more efficient.
+For example, a naive solution to derive a sample $\hat{S'}$ is to just apply the maintenance strategy to $S$ and then sample the result.
+However, this does not save any computation.
 
 Ideally, we want to integrate the sampling into the maintenance strategy $\mathcal{M}$ so that expensive operators
 need not operate on the full data.
-In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
-maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
+This efficient sampled maintenance strategy is our optimized data cleaning operation.
+%In this section, we discuss how to efficiently derive $\hat{S'}$ and the conditions under which
+%maintaining $\hat{S'}$ is much cheaper than maintaining the entire view $S'$.
 
 \subsection{Uniform MV Sampling}
 %We first discuss some of the difficulties with uniform sampling.
@@ -90,8 +91,8 @@ Given the hash function $\eta_{a, m}(R)$:
 {\noindent \textbf{(Semi/Anti)-Join:}} Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
 \subsection{Corresponding Samples}
-We showed that we can optimize a hashed maintenance plan $\eta(\mathcal{M})$ by using push-down rules.
-This gives us an expression to maintain a sample of rows in the up-to-date view $S'$.
+We showed that we can optimize the sample cleaning procedure by using push-down rules.
+This gives us an expression to clean a sample of rows in the up-to-date view $S'$.
 When the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$ are not empty, we can use
 this expression to propagate changes to our sample.
 Thus, this procedure ``cleans'' the dirty sample $S$.

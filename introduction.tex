@@ -28,9 +28,9 @@ In our prior work, we developed the SampleClean framework for scalable aggregate
 Since data cleaning is often expensive, we proposed cleaning a sample of data using this sample to improve the results of aggregate queries on the full dataset.
 Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility, namely, we can use a sample of ``clean'' rows in the MV to return more accurate query results.
 
-In this paper, we propose \svcfull (\svc), which uses applies data cleaning to stale MVs for fast query processing.
-\svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from stale MV resulting in a uniform sample of up-to-date rows.
-After cleaning, to answer a query, we can analyze how that sample has changed from updates to the base data, and calculate a correction for incorrect query answers on the stale view that compensates for staleness. 
+In this paper, we propose \svcfull (\svc), which uses applies data cleaning to stale MVs.
+\svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from stale MV resulting in a uniform sample of ``clean" (up-to-date) rows.
+After cleaning, to answer a query, we can analyze how that sample has changed because of the cleaning, and calculate a correction for incorrect query answers on the stale view that compensates for staleness. 
 The query results from this procedure, while approximate, are up-to-date in the sense that they reflect the most recent data. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
 \svc is complementary to existing deferred maintenance approaches.
@@ -38,7 +38,7 @@ When the MVs become stale between maintenance cycles, we apply \svc for a far sm
 
 %Both MVs and queries can be complex.
 
-To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation allowing us to apply SampleClean query processing, (2) we propose efficient techniques to implement the data-cleaning operation, (3) we devise a query processing approach to answer queries accurately using the sample of up-to-date data, (4) we propose an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (5) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
+To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation allowing us to apply query processing similar to SampleClean, (2) we propose efficient techniques to implement the view-cleaning operation on a sample of the view, (3) we devise a query processing approach to answer queries accurately using the sample of up-to-date data, (4) we propose an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (5) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
 %\end{itemize}
 
 The paper is organized as follows: 

@@ -174,7 +174,7 @@ While more accurate, it is true that \svcnospace+Corr correction technique moves
 \svcnospace+Corr calculates a correction to a query on the full materialized view.
 On top of the query time on the full view (as in IVM) there is additional time to calculate a correction from a sample.
 On the other hand \svcnospace+AQP runs a query only on the sample of the view, 
-We evaluate this overhead in Figure \ref{exp-1-total}(a), where we compare the total time maintenance and query execution time.
+We evaluate this overhead in Figure \ref{exp-1-total}(a), where we compare the total maintenance time and query execution time.
 For a 10\% sample \svcnospace+Corr required 2.69 secs to execute a \sumfunc over the whole view, IVM required 2.45 secs, and  \svcnospace+AQP required 0.25 secs.
 However, when we compare this overhead to the savings in maintenance time it is small.
 
@@ -234,7 +234,7 @@ We add 1GB of updates and apply \svc to estimate the results of all of the ``rol
 
 \textbf{Performance: }
 We observed the same trade-off as the previous experiment where sampling significantly reduces the maintenance time (Figure \ref{exp2-acc-sample}(a)).
-It takes 186 seconds to maintain the entire view, but a 10\% sample can be maintained in 26 seconds.
+It takes 186 seconds to maintain the entire view, but a 10\% sample can be cleaned with \svc in 26 seconds.
 As before, we fix the sample size at 10\% and vary the update size.
 We similarly observe that \svc becomes more efficient as the update size grows (Figure \ref{exp2-acc-sample}(b)), and at an update size of 20\%  the speedup is 8.7x.
 
@@ -312,7 +312,7 @@ While there is an overhead, it is still small compared to the gains made by samp
  \caption{(a) We compare the maintenance time of \svc with a 10\% sample and full incremental maintenance, and find that as with TPCD \svc saves significant maintenance time. (b) We also compare \svcnospace+Corr to \svcnospace+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive the views from 800GB of base data and add 80GB of updates.
-In Figure \ref{conv-1}(a), we show that while full maintenance takes nearly 800 seconds for one of the views, a \svc-10\% can complete sample maintenance in less than 100s for all of them.
+In Figure \ref{conv-1}(a), we show that while full maintenance takes nearly 800 seconds for one of the views, a \svc-10\% can complete sample cleaning in less than 100s for all of them.
 On average over all the views, \svc-10\% gives a 7.5x speedup.
 
 In Figure \ref{conv-1}(b), we show that \svc also gives highly accurate results with an average error of 0.98\%.
@@ -346,7 +346,7 @@ Throughputs for small batches are nearly 10x smaller than the throughputs for th
 \textbf{Concurrent \svc and IVM:} Next, we measure the reduction in throughput when running multiple threads.
 We run \svc-10 in loop in one thread and IVM in another.
 We measure the reduction in throughput for the cluster from the previous batch size experiment.
-In Figure \ref{conv-2}(b), we plot the throughput against batch size when two maintenance threads are running.
+In Figure \ref{conv-2}(b), we plot the throughput against batch size when two threads (SVC and IVM) are running.
 While for small batch sizes the throughput of the cluster is reduced by nearly a factor of 2, for larger sizes the reduction is
 smaller.
 As we found in later experiments (Figure \ref{conv-5}), larger batch sizes are more amenable to parallel computation since there was more idle CPU time.

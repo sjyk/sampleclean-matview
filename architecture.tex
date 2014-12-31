@@ -19,7 +19,7 @@ View definitions are composed of the following relational expressions:
 	\item $R_1 \cap R_2$: Set intersection takes an intersection of the set.
 	\item $R_1 - R_2$: Set difference.
 \end{itemize}
-The composition of relational expressions can be represented as a tree, which we call the \emph{expression tree}.
+The composition of relational expressions can be represented as a tree, which is called the \emph{expression tree}.
 At the leaves of the tree are all of the \emph{base relations} for a view.
 Each node of the tree is the result of applying one of the above relational expressions to a relation.
 
@@ -36,6 +36,7 @@ We formalize the procedure to maintain the view as a \emph{maintenance strategy}
 A maintenance strategy is a relational expression the execution of which will update the view $S$ to produce $S'$.
 It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$. 
 In this work, we consider maintenance strategies composed of the same relational expressions as materialized views described above.
+%$\mathcal{M}$ defines our data cleaning operation on the full data as it ``cleans" a stale view $S$.
 
 %$\mathcal{M}$ is formalism that can represent incremental update, recomputation, or a mix (where some sub-expressions are recomputed and some are incrementally maintained). 
 
@@ -47,7 +48,7 @@ In this work, we consider maintenance strategies composed of the same relational
 \vspace{.25em}
 
 \noindent \textbf{Example: }
-To make the concept of a maintenance strategy concrete, we show an example MV in Figure \ref{exexpr} based on our running example dataset.
+To make the formalization of a maintenance strategy concrete, we show an example MV in Figure \ref{exexpr} based on our running example dataset.
 Our example view joins the Log table with the Video table and counts the visits for each video grouped by \textsf{videoId}.
 If new records have been added to \tbl{Log}, then the expressions are needed to update the view (Figure \ref{exexpr}):
 
@@ -90,17 +91,17 @@ notation in the analysis.
 %\vspace{2em}
 \subsection{Problem Statements}
 \subsubsection{View Maintenance as Data Cleaning}\label{cleaning}
-In \svc, we model staleness in an MV as a type of data error.
-%Materialized views whose base relations have been updated potentially give stale query results.
+%In \svc, we model staleness in an MV as a type of data error.
 We formalize the problem of correcting staleness as a data cleaning operation so we can apply our data cleaning approach.
-%However, this requires us to define what it means to ``clean'' a sample view.
-The staleness as a data error is clearly defined in the unsampled case.
+In the unsampled case, $\mathcal{M}$ defines a data cleaning operation.
 If we are given a materialized view $S$ and we know the base relations have had insertions and deletions, then there are three possible types of error:
 (1) a row in $S$ needs to be updated, (2) a row in $S$ needs to be deleted, and (3) new row needs to be inserted into $S$.
-In the absence of these errors, we call a view \emph{up-to-date}.
+Applying $\mathcal{M}$ removes these errors making the view ``clean".
+%In the absence of these errors, we call a view \emph{up-to-date}.
 
-However, now suppose we have a sampled view $\hat{S}$.
-We define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$, cleaning this sample
+However, now suppose we have a sampled view $\hat{S}$, simply applying updates to the rows in the sample may not suffice.
+If new rows need to be inserted into $S$, those will never be represented in the sample violating our uniform sampling.
+Thus, we define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$, cleaning this sample
 should give us $\hat{S'}$ a uniform sample of the up-to-date view $S'$ with the same sampling ratio.
 Formally, this can be represented as the following operations: (1) if an update is needed, update the row, (2) if a row needs to be deleted, delete the row, and (3) for all new rows that need to be inserted into the view $S$ insert a random sample of ratio $m$.
 
@@ -124,9 +125,9 @@ $\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We 
 %This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
 %There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
 
-The goal of \svc is to efficiently produce a corresponding up-to-date sample from a stale one.
+The goal of \svc is to efficiently produce a corresponding up-to-date sample from a stale one thus cleaning the sample.
 In the first component of \svc (Section \ref{sampling}), we take as input a uniform sample of a stale view $\hat{S}$, a maintenance strategy $\mathcal{M}$, and a set of updates $\{\Delta R_i\} \cup \{\nabla R_i\}$.
-We return an efficient maintenance plan that produces $\hat{S'}$, a uniform sample of the up-to-date view that satisfies the correspondence property with $\hat{S}$.
+We return $\hat{S'}$, a clean uniform sample (a uniform sample of $S'$) that satisfies the correspondence property with $\hat{S}$.
 
 \iffalse
 \begin{example}[Correspondence]
