@@ -56,7 +56,7 @@ In the MV setting, it is possible that there are rows in the new view and the ol
 
 In Definition \ref{correspondence}, we formalized a notion of correspondence between two samples.
 We use this property to handle this problem of missing rows from either side of the difference.
-Our sampling procedure in the previous section, gives us two sample views that correspond with each other.
+%Our sampling procedure in the previous section, gives us two sample views that correspond with each other.
 We define a new operator $\dot{-}$, called correspondence subtract, which will allow us to apply \nsc to such samples.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 
 $\dot{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_2.a_2} ( R_1 \fullouterjoin R_2 ) \]
@@ -66,7 +66,7 @@ To apply this operation, we rewrite the \sumfunc and \countfunc queries using a 
 A case statement is defined as follows, we define $\cond(*)$ to be 1 when the predicate is true and 0 when false.
 %Let $\cond(\hat{S'})=1$ ($\cond(\hat{S})=1$) be \textbf{case} statements to denote that its old (new) record satisfies the query condition; otherwise, $\cond(\hat{S'})=0$ ($\cond(\hat{S})=0$). 
 
-\vspace{.5em}
+\vspace{1em}
 
 \noindent For \sumfunc:
 \begin{lstlisting} [mathescape]
