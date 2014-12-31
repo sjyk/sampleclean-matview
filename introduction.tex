@@ -30,7 +30,7 @@ Since stale MVs are dirty data, an approach similar to SampleClean raises a new 
 
 In this paper, we propose \svcfull (\svc), which uses applies data cleaning to stale MVs for fast query processing.
 \svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from stale MV resulting in a uniform sample of up-to-date rows.
-Then, to answer a query, it analyzes how that sample has changed from updates to the base data, and calculates a correction for incorrect query answers on the stale view that compensates for staleness. 
+After cleaning, to answer a query, it analyzes how that sample has changed from updates to the base data, and calculates a correction for incorrect query answers on the stale view that compensates for staleness. 
 The query results from \svc, while approximate, are up-to-date in the sense that they reflect the most recent data. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
 \svc is complementary to existing deferred maintenance approaches.
@@ -46,7 +46,7 @@ In Section~\ref{sec-background}, we give the necessary background for our work.
 Next, in Section~\ref{sec-arch}, we formalize the problem.
 In Sections~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
 In Section~\ref{outlier}, we describe the outlier indexing framework.
-%In Section~\ref{sec:ext}, we discuss extensions to our framework.
+In Section~\ref{sec:disc}, we discuss limitations and new opportunities of our approach.
 Then, in Section~\ref{exp}, we evaluate our approach.
 Finally, we discuss Related Work in Section~\ref{related} and present our Conclusions and Future Work in Section~\ref{conclusion}.
 We present full versions of our proofs and experimental details in our extended technical report \cite{technicalReport}.

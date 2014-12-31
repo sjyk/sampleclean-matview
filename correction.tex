@@ -81,7 +81,9 @@ Given the hash function $\eta_{a, m}(R)$:
 
 \vspace{.25em}
 
-{\noindent \textbf{Foregin Key Join:}} A special case of the equality join rule is if we have a join with two foreign-key relations $R_1$ (fact table) and $R_2$ (dimension table). If we are sampling the foreign key (the primary key of the dimension table), then we can push down $\eta$ to both relations as in the equality join case. 
+{\noindent \textbf{Foregin Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with pk $a$) and $R_2$ (dimension table with fk $b$) and we are sampling the key $a$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$.
+
+%A special case of the equality join rule is if we have a join with two foreign-key relations $R_1$ (fact table) and $R_2$ (dimension table). If we are sampling the foreign key (the primary key of the dimension table), then we can push down $\eta$ to both relations as in the equality join case. 
 
 \vspace{.25em}
 

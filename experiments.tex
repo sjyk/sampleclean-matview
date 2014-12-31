@@ -97,7 +97,7 @@ While, we cannot give the details of the queries, we can present some of the hig
  \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for \svc. \vspace{-1em}\label{exp-1-samplesize}}
 \end{figure}
 
-\subsubsection{Metrics and Evaluation}
+\subsubsection{Metrics and Evaluation}\vspace{.5em}
 To illustrate how \svc gives the user access to this new trade-off space, we will illustrate that \svc is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 In our evaluation, we separate maintenance from query processing.
 We use the following notation to represent the different approaches:
@@ -269,8 +269,8 @@ In this experiment, we demonstrate the breadth of views supported by \svc by usi
 
 \textbf{Performance: }
 Figure \ref{exp3-acc}, shows the maintenance time for a 10\% sample compared to the full view.
-As before, we find that sampling saves a significant amount of maintenance time.
-However, this experiment illustrates how the view definitions plays a role in the efficiency of our approach.
+%As before, we find that sampling saves a significant amount of maintenance time.
+This experiment illustrates how the view definitions plays a role in the efficiency of our approach.
 For the last two views, V21 and V22, we see that sampling does not lead to as large of speedup indicated in our previous experiments.  
 This is because both of those views contain nested structures which block the pushdown of hashing.
 V21 contains a subquery in its predicate that does not involve the primary key, but still requires a scan of the base relation to evaluate.
@@ -288,7 +288,7 @@ For the most part, these results are consistent with our previous experiments sh
  \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. We find that \svc with an outlier index of size 100 is the most accurate. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \vspace{-1.5em}\label{exp5-oi}}
 \end{figure}
 In our next experiment, we evaluate our outlier indexing.
-Our outlier indices are constructed on the base relations.
+%Our outlier indices are constructed on the base relations.
 We index the \textsf{l\_extendedprice} attribute in the \textsf{lineitem} table.
 We evaluate the outlier index on the complex TPCD views.
 We find that four views: V3, V5, V10, V15, can benefit from this index with our push-up rules. 
