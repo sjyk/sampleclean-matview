@@ -29,7 +29,7 @@ Since data cleaning is often expensive, we proposed cleaning a sample of data us
 Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility, namely, we can use a sample of ``clean'' rows in the MV to return more accurate query results.
 
 In this paper, we propose \svcfull (\svc), which uses applies data cleaning to stale MVs.
-\svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from stale MV resulting in a uniform sample of ``clean" (up-to-date) rows.
+\svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from a stale MV resulting in a uniform sample of ``clean" (up-to-date) rows.
 After cleaning, to answer a query, we can analyze how that sample has changed because of the cleaning, and calculate a correction for incorrect query answers on the stale view that compensates for staleness. 
 The query results from this procedure, while approximate, are up-to-date in the sense that they reflect the most recent data. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
