@@ -1,4 +1,4 @@
-\vspace{-.5em}
+%\vspace{-.5em}
 \section{Results}
 \label{exp}
 We evaluate \svc first on a single node MySQL database to evaluate its accuracy, performance, and efficiency in a variety of materialized view 
@@ -10,7 +10,7 @@ In this application, we look at the real query workload of the company and mater
 These queries correspond to summary statistics of customer data like how many visits to all of a customers videos or the number of vistors who encountered errors.
 %We implement \svc in Spark 1.1 and deploy it on a 10-node cluster to analyze 1TB of logs.
 
-\subsection{Experimental Setup}\vspace{-.5em}
+\subsection{Experimental Setup} %\vspace{-.5em}
 \subsubsection{Single-node Experimental Setup}
 Our single node experiments are run on a r3.large Amazon EC2 node (2x Intel Xeon E5-2670, 15.25 GB Memory, and 32GB SSD Disk) with a MySQL version 5.6.15 database.
 These experiments evaluate views from 10GB TPCD and TPCD-Skew datasets.
@@ -90,11 +90,11 @@ While, we cannot give the details of the queries, we can present some of the hig
 \end{itemize}
 \fi
 
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]\vspace{-2.5em}
 \centering
 \includegraphics[scale=0.13]{exp/msj_1.pdf}
 \includegraphics[scale=0.13]{exp/msj_2.pdf}\vspace{-1em}
- \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for \svc. \vspace{-1em}\label{exp-1-samplesize}}
+ \caption{(a) On a 10GB dataset with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. The black line marks the time for full incremental view maintenance. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance for \svc. \vspace{-.5em}\label{exp-1-samplesize}}
 \end{figure}
 
 \subsubsection{Metrics and Evaluation}
@@ -128,14 +128,14 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \begin{figure}[t]
 \centering
 \includegraphics[scale=0.13]{exp/msj_3.pdf}\vspace{-.5em}
- \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, \svcnospace+Corr, and \svcnospace+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued).\label{exp-1-acc}}
+ \caption{We generate 100 of each TPCD parameterized query and answer it using the stale materialized view, \svcnospace+Corr, and \svcnospace+AQP. We plot the median relative error for each query (since the result for each query might be multi-valued).\label{exp-1-acc}}\vspace{-1em}
 \end{figure}
 
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]\vspace{-2.5em}
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
  \includegraphics[scale=0.13]{exp/msj_6.pdf}\vspace{-.5em}
-  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. \svcnospace+Corr does take longer to query a view (due to the correction) than \svcnospace+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that \svcnospace+Corr is more accurate than \svcnospace+AQP until the update size is 32.5\% (3.2GB). \vspace{-1.5em} \label{exp-1-total}}
+  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. \svcnospace+Corr does take longer to query a view (due to the correction) than \svcnospace+AQP and IVM, but this overhead is small relative to to the savings in maintenance time. (b) We vary the update rate to show that \svcnospace+Corr is more accurate than \svcnospace+AQP until the update size is 32.5\% (3.2GB). \vspace{-2em} \label{exp-1-total}}
 \end{figure}
 
 %\begin{figure}[t]
