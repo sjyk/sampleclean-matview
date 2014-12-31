@@ -30,11 +30,11 @@ Since stale MVs are dirty data, an approach similar to SampleClean raises a new 
 
 In this paper, we propose \svcfull (\svc), which uses applies data cleaning to stale MVs for fast query processing.
 \svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from stale MV resulting in a uniform sample of up-to-date rows.
-After cleaning, to answer a query, it analyzes how that sample has changed from updates to the base data, and calculates a correction for incorrect query answers on the stale view that compensates for staleness. 
-The query results from \svc, while approximate, are up-to-date in the sense that they reflect the most recent data. 
+After cleaning, to answer a query, we can analyze how that sample has changed from updates to the base data, and calculate a correction for incorrect query answers on the stale view that compensates for staleness. 
+The query results from this procedure, while approximate, are up-to-date in the sense that they reflect the most recent data. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
 \svc is complementary to existing deferred maintenance approaches.
-When the MVs become stale between maintenance cycles, we apply \svc for query result estimation for a far smaller cost than having to maintain the entire view.
+When the MVs become stale between maintenance cycles, we apply \svc for a far smaller cost than having to maintain the entire view but still get approximate, up-to-date answers.
 
 %Both MVs and queries can be complex.
 
