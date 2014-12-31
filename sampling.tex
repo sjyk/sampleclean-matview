@@ -3,7 +3,9 @@
 %In the previous section, we discussed how to efficiently maintain a sample of a materialized view by applying the hashing operator to the maintenance strategy.
 %The result of the previous section is a cleaned sampled materialized view $\hat{S'}$. 
 In this section, we discuss how to correct stale query results using the two corresponding samples $\hat{S}$ and $\hat{S'}$. 
-The intuition is to take a point-wise difference of $\hat{S'}$ and $\hat{S}$, and apply the query to that difference.
+Our data cleaning perspective allows us to look at each dirty row in an MV and what cleaning was applied to clean it (insert, delete, or update).
+We can use this analysis to calculate corrections that compensate for the effect of staleness of aggregate queries.
+The intuition is to take a point-wise difference of $\hat{S'}$ and $\hat{S}$ which is challenging in the presence of missing data.
 %This gives us a uniform sample of the differences between the stale view and a hypothetical up-to-date view, and allows us to test how query results can be affected by the updates.
 %\reminder{The following text is not consistent with the structure of the section.}
 We first present our extensions to the existing SampleClean queries: \sumfunc, \countfunc, and \avgfunc.

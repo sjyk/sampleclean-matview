@@ -53,8 +53,7 @@ Our example view joins the Log table with the Video table and counts the visits 
 If new records have been added to \tbl{Log}, then the expressions are needed to update the view (Figure \ref{exexpr}):
 
 \vspace{-.45em}
-\begin{enumerate}
-\itemsep0.1em
+\begin{enumerate}[noitemsep]
 \item Create a ``delta view'' by applying the view definition to \tbl{LogIns}. That is, calculate the count per video on the new logs.
 \item Take the full outer join (equality on \textsf{videoId}) of the ``delta view'' and the stale view.
 \item Apply the generalized projection operator to increment \textsf{visitCount} (adding the delta view \textsf{visitCount}  and the stale \textsf{visitCount} where NULL is treated as zero).
