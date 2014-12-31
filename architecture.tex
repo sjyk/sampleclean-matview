@@ -183,7 +183,7 @@ We use the set of outliers to return a more accurate correction result.
 \subsection{System Architecture}
 We summarize the system architecture in Figure \ref{sys-arch} in our introduction.
 \svc reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
-In implementation, \svc works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
+\svc works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
 We envision the scenario where materialized views are being refreshed periodically, for example nightly.
 While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
 Then, between maintenance periods, we can provide approximately up-to-date answers for some queries.
@@ -197,7 +197,8 @@ WHERE visitCount > 100;
 Let us suppose the initial query result is $45$.
 There now have been new log records inserted into the Log table making the old result stale.
 For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct \tbl{videoId}), we update just the view counts of those videos.
+Suppose 2 videos have changed their counts from less than 100 to greater than 100.
 %From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
-%Since our sampling ratio is 5\%, we extrapolate that $40$ new videos throughout the view should now be included in the count.
-From this sample, we can estimate a correction (e.g., $40$) of the old result.
+%Since our sampling ratio is 5\%, 
+From this sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
 This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.

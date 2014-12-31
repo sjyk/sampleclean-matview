@@ -111,7 +111,7 @@
 %\newcommand{\reminder}[1] {}
 \pagestyle{plain}
 
-\title{Fast and Accurate Query Processing on Stale Materialized Views by Cleaning Outlier-Indexed Samples}
+\title{Stale View Cleaning: Getting Fresh Answers from Stale Materialized Views}
 
 \numberofauthors{1}
 \author{\large Sanjay Krishnan, Jiannan Wang, Michael J. Franklin, Ken Goldberg, Tim Kraska{$\,^\dag$} \\
@@ -143,11 +143,11 @@ We found that maintaining a 5\% sample was 16.3x faster than full maintenance ye
 \vspace{-1em}
 
 \begin{abstract}
-Materialized views (MVs), stored pre-computed results, are widely used to facilitate fast queries on large datasets. When new records arrive at a fast rate, it is infeasible to continuously update (maintain) MVs and a common solution is to defer maintenance by batching updates together. Between batches, the MV is stale with incorrect, missing, and superfluous rows leading to inaccurate query results.
-We propose \svcfull (\svc) which addresses this problem from a data cleaning perspective since a stale MV is dirty data, and we take inspiration from recent results in data cleaning which use sampling+cleaning for accurate query processing. 
+Materialized views (MVs), stored pre-computed results, are widely used to facilitate fast queries on large datasets. When new records arrive at a high rate, it is infeasible to continuously update (maintain) MVs and a common solution is to defer maintenance by batching updates together. Between batches the MV becomes increasingly stale with incorrect, missing, and superfluous rows leading to increasingly inaccurate query results.
+We propose \svcfull (\svc) which addresses this problem from a data cleaning perspective. We take inspiration from recent results in data cleaning which combine sampling and cleaning for accurate query processing. 
 In \svc, we efficiently clean a sample of rows from a stale MV, and use the clean sample to compute a query result correction to compensate for the dirtiness.
 While approximate, the corrected query results reflect the most recent data.
-\svc supports a wide variety of materialized views and aggregate queries on those views with optimality for SUM, COUNT, AVG. As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. \svc complements existing deferred maintenance approaches by giving accurate and bounded query answers between maintenance. We evaluate our method on a real dataset of server logs from Conviva, and the TPCD benchmark dataset and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) \svc can be efficiently integrated with deferred maintenance. 
+\svc supports a wide variety of materialized views and aggregate queries on those views with optimality for SUM, COUNT, AVG. As sampling can be sensitive to long-tailed distributions, we further explore an outlier indexing technique to give increased accuracy when the data distributions are skewed. \svc complements existing deferred maintenance approaches by giving accurate and bounded query answers between maintenance. We evaluate our method on a real dataset of workloads from the TPC-D benchmark and a real video distribution application.  Our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) \svc can be efficiently integrated with deferred maintenance. 
 \end{abstract}
 
 
