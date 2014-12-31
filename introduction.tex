@@ -7,7 +7,7 @@ However, when the underlying data is changed MVs can become \emph{stale}; the pr
 One solution would be to recompute the MV each time a change occurs; however, in many cases, it is more efficient to incrementally update the MV instead of recomputation.
 There has been substantial work in deriving incremental updates (incremental maintenance) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
 For frequently changing tables even incremental maintenance can be expensive since every update to the base data requires updating all the dependent views.  
-In many important applications, such as summary statistics from server logs, new records arrive at a fast rate and data are often distributed across multiple machines making incremental maintenance infeasible. 
+In many important applications, such as summary statistics from user activity logs, new records arrive at a fast rate and data are often distributed across multiple machines making incremental maintenance infeasible. 
 As a result, in production environments, it is common to defer view maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and can be scheduled at times of low system utilization (e.g., nightly).  
 
 While deferring maintenance has benefits, MVs are stale between maintenance periods.
@@ -29,7 +29,7 @@ Since data cleaning is often expensive, we proposed cleaning a sample of data us
 Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility, namely, we can use a sample of ``clean'' rows in the MV to return more accurate query results.
 
 In this paper, we propose \svcfull (\svc), which uses applies data cleaning to stale MVs for fast query processing.
-\svc (Figure~\ref{sys-arch}) efficiently cleans a sample of stale MV resulting in a uniform sample of up-to-date rows.
+\svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from stale MV resulting in a uniform sample of up-to-date rows.
 Then, to answer a query, it analyzes how that sample has changed from updates to the base data, and calculates a correction for incorrect query answers on the stale view that compensates for staleness. 
 The query results from \svc, while approximate, are up-to-date in the sense that they reflect the most recent data. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.

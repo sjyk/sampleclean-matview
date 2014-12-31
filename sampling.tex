@@ -1,9 +1,9 @@
 \section{Correction Query Processing}
 \label{correction}
-In the previous section, we discussed how to efficiently maintain a sample of a materialized view by applying the hashing operator to the maintenance strategy.
-The result of this execution is an up-to-date sampled materialized view $\hat{S'}$. 
+%In the previous section, we discussed how to efficiently maintain a sample of a materialized view by applying the hashing operator to the maintenance strategy.
+%The result of the previous section is a cleaned sampled materialized view $\hat{S'}$. 
 In this section, we discuss how to correct stale query results using the two corresponding samples $\hat{S}$ and $\hat{S'}$. 
-The main idea is to take a point-wise difference of $\hat{S'}$ and $\hat{S}$, and apply the query to that difference.
+The intuition is to take a point-wise difference of $\hat{S'}$ and $\hat{S}$, and apply the query to that difference.
 %This gives us a uniform sample of the differences between the stale view and a hypothetical up-to-date view, and allows us to test how query results can be affected by the updates.
 %\reminder{The following text is not consistent with the structure of the section.}
 We first present our extensions to the existing SampleClean queries: \sumfunc, \countfunc, and \avgfunc.
@@ -185,6 +185,10 @@ Therefore, a correction will have less variance when:
 \[\sigma_{S}^2 \le 2cov(S,S')\]
 %If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S')~\approx~\sigma_{S}^2$ making . 
 This result shows that there is a point when updates to the stale MV are significant enough that direct estimates are more accurate.
+When we cross the break-even point we can switch from using corrections applying an AQP estimate.
+%An intersting implication of this break-even point is it gives us a bound on the approximation error no matter how significant the staleness is.
+The AQP approach does not depend on $cov(S,S')$ which is a measure of how much the data has changed.
+Thus, we guarantee an approximation error of at most $\frac{\sigma_{S'}^2}{k}$.
 In our experiments (Figure \ref{exp-1-total}(b)), we evaluate this break even point empirically. 
 
 \fussy
