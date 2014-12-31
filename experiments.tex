@@ -383,7 +383,7 @@ At this sampling point, we find that applying \svc gives results 2.8x more accur
 To give some intuition on why \svc gives more accurate results, in Figure \ref{conv-5}, we plot the average CPU utilization of the cluster for both periodic IVM and \svcnospace+periodic IVM. 
 We find that \svc takes advantage of the idle times in the system; which are common during shuffle operations in a synchronous parallelism model.
 In a way, these experiments present a worst-case application for \svc, yet it still gives improvements in terms of query accuracy.
-In many typical deployments throughput demands are variable forcing maintenance periods to be longer, e.g., nightly.
+In many deployments, throughput demands are variable (e.g., peak traffic) which means incremental maintenance is not at all feasible leaving systems with longer idle times.
 %The same way that \svc takes advantage of micro idle times during communication steps, it can provide large gains during controlled idle times when no maintenance is going on concurrently.
 
 
