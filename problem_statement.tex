@@ -8,7 +8,6 @@ In this section, we briefly overview our prior work on sampling-based data clean
 % \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.\label{example-1}}\vspace{-1em}
 %\end{figure}
 
-\iffalse
 \subsection{Materialized View Maintenance}\label{subsec-inc}
 Views define logical relations which can be queried instead of physical base relations.
 MVs are a class of views that are pre-computed and stored (i.e materialized).
@@ -38,7 +37,6 @@ By using sampling, we give the user access to a new trade-off space between imme
 %While always fresh, both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates, and this results increasingly degraded performance if a user wants to query a view.
 %The alternative is a periodic strategy, but this means that there is unbounded error on queries between maintenance periods.
 %\subsubsection{Practical Considerations}
-\fi
 
 
 \subsection{SampleClean~\cite{wang1999sample}}

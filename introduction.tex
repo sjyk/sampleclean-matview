@@ -10,7 +10,7 @@ For frequently changing tables even incremental maintenance can be expensive sin
 In many important applications, such as summary statistics from user activity logs, new records arrive at a fast rate and data are often distributed across multiple machines making incremental maintenance infeasible. 
 As a result, in production environments, it is common to defer view maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and can be scheduled at times of low system utilization (e.g., nightly).  
 
-While deferring maintenance has benefits, MVs are stale between maintenance periods.
+While deferring maintenance  has benefits, a disadvantage is that MVs become increasingly stale between maintenance periods.
 As a result, queries using those MVs can return incorrect answers.
 The problem of stale MVs parallels the problem of dirty data studied in data cleaning~\cite{rahm2000data}.
 As with dirty data, a stale MV has incorrect, missing, or superfluous rows.
@@ -49,4 +49,4 @@ In Section~\ref{outlier}, we describe the outlier indexing framework.
 Then, in Section~\ref{exp}, we evaluate our approach.
 Finally, we discuss Related Work in Section~\ref{related}.
 In Section~\ref{sec:disc}, we discuss the limitations and new opportunities of our approach, and we present our Conclusions in Section~\ref{conclusion}.
-Full versions of our proofs and experimental details are available in our extended technical report \cite{technicalReport}.
+%Full versions of our proofs and experimental details are available in our extended technical report \cite{technicalReport}.
