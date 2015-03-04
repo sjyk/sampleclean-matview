@@ -4,61 +4,62 @@ We first define notation, terminology, and the problem setting that we address i
 Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
 Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
 
-\subsection{Notation}\label{notation}
+\subsection{Notation and Definitions}\label{notation}
+In \svc, we explore the problem of approximate aggregate query processing on stale materialized views using a data cleaning approach.
+We assume that these materialized views are periodically maintained and thus are stale in between maintenance periods.
+The focus of this paper is analytic workloads where the typical query is a group by aggregate.
+\svc provides a framework for increased query accuracy for a flexible additional maintenance cost that can scale with system constraints.
+
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
-View definitions are composed of the following relational expressions:
+View definitions are composed of standard relational algebra expressions: Select ($\sigma_{\phi}$), Project ($\Pi$), Join ($\bowtie$), Aggregation ($\gamma$), Union ($\cup$), and Intersection ($\cap$).
+We use the following parametrized notation for joins, aggregations and generalized projections:
 \begin{itemize}[noitemsep] \sloppy
-	\item $\sigma_{\phi}(R)$: Selection selects all tuples $r$ from $R$ that satisfy the restriction $\phi (r)$.
 	\item $\Pi_{a_1,a_2,...,a_k}(R)$: Generalized projection selects attributes $\{a_1,a_2,...,a_k\}$ from $R$, allowing for new columns that are arithmetic transformations of attributes (e.g., $a_1+a_2$).
 	\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Join selects all tuples in $R_1 \times R_2$ that satisfy $\phi (r_1,r_2)$. We use $\bowtie$ to denote all types of joins even extended outer joins such as $\rightouterjoin,\leftouterjoin,\fullouterjoin$.
-	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes. %The result of this operation is a row with the following schema $a \in A, f_a \in f(R)$ where $a$ is the group by key and $f_a$ is the aggregate of all rows with that key.  
+	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes.  
 	The DISTINCT operation can be considered as a special case of the Aggregation operation. 
-	%\footnote{A special case of this operator is $\delta$ the deduplication operator i.e. $f$ always returns null. Another special case, is when there is a expression in the group by clause which we treat as creating a set of virtual columns.}
-	\item $R_1 \cup R_2$: Set union takes a union of the two sets.
-	\item $R_1 \cap R_2$: Set intersection takes an intersection of the set.
-	\item $R_1 - R_2$: Set difference.
 \end{itemize}
 The composition of relational expressions can be represented as a tree, which is called the \emph{expression tree}.
 At the leaves of the tree are all of the \emph{base relations} for a view.
 Each node of the tree is the result of applying one of the above relational expressions to a relation.
 
+\noindent \textbf{Primary Key: } We assume that each of the base relations has a \emph{primary key}. If this is not the case, we can always add an extra column 
+that assigns an increasing sequence of integers to each record.
+For the defined relational expressions, every row in a materialized view can be also be given a primary key \cite{DBLP:journals/vldb/CuiW03, DBLP:conf/sigmod/ZengGMZ14},
+which we will describe in Section \ref{sampling}. 
+This primary key is formally a subset of attributes $u \subseteq \{a_1,a_2,...,a_k\}$ such that all $s \in S(u)$ are unique.
+We denote the entire row for that primary key as a selection $\sigma_u(S)$.
+
 \vspace{.25em}
 
 \noindent \textbf{Staleness: } We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 An ``update'' to a relation can be modeled as a deletion and then an insertion.
-A view $S$ is considered \emph{stale} when there exist insertions and deletions to its base relations.
+A view $S$ is considered \emph{stale} when there exist insertions or deletions to its base relations.
+We jointly refer to these relations as the delta relations $\partial \mathcal{D}$.
 
 \vspace{.25em}
 
 \noindent \textbf{Maintenance: } There may be multiple ways (e.g., incremental maintenance or recomputation) to maintain a view $S$, and we denote the up-to-date view as $S'$.
 We formalize the procedure to maintain the view as a \emph{maintenance strategy} $\mathcal{M}$.
-A maintenance strategy is a relational expression the execution of which will update the view $S$ to produce $S'$.
-It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$. 
+A maintenance strategy is a relational expression the execution of which will return $S'$.
+It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\partial \mathcal{D}$. 
 In this work, we consider maintenance strategies composed of the same relational expressions as materialized views described above.
-%$\mathcal{M}$ defines our data cleaning operation on the full data as it ``cleans" a stale view $S$.
-
-%$\mathcal{M}$ is formalism that can represent incremental update, recomputation, or a mix (where some sub-expressions are recomputed and some are incrementally maintained). 
-
-%\begin{definition}[Maintenance Strategy]\sloppy
-%Let, $S$ be a materialized view.
-%Formally, for a view $S$, a maintenance strategy $\mathcal{M}$ is a relational expression which is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\{\Delta R_i\} \cup \{\nabla R_i\}$.
-%\end{definition}
+\[
+S' = \mathcal{M}(S,\partial D)
+\]
 
 \vspace{.25em}
 
-\noindent \textbf{Example: }
-To make the formalization of a maintenance strategy concrete, we show an example MV in Figure \ref{exexpr} based on our running example dataset.
-Our example view joins the Log table with the Video table and counts the visits for each video grouped by \textsf{videoId}.
-If new records have been added to \tbl{Log}, then the expressions are needed to update the view (Figure \ref{exexpr}):
+\noindent \textbf{Staleness as Data Error: } The consequences of staleness are dirty data incorrect, missing, and superfluous rows.
+Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
+\begin{itemize}[noitemsep] \sloppy
+	\item \textbf{Incorrect: } Incorrect row errors are the set of rows (identified by the primary key) that are updated in $S'$: \[\{\forall u \in S : (\exists u \in S' \wedge (\sigma_u(S) \ne \sigma_u(S')))\}\]
+	\item \textbf{Missing: } Missing row errors are the set of rows (identified by the primary key) that exist in the up-to-date view but not in the stale view: \[\{\forall u \in S' : \not \exists u \in S\}\]
+	\item \textbf{Superfluous: } Superfluous row errors are the set of rows (identified by the primary key) that exist in the stale view but not the up-to-date view : \[\{ \forall u \in S : \not\exists u \in S' \}\]
+\end{itemize}
 
-\vspace{-.45em}
-\begin{enumerate}[noitemsep]
-\item Create a ``delta view'' by applying the view definition to \tbl{LogIns}. That is, calculate the count per video on the new logs.
-\item Take the full outer join (equality on \textsf{videoId}) of the ``delta view'' and the stale view.
-\item Apply the generalized projection operator to increment \textsf{visitCount} (adding the delta view \textsf{visitCount}  and the stale \textsf{visitCount} where NULL is treated as zero).
-\end{enumerate}
-\vspace{-.5em}
+\vspace{.25em}
 
 \begin{figure}[t] \vspace{-2em}
 \centering
@@ -66,17 +67,91 @@ If new records have been added to \tbl{Log}, then the expressions are needed to 
  \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.5em}
 \end{figure}
 
-\subsection{Sampling}
-In this work, we focus on uniform samples of the rows in MVs.
-We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
-We use the ``hat'' notation (e.g., $\hat{S}$) to denote sampled relations. 
+\vspace{0.45em}
 
-While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
-Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
-However, this requires that we know our query workload in advance.  
-In this paper, we do not discuss stratified sampling and will explore this further in future work.
+\noindent \textbf{Uniform Random Sampling: }
+We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
+We use the ``hat'' notation (e.g., $\widehat{S}, \widehat{\mathcal{M}(\cdot)}$) to denote sampled relations and sampled relational expressions.
+We say the relation $\hat{S}$ is a \emph{uniform sample} of $S$ if
+\[\text{(1) } \forall s \in \hat{S} : s \in S\text{;~~~~~ (2) }Pr(s_1 \in \hat{S}) =  Pr(s_2 \in \hat{S}) = m\]
+We say a sample is \emph{clean} if an only if it is a uniform random sample of the up-to-date view $S'$. 
+
+\vspace{0.25em}
+
+\noindent \emph{Example:  
+In Figure \ref{exexpr}, we illustrate the example view from the previous section.
+Our example view joins the Log table with the Video table and counts the visits for each video grouped by videoId, language, and ownerId.
+The primary key of Log is sessionId and the primary key of Video is videoId.
+If new records have been added to Log staged in the temporary table LogIns, then the expressions are needed to update the view (Figure \ref{exexpr}):}
+
+\vspace{-.55em}
+\begin{enumerate}[noitemsep]
+\item \emph{Create a ``delta view'' by applying the view definition to LogIns. That is, calculate the visit count per video, language, and ownerId on the new logs.}
+\item \emph{Take the full outer join (equality on videoId, language, ownerId) of the ``delta view'' and the stale view.}
+\item \emph{Apply the generalized projection operator to increment visitCount (adding the delta view visitCount  and the stale visitCount where NULL is treated as zero).}
+\end{enumerate}
+\vspace{-.5em}
+
+%While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
+%Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
+%However, this requires that we know our query workload in advance.  
+%In this paper, we do not discuss stratified sampling and will explore this further in future work.
+
+\subsection{Stale Sample View Cleaning}
+The first problem addressed in this paper is how to clean a sample of the stale materialized view.
+We are given a stale materialized view $S$ and a maintenance strategy $\mathcal{M}$.
+We have a sample of this view $\widehat{S}$ with ratio $m$, the insertion and deletion set $\partial \mathcal{D}$, and a maintenance strategy $\mathcal{M}$.
+We want to find a relational expression $\mathcal{C}$ that takes the above relations as input and returns a clean sample $\widehat{S}'$, a sample of the up-to-date view, with sampling ratio $m$:
+\[
+\widehat{S}' = \mathcal{C}(\widehat{S},\partial \mathcal{D})
+\]
+
+\subsection{Query Result Estimation}
+The second problem addressed in this paper is query result estimation.
+Let $q$ be an aggregate query of the following form \footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}:
+\begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
+SELECT $agg(a)$ FROM View WHERE Condition(A);
+\end{lstlisting}
+If the view $S$ is stale, then the result will be incorrect by some value $c$:
+\[
+q(S') = q(S) + c
+\]
+Our objective is to estimate $q(S')$ using $q(S)$, $\widehat{S}$, and $\widehat{S}'$.
+We propose two query result estimation approaches: \svcnospace+AQP which estimates $q(S')$ directly from a sample, and
+\svcnospace+CORR which estimates $c$ from the differences between $\widehat{S}$ and $\widehat{S}'$.
+
+\subsection{\svc Workflow}
+We summarize the system in Figure \ref{sys-arch} in our introduction.
+Formally, the workflow of \svc is:
+\begin{enumerate}[noitemsep]
+\item Given a view $S$.
+\item $\mathcal{M}$ defines the maintenance strategy that updates $S$ to $S'$ at each maintenance period.
+\item The view $S$ is stale between periodic maintenance.
+\item We find an expression $\mathcal{C}$ that updates a sample of the materialized view $\widehat{S}$ to 
+	$\widehat{S}'$.
+\item For an aggregate query $q$ on the view $S$, we use $\widehat{S'}$ to estimate the up-to-date result.
+\item We optionally maintain an index of outliers $o$ for improved estimation in skewed data.
+\end{enumerate} 
 
 \iffalse
+Our query correction component takes the two corresponding samples $\widehat{S'}$ and $\widehat{S}$, and calculates a correction to~$q(S)$.
+
+Like similar restrictions in other sample-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
+In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
+\begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
+SELECT $f(a)$ FROM View WHERE Condition(A);
+\end{lstlisting}
+In this work, we expand the scope of the query processing, and consider general non-nested aggregate queries with predicates.
+
+We also consider correcting stale non-nested select queries of the following form with predicates:
+\begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
+SELECT * FROM View WHERE Condition(A);
+\end{lstlisting}
+As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
+
+
+
+
 Note, that this definition is slightly different from the reservoir sampling techniques studied in AQP \cite{DBLP:journals/toms/Vitter85} which find a uniform sample of fixed \emph{size} $k\le \mid S \mid$.
 Our sampling ratio gives a sample of the size $k$ in expectation, however, the actual size from any given instance may be slightly different.
 For large sample sizes, there is little difference between the techniques since the actual size of using a sample ratio will be close to $k$.
@@ -85,7 +160,7 @@ The uniform sample model represents our algorithm which uses hashing better and 
 Furthermore, any ``black-box'' uniform sampling algorithm can be used to achieve a reservoir sample.
 The use of one technique over another does not affect the general principles or the statistics of \svc, only the 
 notation in the analysis.
-\fi
+
 
 %\vspace{2em}
 \subsection{Problem Statements}
@@ -98,37 +173,38 @@ If we are given a materialized view $S$ and we know the base relations have had 
 Applying $\mathcal{M}$ removes these errors making the view ``clean".
 %In the absence of these errors, we call a view \emph{up-to-date}.
 
-However, now suppose we have a sampled view $\hat{S}$, simply applying updates to the rows in the sample may not suffice.
+However, now suppose we have a sampled view $\widehat{S}$, simply applying updates to the rows in the sample may not suffice.
 If new rows need to be inserted into $S$, those will never be represented in the sample violating our uniform sampling.
-Thus, we define cleaning in the following way: suppose we have a stale uniform sample $\hat{S}$, cleaning this sample
-should give us $\hat{S'}$ a uniform sample of the up-to-date view $S'$ with the same sampling ratio.
+Thus, we define cleaning in the following way: suppose we have a stale uniform sample $\widehat{S}$, cleaning this sample
+should give us $\widehat{S'}$ a uniform sample of the up-to-date view $S'$ with the same sampling ratio.
 Formally, this can be represented as the following operations: (1) if an update is needed, update the row, (2) if a row needs to be deleted, delete the row, and (3) for all new rows that need to be inserted into the view $S$ insert a random sample of ratio $m$.
 
-Due to the insertions, the defined data cleaning on a sample does not necessarily give a unique $\hat{S'}$, so the next question is how to formalize the link between $\hat{S}$ and $\hat{S'}$. 
+Due to the insertions, the defined data cleaning on a sample does not necessarily give a unique $\widehat{S'}$, so the next question is how to formalize the link between $\widehat{S}$ and $\widehat{S'}$. 
 To link a corresponding stale sample (dirty data) and up-to-date sample (clean data), we define the following property:
 \begin{definition}[Correspondence]
-$\hat{S'}$ and $\hat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\hat{S'}$ and $\hat{S}$ correspond if and only if:
+$\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\widehat{S'}$ and $\widehat{S}$ correspond if and only if:
 \vspace{-.25em}
 \begin{itemize}[noitemsep]
-\item For every row $r$ in $\hat{S}$ that required a delete, $r \not\in \hat{S'}$
-\item For every row $r$ in $\hat{S}$ that required an update to $r'$, $r' \in \hat{S'}$
-\item For every row $r$ in $\hat{S}$  that was unchanged, $r \in \hat{S'}$
-\item For every row $r$ in $S$ but not in $\hat{S}$, $r \not\in \hat{S'}$
+\item For every row $r$ in $\widehat{S}$ that required a delete, $r \not\in \widehat{S'}$
+\item For every row $r$ in $\widehat{S}$ that required an update to $r'$, $r' \in \widehat{S'}$
+\item For every row $r$ in $\widehat{S}$  that was unchanged, $r \in \widehat{S'}$
+\item For every row $r$ in $S$ but not in $\widehat{S}$, $r \not\in \widehat{S'}$
 \end{itemize}
 \vspace{-.25em}
-%\item For every row $r$ in $S'$ that is newly inserted, $r \not\in \hat{S}$.
-%\item If a row $r$ requires an update and then a deletion. The deletion takes precedence and $r \not\in \hat{S'}$.
-%\item Rows that are inserted trivially satisfy the conditions since those rows are not contained in $S$ or $\hat{S}$.
+%\item For every row $r$ in $S'$ that is newly inserted, $r \not\in \widehat{S}$.
+%\item If a row $r$ requires an update and then a deletion. The deletion takes precedence and $r \not\in \widehat{S'}$.
+%\item Rows that are inserted trivially satisfy the conditions since those rows are not contained in $S$ or $\widehat{S}$.
 \label{correspondence}
 \end{definition}
 %This definition of correspondence gives us a way to get two samples from which we can take a row-by-row difference.
 %There is some nuance in how to handle null values which we discuss in Section \ref{correction}.
 
 The goal of \svc is to efficiently produce a corresponding up-to-date sample from a stale one thus cleaning the sample.
-In the first component of \svc (Section \ref{sampling}), we take as input a uniform sample of a stale view $\hat{S}$, a maintenance strategy $\mathcal{M}$, and a set of updates $\{\Delta R_i\} \cup \{\nabla R_i\}$.
-We return $\hat{S'}$, a clean uniform sample (a uniform sample of $S'$) that satisfies the correspondence property with $\hat{S}$.
+In the first component of \svc (Section \ref{sampling}), we take as input a uniform sample of a stale view $\widehat{S}$, a maintenance strategy $\mathcal{M}$, and a set of updates $\{\Delta R_i\} \cup \{\nabla R_i\}$.
+We return $\widehat{S'}$, a clean uniform sample (a uniform sample of $S'$) that satisfies the correspondence property with $\widehat{S}$.
 
 \iffalse
+
 \begin{example}[Correspondence]
 Suppose \tbl{countView} has 4 video rows: 
 \begin{lstlisting} [mathescape]
@@ -148,10 +224,10 @@ This is because V2 was unchanged and therefore should be included in the sample.
 \end{example}
 \fi
 
-\subsubsection{Query Correction}
-In the query correction phase, we take a query result on a stale view and use the up-to-date sample to compensate for the staleness.
+\subsubsection{Query Result Correction}
+In the query result correction phase, we take a query result on a stale view and use the up-to-date sample to compensate for the staleness.
 Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale result.
-Our query correction component takes the two corresponding samples $\hat{S'}$ and $\hat{S}$, and calculates a correction to~$q(S)$.
+Our query correction component takes the two corresponding samples $\widehat{S'}$ and $\widehat{S}$, and calculates a correction to~$q(S)$.
 
 Like similar restrictions in other sample-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
 In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
@@ -166,6 +242,7 @@ SELECT * FROM View WHERE Condition(A);
 \end{lstlisting}
 As with all sample estimates, the accuracy increases with sample size, thus less selective predicates lead to more accurate results.
 %From these queries, we exclude the group by clause, as we model group by clauses as part of the \textsf{Condition}.
+\fi
 
 \iffalse
 \subsubsection{Outlier Indexing}
@@ -180,18 +257,12 @@ We use the set of outliers to return a more accurate correction result.
 \fi
 %We explore the conditions under which we can make this guarantee, and discuss query processing with the outlier index in Section \ref{outlier}.
 
-\subsection{System Architecture}
-We summarize the system architecture in Figure \ref{sys-arch} in our introduction.
-\svc reduces the cost of view maintenance making it feasible to apply in resource-constrained settings where frequent maintenance was once impossible.
-\svc works in conjunction with existing deferred maintenance, periodic maintenance, or periodic re-calculation solutions.
-We envision the scenario where materialized views are being refreshed periodically, for example nightly.
-While maintaining the entire view throughout the day may be infeasible, sampling allows the database to scale the cost with the performance and resource constraints during the day.
-Then, between maintenance periods, we can provide approximately up-to-date answers for some queries.
 
+\iffalse
 \subsection{Example Application}
 Returning to our example \tbl{countView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
-SELECT COUNT(1) FROM countView 
+SELECT COUNT(1) FROM visitView 
 WHERE visitCount > 100;
 \end{lstlisting}
 Let us suppose the initial query result is $45$.
@@ -202,3 +273,5 @@ Suppose 2 videos have changed their counts from less than 100 to greater than 10
 %Since our sampling ratio is 5\%, 
 From this sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
 This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
+\fi
+

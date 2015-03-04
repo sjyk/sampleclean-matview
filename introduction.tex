@@ -5,7 +5,7 @@ During the last 30 years, the research community has thoroughly studied MVs for 
 
 However, when the underlying data is changed MVs can become \emph{stale}; the pre-computed results do not reflect the recent changes to the data. 
 One solution would be to recompute the MV each time a change occurs; however, in many cases, it is more efficient to incrementally update the MV instead of recomputation.
-There has been substantial work in deriving incremental updates (incremental maintenance) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized}.
+There has been substantial work in deriving incremental updates (incremental maintenance) for different classes of MVs and optimizing their execution \cite{chirkova2011materialized, DBLP:journals/vldb/KochAKNNLS14}.
 For frequently changing tables even incremental maintenance can be expensive since every update to the base data requires updating all the dependent views.  
 In many important applications, such as summary statistics from user activity logs, new records arrive at a fast rate and data are often distributed across multiple machines making incremental maintenance infeasible. 
 As a result, in production environments, it is common to defer view maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} so that updates can be batched together to amortize overheads and can be scheduled at times of low system utilization (e.g., nightly).  
@@ -19,8 +19,8 @@ In this work, we explore how answering queries on a stale MV can be formalized a
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.25]{figs/sys-arch.pdf} \vspace{-.25em}
- \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superflous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on the stale view. We also devise an outlier indexing technique for more accurate corrections in skewed datasets. \label{sys-arch}}\vspace{-1.75em}
+ \includegraphics[scale=0.27]{figs/sys-arch.pdf} \vspace{-.25em}
+ \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superflous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on the stale view with improved robustness using an outlier index. \label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes have led to development of new, efficient sampling-based approaches for coping with dirty data.   

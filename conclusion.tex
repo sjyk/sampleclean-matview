@@ -2,7 +2,6 @@
 \section{Related Work}\label{related}
 \vspace{-.3em}
 
-\iffalse
 Addressing the cost of materialized view maintenance is the subject of many recent papers, which
 focus on various perspectives including complex analytical queries~\cite{nikolic2014linview}, transactions~\cite{bailis2014scalable}, and physical design~\cite{lefevre2014opportunistic}.
 The increased research focus parallels a major concern in industrial systems for incrementally updating pre-computed results and indices such as Google Percolator~\cite{percolator} and Twitter's Rainbird~\cite{rainbird}.
@@ -10,7 +9,6 @@ The streaming community has also studied the view maintenance problem \cite{abad
 These works focus on correctness, consistency, and fault tolerance of materialized view maintenance.
 \svc proposes an alternative model where we allow approximation error (with guarantees) for queries on materialized views for vastly reduced maintenance time.
 In many decision problems, exact results are not needed as long as the probability of error is boundable. 
-\fi
 
 Sampling has been well studied in the context of query processing~\cite{AgarwalMPMMS13, olken1993random, garofalakis2001approximate}. 
 Both the problems of efficiently sampling relations \cite{olken1993random} and processing complex queries \cite{agarwalknowing}, have been well studied. 

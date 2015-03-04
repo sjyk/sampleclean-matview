@@ -1,121 +1,65 @@
 \section{Background}\label{sec-background}
-In this section, we briefly overview our prior work on sampling-based data cleaning and the new challenges in the MV setting.
+%In this section, we briefly overview the problem setting.
 
-%\begin{figure}[t] 
-%\centering
-%\vspace{-0.75em}
-% \includegraphics[width=\columnwidth]{figs/sample-clean-example.png}\vspace{-0.25em}
-% \caption{A simplified log analysis example dataset. In this dataset, there are two tables: a fact table representing video views and a dimension table representing the videos.\label{example-1}}\vspace{-1em}
-%\end{figure}
+\subsection{Motivation And Example}\label{subsec-inc}
+There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14}.
+However, even for these optimized systems, some materialized views are computationally difficult to maintain.
+In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magntitude variation in maintenance
+throughput over the 22 TPCH queries defined as MVs.
+Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
+SVC is complementary to existing maintenance algorithms, whether 1st order like classical IVM or higher order like DBToaster, provided they are specified in standard relational algebra.
+Through the use of sampling, we provide the user another tool to flexibly manage and schedule maintenance of MVs for aggregate analytics.
 
-\subsection{Materialized View Maintenance}\label{subsec-inc}
-Views define logical relations which can be queried instead of physical base relations.
-MVs are a class of views that are pre-computed and stored (i.e materialized).
-Any form of pre-computed, derived data encounters the problem of staleness when the physical base relations update.
+\vspace{0.25em}
 
-One approach to this problem is to recompute the materialized view every time there are updates to the base tables.
-However, this approach is very inefficient if updates to the data generally have small or sparse effect on the MV. 
-A contrasting approach is incremental view maintenance (IVM), where rows in the MV are incrementally updated based on the updates to the base table.
-Incremental maintenance of MVs has been well studied; see \cite{chirkova2011materialized} for a survey of the approaches. 
-At a high-level, incremental maintenance algorithms typically consist of the following steps: (1) maintain a cache of insertions and deletions for each physical base table, then using the view definition derive a \emph{change propagation formula} in terms of the set of insertions and deletions, and finally apply the formula to the view.
-For a variety of view types, these rules are described in detail in \cite{DBLP:journals/vldb/KochAKNNLS14, DBLP:conf/pods/Koch10}.
-
-%Incremental maintenance may not be efficient in all cases.
-%Consider the view that calculates the median \tbl{responseTime} grouped by \tbl{userAgent} on our running example dataset.
-%In general, to ensure correctness, the view has to store the entire set of \tbl{responseTime} attributes for each group to allow for incremental maintenance.
-%Along the lines of this example, there are cases when recomputation may require less storage of state or even less computation.
-%Thus, materialized views are maintained either with incremental maintenance, recomputation, or a mix.
-
-In real-world systems, for large datasets or fast data update rate, it may not always be feasible to maintain MVs immediately. 
-Therefore, deferring maintenance (periodically or adaptively) is an alternative and often preferred solution.
-The main insight of deferral is to avoid maintaining the view immediately and to schedule an update at a more convenient time.
-In deferred maintenance approaches, the user often accepts some degree of staleness for additional flexibility in scheduling.
-%\svc offers a data cleaning perspective on this problem, namely, there is a trade-off between the query result accuracy and computation.
-By using sampling, we give the user access to a new trade-off space between immediate (or close to immediate, i.e., mini-batch) maintenance and long-periodic maintenance.
-
-%In particular, we highlight a technique called lazy maintenance which applies updates to the view only when a user's query requires a row \cite{zhou2007lazy}.
-%While always fresh, both lazy maintenance and immediate maintenance hit a bottleneck when there are rapid updates, and this results increasingly degraded performance if a user wants to query a view.
-%The alternative is a periodic strategy, but this means that there is unbounded error on queries between maintenance periods.
-%\subsubsection{Practical Considerations}
-
-
-\subsection{SampleClean~\cite{wang1999sample}}
-SampleClean is a framework for scalable aggregate query processing on dirty data.
-Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy.
-Those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
-We proposed SampleClean to add an additional trade-off to this design space by using sampling.
-The problem of high computational costs for accurate results mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (inexpensive and stale) and deferred maintenance (expensive and up-to-date).
-
-SampleClean has three parts: (1) sampling, (2) data cleaning, and (3) query result estimation.
-First, SampleClean creates a sample of dirty data (which may have erroneous values or duplicated records). %(which are erroneous, missing, or otherwise corrupted records).
-Then, the framework applies a data cleaning procedure to the sample.
-Finally, when users query the dataset, the framework uses the cleaned sample to extrapolate clean query results.
-In the framework, the main challenge was that data cleaning can potentially change the statistics of a sample and the queries need to compensate for those effects.
-%In our initial work, SampleClean mainly focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
-
-The SampleClean work showed that there were two contrasting approaches to query processing on a sample of cleaned data.
-We could (1) clean the sample first and then run the query on the sample, or (2) look at the difference between the clean and dirty samples and calculate a correction to correct an existing dirty query result. 
-Approach (1) is similar to those studied in the Approximate Query Processing (AQP) literature \cite{OlkenR86,AgarwalMPMMS13, joshi2008materialized}.
-Approach (2), which we called \nsc, outperformed (1) in datasets where data error was small or sparse.
-In the MV setting, we compare these approaches (see Section \ref{exp}). 
-
-%\begin{figure}[t] \vspace{-2em}
-%\centering
-% \includegraphics[scale=0.26]{figs/sys-arch2.pdf} \vspace{-.25em}
-% \caption{A basic overview of SampleClean. SampleClean uses a random sample of dirty data to learn how a data cleaning algorithm affects queries on the sample. We can then derive a correction to compensate for the dirtiness.\label{sc}}\vspace{-1.75em}
-%\end{figure}
-
-\subsection{New Challenges}
-%Applying SampleClean to materialized maintenance requries significant extensions to both the data cleaning, and query processing.
-Stale MVs are dirty data, and we can think of view maintenance as a data cleaning operation.
-%The consequence of staleness is data error and then view maintenance can be posed as the data cleaning as it removes these errors.
-But note that we cannot simply extend SampleClean to a sample of a stale MV, and there are many significant new challenges that we have to address.
-
-The first challenge relates to the data cleaning model. 
-In SampleClean, we modeled data cleaning as a row-by-row transformation of relation. 
-This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
-%The consequence of staleness is data error and then view maintenance can be posed as the data cleaning as it removes these errors.
-However, in a MV setting, we found that the ``black-box'' data cleaning model does not suffice.
-First, applying incremental maintenance to a sample may not be any more efficient than applying it to a whole MV if it does unnecessary computation (i.e., calculates updates for rows outside of the sample).
-In this work, we analyze the relational algebra of a MV maintenance procedure and propose a series of rules to optimize maintaining a sample.
-Second, stale MVs have not only incorrect rows, but also rows that are missing from the ``dirty'' view or conversely need to be deleted. 
-We need to extend the row-by-row transformation model to handle this type of error. 
-%When coupled with sampling, this poses significant challenges since the statistics of the ``dirty'' (stale) sample are different from the ``clean'' (up-to-date) sample. \reminder{I did not get this point. Does SampleClean have the same issue?}
-%We address this problem by formalizing the necessary updates to a sample materialized view as a data cleaning procedure.
-%There is further a new challenge in how to most efficiently execute this procedure to avoid irrelevant computation. 
-
-%This requires us to significantly extend SampleClean in terms of query processing.
-%In SampleClean, \nsc calculated the difference between the ``dirty'' and the ``clean'' sample, we extend this approach to settings where those samples do not match perfectly due to missing data.
-In terms of supported queries, SampleClean mainly focused on three common aggregates: \sumfunc, \avgfunc, and \countfunc queries.
-In this work, we explore a broader set of aggregate queries such as \medfunc and design a bootstrap algorithm to bound the approximation error.
-We found that the queries that we studied before (\sumfunc, \avgfunc, and \countfunc) were actually a special case where our estimates are optimal.
-
-Sampling is particularly sensitive to variance of the dataset, and large outliers can significantly reduce query accuracy, so in this work, we extend the query processing with an index of outliers.
-%However, in this setting, an important challenge is to efficiently compute the outlier index.
-We show that with only a single pass of the base data, we can index records that exceed some threshold.
-Then, for all rows in an MV that are dependent on an indexed record, we can ensure that they are included in our sample MV.
-We found that empirically this approach leads to significant accuracy improvements in skewed datasets.
-
-\subsection{Example: Server Log Analysis}
-To illustrate our framework in the upcoming sections, we use the following running example which is a 
-simplified schema of one of our experimental datasets.
-%(Figure~\ref{example-1}).
-Imagine, we are querying logs from a video streaming company. 
-These logs record visits from users as they happen and grow over time.
-We have two tables, \tbl{Log} and \tbl{Video}, with the following schema:
+\noindent \textbf{Log Analysis Example: } Let us consider a typical use case for an Online Analytics Processing.
+Suppose we are a video streaming company analyzing user engagement.
+Our database consists of two tables \tbl{Log} and \tbl{Video}, with the following schema:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 Log(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
-Video(videoId$\textrm{,}$ title$\textrm{,}$ duration)
+Video(videoId$\textrm{,}$ ownerid$\textrm{,}$ lang $\textrm{,}$ duration)
 \end{lstlisting}
-The \tbl{Log} table stores each visit to a specific video with primary key (\textsf{sessionId}), a foreign-key to the \tbl{Video} table (\textsf{videoId}), latency of the visit (\textsf{responseTime}), and the browser used to access the video (\textsf{userAgent}).
-The \tbl{Video} stores each video with the primary key (\textsf{videoId}), the video title (\textsf{title}), and the video duration (\textsf{duration}).
-Though \svc supports insertions, deletions, and updates to base data (See Section~\ref{notation} for details), for clarity in our example, we consider insertions
-into Log which is cached in a temporary table:
-%\reminder{I replace LogInserts with LogIns for saving a line of space. Make sure it is consistent in the whole paper.}
+The \tbl{Log} table stores each visit to a specific video with primary key (\texttt{sessionId}), a foreign-key to the \tbl{Video} table (\texttt{videoId}), latency of the visit (\texttt{responseTime}), and the browser used to access the video (\texttt{userAgent}).
+The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerid}), language (\texttt{lang}), and the video duration (\texttt{duration}).
+
+For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits per video and the total number of visits for each language, predicated on different subsets of owners (e.g premium users vs. free users). 
+To avoid repeatedly performing the join and visit aggregation, we could define the following MV:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+CREATE VIEW visitView
+AS SELECT videoId, ownerId, language
+count(1) as visitCount
+FROM Log, Video
+WHERE Log.videoId = Video.videoId
+GROUP BY videoID, ownerId, language
+\end{lstlisting}
+Our queries of interest are aggregates on this view, are of the form:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+SELECT agg(visitCount) FROM visitView 
+WHERE Condition(ownerid, language)
+\end{lstlisting}
+
+As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions to the table as:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
+Intutively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} to just those rows, we can reduce the maintenance time of the view.
+If we are intelligent about restricting the computation, this can reduces the number of \tbl{Log} records to aggregate and to join with the \texttt{Video} table.
+However, from this uniform sample, we can still estimate our aggregate queries of interest, trading off maintenance throughput for accuracy.
 
+\subsection{SampleClean~\cite{wang1999sample}}
+In this paper, we formalize the intuition from our log analysis example. 
+To do this, we leverage theory developed for query processing on dirty data.
+SampleClean is a framework for scalable aggregate query processing on dirty data.
+Traditionally, data cleaning has explored expensive, up-front cleaning of entire datasets for increased query accuracy.
+Those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
+We proposed SampleClean to add an additional trade-off to this design space by using sampling, i.e. bounded results for aggregate queries when only a sample of data is cleaned.
+The problem of high computational costs for accurate results mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (inexpensive and stale) and deferred maintenance (expensive and up-to-date).
+Thus, we explore how samples of ``clean" data can be used for improved query processing on MVs without incurring the full cost of maintenance.
 
-
+However, the metaphor of Stale MVs as a Sample-and-Clean problem only holds to a point.
+In SampleClean, we modeled data cleaning as a row-by-row transformation of relation with an unknown expensive cost. 
+This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
+In the MV setting, we found that the staleness cleaning problem interacts with sampling in complex ways. 
+MV maintenance does not neccessarily commute with sampling, nor is sampling guaranteed to save on maintenance cost.
+The row-by-row transformation model will have to be modified to handle these new challenges. 
 

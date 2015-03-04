@@ -1,7 +1,7 @@
 \vspace{-.5em}
 \section{Outlier Indexing}\label{outlier}
 Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2001overcoming}.
-Power-laws and other long-tailed distributions are common in large datasets\cite{clauset2009power}.
+Power-laws and other long-tailed distributions are common in practice \cite{clauset2009power}.
 We address this problem using a technique called outlier indexing which has been applied in AQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records (records whose attributes deviate from the mean value greatly) and ensure that these records are included in the sample.
 The intuition is that these records greatly increase the variance of the data and since they are likely rare the probability of sampling them is low leading to wildly varying estimates when the sample contains and outlier and when it does not contain any outliers.  
@@ -21,11 +21,10 @@ The same approach can be extended to attributes that have tails in both directio
 However, in this section, we present the technique as a threshold for clarity.
 
 There are many approaches to select a threshold.
-For example, we can use our knowledge about the dataset to set a threshold.
-Or we can use prior information from the base table, a calculation which can be done in the background during the periodic maintenance cycles.
+We can use prior information from the base table, a calculation which can be done in the background during the periodic maintenance cycles.
 If our size limit is $k$, we can find the records with the top $k$ attributes in the base table as to set a threshold to maximally fill up our index. 
 Then, the attribute value of the lowest record becomes the threshold $t$.
-Alternatively, we can calculate the variance of the dataset and set the threshold to represent $c$ standard deviations above the mean.
+Alternatively, we can calculate the variance of the attribute and set the threshold to represent $c$ standard deviations above the mean.
 
 This threshold can be adaptively set at each maintenance period to include more or less outliers.
 The caveat is that the outlier index should not be too expensive to calculate nor should it be too large as it negates the performance benefits of sampling.  
