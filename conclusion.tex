@@ -31,6 +31,19 @@ This is similar to our model where we have a materialized view and aggregate que
 However, they did not discuss the use of hashing to efficiently implement this primitive, and restricted their analysis to the \sumfunc query.
 The problem setting was also very different where the objective is efficient planning of aggregate queries with sampling operators and not efficient updates of materialized views.
 
+Another well studied subject is data cleaning through provenance on materialized views.
+For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries.
+The technique used to trace the provenance of an outlier row in a result is very similar to the technique proposed in this work.
+However, this work adddress a different cleaning problem from \svc.
+In \svc, we look to find a relational expression that update an erroneous row such that it is correct.
+In \cite{DBLP:journals/pvldb/0002M13}, the authors remove base data such that the row is no longer an outlier.
+Also, Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
+In our setting, we do not know these constraints a priori and we would have to materialize the entire up-to-date view to be able to specify which rows are erroneous.
+Finally, the work by Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} also explores tracing lineage through materialized views. 
+Like \cite{DBLP:journals/pvldb/0002M13, DBLP:journals/pvldb/0002M13}, it requires an explicit specification of the errors and also does not suggest a cleaning operation to fix these errors.
+While \svc has been proposed in the materialized view context, it subsumes the data cleaning work that we previously did in \cite{wang1999sample}.
+\svc can be used as an underlying sampling module to extend these data cleaning operations to changing datasets or sampled relations.
+
 Sampling has been explored in the streaming community, and a similar idea of sampling from incoming updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}.
 While some of these works studied problems similar to materialization, for example, the JetStream project (Rabkin et al.) looks at how sampling can help with real-time analysis of aggregates.
 None of these works formally studied the class views that can benefit from sampling or formalized queries on these views.

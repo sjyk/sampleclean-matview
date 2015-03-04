@@ -4,7 +4,7 @@
 \subsection{Motivation And Example}\label{subsec-inc}
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14}.
 However, even for these optimized systems, some materialized views are computationally difficult to maintain.
-In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magntitude variation in maintenance
+In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magnitude variation in maintenance
 throughput over the 22 TPCH queries defined as MVs.
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
 SVC is complementary to existing maintenance algorithms, whether 1st order like classical IVM or higher order like DBToaster, provided they are specified in standard relational algebra.
@@ -42,7 +42,7 @@ As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertion
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
-Intutively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} to just those rows, we can reduce the maintenance time of the view.
+Intuitively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} to just those rows, we can reduce the maintenance time of the view.
 If we are intelligent about restricting the computation, this can reduces the number of \tbl{Log} records to aggregate and to join with the \texttt{Video} table.
 However, from this uniform sample, we can still estimate our aggregate queries of interest, trading off maintenance throughput for accuracy.
 
@@ -60,6 +60,6 @@ However, the metaphor of Stale MVs as a Sample-and-Clean problem only holds to a
 In SampleClean, we modeled data cleaning as a row-by-row transformation of relation with an unknown expensive cost. 
 This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
 In the MV setting, we found that the staleness cleaning problem interacts with sampling in complex ways. 
-MV maintenance does not neccessarily commute with sampling, nor is sampling guaranteed to save on maintenance cost.
+MV maintenance does not necessarily commute with sampling, nor is sampling guaranteed to save on maintenance cost.
 The row-by-row transformation model will have to be modified to handle these new challenges. 
 

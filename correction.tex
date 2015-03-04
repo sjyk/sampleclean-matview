@@ -4,7 +4,7 @@ In this section, we describe how to find a relational expression $\mathcal{C}$ d
 efficiently cleans a sample of a stale view $\widehat{S}$ and produces a sample of the up-to-date view $\widehat{S}'$.
 
 \subsection{Challenges}
-To illstrate the challenges in deriving $\mathcal{C}$, we present two naive solutions to this problem that will not work.
+To illustrate the challenges in deriving $\mathcal{C}$, we present two naive solutions to this problem that will not work.
 First, the maintenance strategy $\mathcal{M}$ can be thought of as a data cleaning procedure to clean these errors, since applying the strategy to a stale view $S$ and the delta relations $\partial \mathcal{D}$ returns an up-to-date view $S'$ without data error.
 We could trivially apply $\mathcal{M}$ to the entire stale view $S$ and update it to $S'$, and then sample.
 While the result is correct according to our problem formulation, it does not save us on any computation for maintenance.
@@ -27,7 +27,7 @@ We want to materialize a sample of $S'$, that is a sample of videos with up-to-d
 If we randomly sample the delta relations $\widehat{\partial \mathcal{D}}$, we get a subset of records from LogIns.
 The problem is that if we propagate the updates based on $\widehat{\partial \mathcal{D}}$ to $\widehat{S}$ it is not guaranteed that 
 every count is completely up-to-date since we may not sample all the records for some groups.
-This is because to acheive a sample of $S'$, we need to ensure that for each $s \in S'$ all contributing rows in subexpressions to $s$ are also sampled. 
+This is because to achieve a sample of $S'$, we need to ensure that for each $s \in S'$ all contributing rows in subexpressions to $s$ are also sampled. 
 
 This is a problem of row provenance \cite{DBLP:journals/vldb/CuiW03}.
 Provenence, also termed lineage, has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
@@ -74,14 +74,14 @@ return $U$.
 \end{proposition}
 
 As we will subsequently see, this primary key definition allows us to efficiently sample the relational expression.
-For the relational expressiosn defined in the previous section, this method will always work.
-However, in the future, if we expand the allowed set of relational expressions there are some limitations which we defer to futur work.
+For the relational expressions defined in the previous section, this method will always work.
+However, in the future, if we expand the allowed set of relational expressions there are some limitations which we defer to future work.
 
 \subsection{Hashing Operator}
 \label{push}
-Propsition \ref{provalg} gives an procedure of determining the set of rows that contribute to $r$. 
-We now explore how we can design a sampling technique to guarantee that all of the rows in Propsition \ref{provalg} are sampled if $r$ is sampled.
-If we have a deterministic way of mapping a primary key defined in the previous subsection to boolean true or false, we can ensure that all contributing rows are also sampled. 
+Proposition \ref{provalg} gives an procedure of determining the set of rows that contribute to $r$. 
+We now explore how we can design a sampling technique to guarantee that all of the rows in Proposition \ref{provalg} are sampled if $r$ is sampled.
+If we have a deterministic way of mapping a primary key defined in the previous subsection to Boolean true or false, we can ensure that all contributing rows are also sampled. 
 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
@@ -114,7 +114,7 @@ Given the hash function $\eta_{a, m}(R)$:
 
 \vspace{.25em}
 
-{\noindent \textbf{Foregin Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with pk $a$) and $R_2$ (dimension table with fk $b$) and we are sampling the key $a$ or $(a,b)$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$.
+{\noindent \textbf{Foreign Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with pk $a$) and $R_2$ (dimension table with fk $b$) and we are sampling the key $a$ or $(a,b)$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$.
 
 %A special case of the equality join rule is if we have a join with two foreign-key relations $R_1$ (fact table) and $R_2$ (dimension table). If we are sampling the foreign key (the primary key of the dimension table), then we can push down $\eta$ to both relations as in the equality join case. 
 

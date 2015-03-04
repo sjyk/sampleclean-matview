@@ -108,7 +108,7 @@ We want to find a relational expression $\mathcal{C}$ that takes the above relat
 
 \subsection{Query Result Estimation}
 The second problem addressed in this paper is query result estimation.
-Let $q$ be an aggregate query of the following form \footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}:
+Let $q$ be an aggregate query of the following form \footnote{\scriptsize For simplicity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $agg(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
@@ -137,7 +137,7 @@ Formally, the workflow of \svc is:
 Our query correction component takes the two corresponding samples $\widehat{S'}$ and $\widehat{S}$, and calculates a correction to~$q(S)$.
 
 Like similar restrictions in other sample-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
-In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
+In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplicity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $f(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
@@ -230,7 +230,7 @@ Given a query $q$ which has been applied to the stale view $q(S)$ giving a stale
 Our query correction component takes the two corresponding samples $\widehat{S'}$ and $\widehat{S}$, and calculates a correction to~$q(S)$.
 
 Like similar restrictions in other sample-based systems \cite{agarwalknowing}, there are restrictions on the queries $q$ on the view that we can answer. 
-In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
+In the SampleClean work, we focused on \sumfunc, \countfunc, and \avgfunc queries of the form\footnote{\scriptsize For simplicity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}: 
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $f(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}

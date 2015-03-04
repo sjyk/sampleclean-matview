@@ -20,7 +20,7 @@ In this work, we explore how answering queries on a stale MV can be formalized a
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.27]{figs/sys-arch.pdf} \vspace{-.25em}
- \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superflous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on the stale view with improved robustness using an outlier index. \label{sys-arch}}\vspace{-1.75em}
+ \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superfluous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on the stale view with improved robustness using an outlier index. \label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes have led to development of new, efficient sampling-based approaches for coping with dirty data.   
@@ -32,7 +32,7 @@ In this paper, we propose \svcfull (\svc), which uses applies data cleaning to s
 \svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from a stale MV resulting in a uniform sample of ``clean" (up-to-date) rows.
 After cleaning, to answer a query, we can analyze how that sample has changed because of the cleaning, and calculate a correction that compensates for the data error. 
 The query results from this procedure, while approximate, are up-to-date in the sense that they reflect the most recent data. 
-The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parameterized by the sample size which the user can control trading off accuracy for computation.
+The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parametrized by the sample size which the user can control trading off accuracy for computation.
 \svc is complementary to existing deferred maintenance approaches.
 When the MVs become stale between maintenance cycles, we apply \svc for a far smaller cost than having to maintain the entire view but still get approximate, up-to-date answers.
 
