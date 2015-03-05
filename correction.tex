@@ -52,9 +52,9 @@ For every relational expression $R$, we define the primary key attribute(s) of e
 \item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection.
 \item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the tuple of the primary keys of $R_1$ and $R_2$. 
 \item $\gamma_{f,A}(R)$: The primary key of the result is the group by key $A$ (which may be a set of attributes).
-\item $R_1 \cup R_2$: Primary key of the result is the primary key of~R
-\item $R_1 \cap R_2$: Primary key of the result is the primary key of~R
-\item $R_1 - R_2$: Primary key of the result is the primary key of~R
+\item $R_1 \cup R_2$: Primary key of the result is the union of the primary keys of $R_1$ and $R_2$
+\item $R_1 \cap R_2$: Primary key of the result is the intersection of the primary keys of $R_1$ and $R_2$
+\item $R_1 - R_2$: Primary key of the result is the primary key of $R_1$
 \end{itemize}
 For every node at the expression tree, these keys are guaranteed to uniquely identify a row.
 \end{definition}
@@ -141,7 +141,7 @@ Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, re
 \item Uniformity: Both $\widehat{S'}$ and $\widehat{S}$ have sampling ratio of $m$ which means the expected value of the size of the samples is a fraction $m$ of the total size of the view: \[\mathbb{E}(\frac{\mid\widehat{S}\mid}{\mid S \mid}) = \mathbb{E}(\frac{\mid\widehat{S}'\mid}{\mid S' \mid}) = m\]
 \item Removal of Superfluous Rows: $D = \{\forall r \in \widehat{S} \wedge r \not\in S'\}$, $D \cup \widehat{S'} = \emptyset$
 \item Sampling of Missing Rows: $I = \{\forall r \not\in S : r \not \in S\}$, \[\mathbb{E}(\mid I \cup \widehat{S'} \mid) = m\mid I \mid \]
-\item Key Preservation: Let $A$ be the primary key of $S$, \[N_S = \{\forall r(A) \in \widehat{S}\}$, $N_{S'} = \{\forall r(A) \in \widehat{S}'\}\] \[N_S = N_{S'}\]
+\item Key Preservation: Let $A$ be the primary key of $S$, \[N_S = \{\forall r(A) \in \widehat{S}\}, N_{S'} = \{\forall r(A) \in \widehat{S}'\}\] \[N_S = N_{S'}\]
 \end{itemize}
 \vspace{-.25em}
 \label{correspondence}

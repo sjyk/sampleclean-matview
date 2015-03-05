@@ -7,7 +7,7 @@ However, even for these optimized systems, some materialized views are computati
 In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magnitude variation in maintenance
 throughput over the 22 TPCH queries defined as MVs.
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
-SVC is complementary to existing maintenance algorithms, whether 1st order like classical IVM or higher order like DBToaster, provided they are specified in standard relational algebra.
+SVC is complementary to existing maintenance algorithms, whether 1st order like classical change-table IVM or higher order like DBToaster, provided they are specified in standard relational algebra.
 Through the use of sampling, we provide the user another tool to flexibly manage and schedule maintenance of MVs for aggregate analytics.
 
 \vspace{0.25em}
@@ -26,16 +26,16 @@ For our analysis, we are interested in finding aggregate statistics on visits, s
 To avoid repeatedly performing the join and visit aggregation, we could define the following MV:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 CREATE VIEW visitView
-AS SELECT videoId, ownerId, language
+AS SELECT videoId, ownerId, language, duration
 count(1) as visitCount
 FROM Log, Video
 WHERE Log.videoId = Video.videoId
-GROUP BY videoID, ownerId, language
+GROUP BY videoID, ownerId, language, duration
 \end{lstlisting}
 Our queries of interest are aggregates on this view, are of the form:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 SELECT agg(visitCount) FROM visitView 
-WHERE Condition(ownerid, language)
+WHERE Condition(*)
 \end{lstlisting}
 
 As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions to the table as:

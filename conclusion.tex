@@ -69,7 +69,7 @@ We are also interested in the possibility of sharing computation between MVs and
 While our experiments show that \svc works for a variety applications, as with all sampling and approximation techniques, there are a few limitations which we summarize in this section.
 \svc does not support views with ordering or ``top-k'' clauses, as our sampling assumes no ordering on the rows of the MV.
 Furthermore, while there are a few key special cases (equality joins) arbitrary joins do not commute with sampling, making \svc ineffecient in those cases.
-\svc also requires the maintenance strategy to be parameterized in terms of relational algebra which may not always be possible if that is a black blox.
+\svc also requires the maintenance strategy to be parameterized in terms of relational algebra which may not always be possible.
 In terms of queries on the view, as with previous work in AQP, sampling is best suited for aggregate queries.
 While we proposed a technique that can give answers for some select queries, in general, \svc will give poor results for very selective queries.
 Other limitations of sampling have been discussed extensively in \cite{DBLP:journals/ftdb/CormodeGHJ12} including challenges with distinct and nested queries.

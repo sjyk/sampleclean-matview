@@ -36,7 +36,7 @@ between the query applied to the stale view $S$ compared to the up-to-date view 
 q(S') = q(S) + c
 \]
 The objective of this work is to estimate $q(S')$.
-In the Approximate Query Processing literature, sample-based estimates have been well studied \cite{OlkenR86, AgarwalMPMMS13}.
+In the Approximate Query Processing (AQP) literature, sample-based estimates have been well studied \cite{OlkenR86, AgarwalMPMMS13}.
 This inspires our first estimation algorithm, \svcnospace+AQP, which uses \svc to materialize a sample view and an AQP-style
 result estimation technique.
 
@@ -117,18 +117,18 @@ primary key and the second column defined in terms of a \texttt{case} statement 
 For \sumfunc:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 trans(sample):= SELECT pk, 
-					   1.0/m * attr*cond(*) as trans_attr
-				FROM sample
+1.0/m * attr*cond(*) as trans_attr
+FROM sample
 \end{lstlisting}
 For \avgfunc since there is no scaling we do not need to re-write:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 trans(sample) := SELECT pk, attr as trans_attr 
-				 WHERE cond(*) FROM sample
+WHERE cond(*) FROM sample
 \end{lstlisting}
 For \countfunc:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 trans(sample) := SELECT pk, 1.0/m * cond(*) as trans_attr
-				 FROM sample
+FROM sample
 \end{lstlisting}
 
 \vspace{0.25em}
@@ -260,6 +260,21 @@ The same estimator can be modified for \minfunc, with a corresponding bound:
 \]
 This bound has a slightly different interpretation than the confidence intervals seen before.
 This gives the probability that a larger (or smaller) element exists in the unsampled view.
+
+\subsection{Example}
+Returning to our example \tbl{visitView}, suppose a user wants to know how many videos have received more than 100 views.
+\begin{lstlisting}[basicstyle={\scriptsize}]
+SELECT COUNT(1) FROM visitView 
+WHERE visitCount > 100;
+\end{lstlisting}
+Let us suppose the initial query result is $45$.
+There now have been new log records inserted into the Log table making the old result stale.
+For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct \tbl{videoId}), we update just the view counts of those videos.
+For SVC+AQP, we count the number of videos in the sample that currently have counts greater than 100 and scale that result by 20.
+For SVC+CORR, suppose 2 videos have changed their counts from less than 100 to greater than 100.
+From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
+From this sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
+This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
 
 \iffalse
 \vspace{-.25em}

@@ -4,7 +4,8 @@ Sampling is known to be sensitive to outliers \cite{clauset2009power, chaudhuri2
 Power-laws and other long-tailed distributions are common in practice \cite{clauset2009power}.
 We address this problem using a technique called outlier indexing which has been applied in AQP \cite{chaudhuri2001overcoming}.
 The basic idea is that we create an index of outlier records (records whose attributes deviate from the mean value greatly) and ensure that these records are included in the sample.
-The intuition is that these records greatly increase the variance of the data and since they are likely rare the probability of sampling them is low leading to wildly varying estimates when the sample contains and outlier and when it does not contain any outliers.  
+The intuition is that these records greatly increase the variance of the data. 
+Furthermore, since they are likely rare the probability of sampling them is low leading to wildly varying estimates.  
 However, as this has not been explored in the materialized view setting there are new challenges in using this index for improved result accuracy.
 
 \subsection{Indices on the Base Relations}
@@ -22,7 +23,8 @@ However, in this section, we present the technique as a threshold for clarity.
 
 There are many approaches to select a threshold.
 We can use prior information from the base table, a calculation which can be done in the background during the periodic maintenance cycles.
-If our size limit is $k$, we can find the records with the top $k$ attributes in the base table as to set a threshold to maximally fill up our index. 
+If our size limit is $k$, for a given attribute we can select the the top-k records with that attributes.
+Then, we can use that top-k list to set a threshold for our index. 
 Then, the attribute value of the lowest record becomes the threshold $t$.
 Alternatively, we can calculate the variance of the attribute and set the threshold to represent $c$ standard deviations above the mean.
 
@@ -65,7 +67,7 @@ We implement the outlier index as an additional attribute on our sample with a b
 If a row is contained both in the sample and the outlier index, the outlier index takes precedence.
 This ensures that we do not double count the outliers.
 
-\subsection{Query Processing} 
+\subsection{Query Processing}\label{oqp} 
 For result estimation, we can think of our sample $\hat{S'}$ and our outlier index $O$ as two distinct parts.
 Since $O \subset S'$, and we give membership in our outlier index precedence, our sample is actually a sample restricted to the set $\widehat{(S'-O)}$. 
 The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
@@ -84,6 +86,21 @@ $.
 For the queries in the previous section that are unbiased, this approach preserves unbiasedness.
 Since we are averaging two unbiased estimates $c_{reg}$ and $c_{out}$, the linearity of the expectation operator preserves this property.
 Furthermore, since $c_{out}$ is deterministic (and in fact its bias/variance is 0), $c_{reg}$ and $c_{out}$ are uncorrelated making the bounds described in the previous section applicable as well.
+
+\subsection{Example}
+Suppose, we want to use outlier indexing to process queries on \tbl{visitView}.
+We chose an attribute in the base data to index, for example \texttt{duration}.
+We can set an threshold of 1.5 hours (e.g, indexes all of the movies served by the system).
+This materializes the entire set of rows whose duration is longer than 1.5 hours.
+
+Returning to the example query from the previous section:
+\begin{lstlisting}[basicstyle={\scriptsize}]
+SELECT COUNT(1) FROM visitView 
+WHERE visitCount > 100;
+\end{lstlisting}
+We run SVC+AQP and SVC+CORR on the set of rows with durations longer than 1.5 hours.
+Then we use the update rule in Section \ref{oqp} to update the result based on the number of records in the index and the total size of the view.
+
 %sum of uncorrelated unbiased estimates since one is deterministic.
 
 %See \cite{chaudhuri2001overcoming} for additional query processing details.
