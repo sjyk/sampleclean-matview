@@ -2,7 +2,7 @@
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
 Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
-Finally, we overview the system architecture and discuss a numerical example of how this works in practice.
+Finally, we overview the system architecture and discuss a numerical example of how this works in practice \reminder{inconsistent; no architecture; no example}. 
 
 \subsection{Notation and Definitions}\label{notation}
 In \svc, we explore the problem of approximate aggregate query processing on stale materialized views using a data cleaning approach.
@@ -36,7 +36,7 @@ We denote the entire row for that primary key as a selection $\sigma_u(S)$.
 \noindent \textbf{Staleness: } We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
 An ``update'' to a relation can be modeled as a deletion and then an insertion.
 A view $S$ is considered \emph{stale} when there exist insertions or deletions to its base relations.
-We jointly refer to these relations as the delta relations $\partial \mathcal{D}$.
+We jointly refer to these relations as the delta relations $\partial \mathcal{D}$. \reminder{$\partial \mathcal{D}$ is not well defined. It sounds that they refer to the base relations who have updates.}
 
 \vspace{.25em}
 
@@ -51,12 +51,12 @@ S' = \mathcal{M}(S,\partial D)
 
 \vspace{.25em}
 
-\noindent \textbf{Staleness as Data Error: } The consequences of staleness are dirty data incorrect, missing, and superfluous rows.
+\noindent \textbf{Staleness as Data Error: } The consequences of staleness are dirty data incorrect, missing, and superfluous rows\reminder{syntactic error?}. 
 Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \begin{itemize}[noitemsep] \sloppy
 	\item \textbf{Incorrect: } Incorrect row errors are the set of rows (identified by the primary key) that are updated in $S'$: \[\{\forall u \in S : (\exists u \in S' \wedge (\sigma_u(S) \ne \sigma_u(S')))\}\]
 	\item \textbf{Missing: } Missing row errors are the set of rows (identified by the primary key) that exist in the up-to-date view but not in the stale view: \[\{\forall u \in S' : \not \exists u \in S\}\]
-	\item \textbf{Superfluous: } Superfluous row errors are the set of rows (identified by the primary key) that exist in the stale view but not the up-to-date view : \[\{ \forall u \in S : \not\exists u \in S' \}\]
+	\item \textbf{Superfluous: } Superfluous row errors are the set of rows (identified by the primary key) that exist in the stale view but not in the up-to-date view : \[\{ \forall u \in S : \not\exists u \in S' \}\]
 \end{itemize}
 
 \vspace{.25em}
@@ -64,7 +64,7 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.32]{figs/example_expression_tree.pdf} \vspace{-.5em}
- \caption{For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.5em}
+ \caption{\reminder{(1). the view definition is different from the one in Sec 2.1; (2) Even if they are the same, it seems not necessary to show it again; (3) Right now you have (b) to show maintenance strategy; maybe you can replace (a) with a figure that shows primary key and ``staleness ad data error"} For our example, we represent the expression tree of the maintenance strategy. We first calculate a delta view using the new insertions and then join this view with the old view.\label{exexpr}}\vspace{-1.5em}
 \end{figure}
 
 \vspace{0.45em}
@@ -92,12 +92,15 @@ If new records have been added to Log staged in the temporary table LogIns, then
 \end{enumerate}
 \vspace{-.5em}
 
+\reminder{This example did a good job to explain maintenance strategy; But it did not help to understand other concepts; You can either have one giant example that tells a story connecting all concepts together or add a small example to the end of each concept.}
+
 %While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
 %Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
 %However, this requires that we know our query workload in advance.  
 %In this paper, we do not discuss stratified sampling and will explore this further in future work.
 
 \subsection{Stale Sample View Cleaning}
+\reminder{1. Make the problem formalization as a definition; 2. Try to think how to use a figure or an example to explain this definition.}
 The first problem addressed in this paper is how to clean a sample of the stale materialized view.
 We are given a stale materialized view $S$ and a maintenance strategy $\mathcal{M}$.
 We have a sample of this view $\widehat{S}$ with ratio $m$, the insertion and deletion set $\partial \mathcal{D}$, and a maintenance strategy $\mathcal{M}$.
@@ -106,7 +109,10 @@ We want to find a relational expression $\mathcal{C}$ that takes the above relat
 \widehat{S}' = \mathcal{C}(\widehat{S},\partial \mathcal{D})
 \]
 
+\reminder{Do you need $\mathcal{D}$? This makes me more confused about the definition of $\partial \mathcal{D}$. }
+
 \subsection{Query Result Estimation}
+\reminder{1. Make the problem formalization as a definition; 2. Try to think how to use a figure or an example to explain this definition.}
 The second problem addressed in this paper is query result estimation.
 Let $q$ be an aggregate query of the following form \footnote{\scriptsize For simplicity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
@@ -121,6 +127,7 @@ We propose two query result estimation approaches: \svcnospace+AQP which estimat
 \svcnospace+CORR which estimates $c$ from the differences between $\widehat{S}$ and $\widehat{S}'$.
 
 \subsection{\svc Workflow}
+\reminder{(a). This workflow does not match Figure 1; Maybe you need to draw a new figure. (b) I think it is better to put this section before Secs 3.2 and 3.3. Based on this workflow, you can abstract two challenging problems which are Secs 3.2 and 3.3. (c) I think Sec 3.2-3.4 are very important. We need to write them as clear as possible and as formal as possible. }
 We summarize the system in Figure \ref{sys-arch} in our introduction.
 Formally, the workflow of \svc is:
 \begin{enumerate}[noitemsep]

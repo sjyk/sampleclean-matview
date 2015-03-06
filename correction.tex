@@ -4,14 +4,14 @@ In this section, we describe how to find a relational expression $\mathcal{C}$ d
 efficiently cleans a sample of a stale view $\widehat{S}$ and produces a sample of the up-to-date view $\widehat{S}'$.
 
 \subsection{Challenges}
-To illustrate the challenges in deriving $\mathcal{C}$, we present two naive solutions to this problem that will not work.
+To illustrate the challenges in deriving $\mathcal{C}$, we present two naive solutions to this problem that will not work. 
 First, the maintenance strategy $\mathcal{M}$ can be thought of as a data cleaning procedure to clean these errors, since applying the strategy to a stale view $S$ and the delta relations $\partial \mathcal{D}$ returns an up-to-date view $S'$ without data error.
 We could trivially apply $\mathcal{M}$ to the entire stale view $S$ and update it to $S'$, and then sample.
 While the result is correct according to our problem formulation, it does not save us on any computation for maintenance.
 The intent is that restricting cleaning (maintenance) to a sample requires less computation; thus avoiding materialization of up-to-date rows outside of the sample.
 
 Alternatively, we could just apply $\mathcal{M}$ to the stale sample $\widehat{S}$ and a sample of the delta relations $\widehat{\partial \mathcal{D}}$. 
-However, for general maintenance strategies, $\mathcal{M}$ does not commute with sampling.
+However, for general maintenance strategies, $\mathcal{M}$ does not commute with sampling. \reminder{I am confused why you have this subsubsection to separate the explanation of this alternative method. }
 
 \subsubsection{Provenance}
 \label{lin}
@@ -62,6 +62,7 @@ These rules define a constructive definition that can always be applied for our 
 We only have to ensure that any projection operation $\Pi$ includes the operand's primary key, and enforcing this condition
 defines an equivalent materialized view.
 
+\reminder{Why do you need to define Primary Key Provenance?}
 These primary keys define the provenance of a row $r$:
 \begin{proposition}[Primary Key Provenance]\label{provalg}
 Let $R$ and $U$ be relations as defined in Definition \ref{prov}. 
@@ -76,6 +77,8 @@ return $U$.
 As we will subsequently see, this primary key definition allows us to efficiently sample the relational expression.
 For the relational expressions defined in the previous section, this method will always work.
 However, in the future, if we expand the allowed set of relational expressions there are some limitations which we defer to future work.
+
+\reminder{I highly recommend to add an example here to explain how to compute a primary key for a MV using our rules. This example can also help reviewers to understand primary key is not an assumption that we enforce for a MV.}
 
 \subsection{Hashing Operator}
 \label{push}
@@ -123,29 +126,35 @@ Given the hash function $\eta_{a, m}(R)$:
 {\noindent \textbf{(Semi/Anti)-Join:}} Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
 
 The result of this hash operator pushdown on $\mathcal{M}$ is the cleaning expression $\mathcal{C}$. 
-When applied to a stale sample of a view, it produces an up-to-date sample:
+When applied to a stale sample of a view \reminder{only the stale sample?}, it produces an up-to-date sample:
 \[
 \widehat{S}' = \mathcal{C}(\widehat{S},\partial \mathcal{D})
 \]
 
 \subsection{Corresponding Samples}
+\reminder{I am still a little worried about this section because (1) in the proble formulation, you said $\widehat{S}'$ has to be a random sample; but here, the sample you generated depends on $\widehat{S}$. Is it still a random sample; (2) why does this sample give you the best answer? why not generate others?}
 $\widehat{S}'$ and $\widehat{S}$ are not arbitrary random samples of the up-to-date and stale view respectively, since $\widehat{S}'$ is a cleaned version of $\widehat{S}$.
 We next formalize the relationship between the samples $\widehat{S}'$ and $\widehat{S}$, with a property we call correspondence.
 Statistically, correspondence positively correlates the query result $q(\widehat{S}')$ and $q(\widehat{S})$, if the two samples were unrelated they would be independent estimates. 
-We will see how this property can be leveraged to improve query estimation accuracy.
+We will see how this property can be leveraged to improve query estimation accuracy. \reminder{ref sec 5.3.2? }
+
+\reminder{Is it a definition or property? }
 
 \begin{definition}[Correspondence]
 Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\widehat{S'}$ and $\widehat{S}$ correspond if and only if:
 \vspace{-.25em}
 \begin{itemize}[noitemsep]
-\item Uniformity: Both $\widehat{S'}$ and $\widehat{S}$ have sampling ratio of $m$ which means the expected value of the size of the samples is a fraction $m$ of the total size of the view: \[\mathbb{E}(\frac{\mid\widehat{S}\mid}{\mid S \mid}) = \mathbb{E}(\frac{\mid\widehat{S}'\mid}{\mid S' \mid}) = m\]
-\item Removal of Superfluous Rows: $D = \{\forall r \in \widehat{S} \wedge r \not\in S'\}$, $D \cup \widehat{S'} = \emptyset$
+\item Uniformity: Both $\widehat{S'}$ and $\widehat{S}$ have sampling ratio of $m$ which means the expected value of the size of the samples is a fraction $m$ of the total size of the view: \[\mathbb{E}(\frac{\mid\widehat{S}\mid}{\mid S \mid}) = \mathbb{E}(\frac{\mid\widehat{S}'\mid}{\mid S' \mid}) = m\] \reminder{I think you can remove this point and say in the beginning that ``$\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$ with a sampling ratio of $m$"}
+\item Removal of Superfluous Rows: $D = \{\forall r \in \widehat{S} \wedge r \not\in S'\}$, $D \cup \widehat{S'} = \emptyset$ \reminder{$\cup$?}
 \item Sampling of Missing Rows: $I = \{\forall r \not\in S : r \not \in S\}$, \[\mathbb{E}(\mid I \cup \widehat{S'} \mid) = m\mid I \mid \]
 \item Key Preservation: Let $A$ be the primary key of $S$, \[N_S = \{\forall r(A) \in \widehat{S}\}, N_{S'} = \{\forall r(A) \in \widehat{S}'\}\] \[N_S = N_{S'}\]
 \end{itemize}
 \vspace{-.25em}
 \label{correspondence}
 \end{definition}
+
+\reminder{Always give one sentence in the begining or the end of a paragraph to say what's the point of this paragraph. Do you want to say our method can gurantee to get a coresponding sample that you defined above? }
+
 Since the primary keys are key consistent between $\hat{S'}$ and $\hat{S}$, included and excluded rows are preserved by the hashing.
 Trivially satisfying the key preservation condition.
 The deletion condition is satisfied since if $r$ is deleted, then $r \not \in S'$ which implies that $r \not\in \hat{S'}$.
@@ -176,7 +185,7 @@ Then, we reach another point where we hash the equality join key allowing us to 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.24]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
- \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy.  \label{exexpr2}}\vspace{-1.75em}
+ \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \reminder{Add more margin between the two figures.} \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
 In terms of increased efficiency, since both the aggregation and joins are ``above'' the sampling operator, they require less computation and less memory.
