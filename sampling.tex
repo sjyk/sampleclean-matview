@@ -3,9 +3,9 @@
 %In the previous section, we discussed how to efficiently maintain a sample of a materialized view by applying the hashing operator to the maintenance strategy.
 %The result of the previous section is a cleaned sampled materialized view $\hat{S'}$.
 \svc returns two corresponding samples, $\widehat{S}$ and $\widehat{S}'$.
-$\widehat{S}$ is a ``dirty" sample (sample of stale rows) and $\widehat{S}'$ is a ``clean" sample (sample of the up-to-date view).
+$\widehat{S}$ is a ``dirty" sample (sample of the stale view) and $\widehat{S}'$ is a ``clean" sample (sample of the up-to-date view).
 In this section, we discuss how to estimate query results using the two corresponding samples. 
-We first describe two result estimation procedures, which we denote as \svcnospace+CORR and \svcnospace+AQP.
+We first describe two result estimation procedures, which we denote as \svcnospace+CORR and \svcnospace+AQP. \reminder{I forgot when you first used AQP and CORR. But make sure that readers can understand what AQP and CORR stand for.}
 These procedures are extensions of the query processing approaches proposed in SampleClean \cite{wang1999sample}, extending it to missing data and aggregates beyond \sumfunc, \countfunc, and \avgfunc.
 Then, we discuss the bounds and guarantees on different classes of aggregate queries.
 
@@ -42,8 +42,8 @@ result estimation technique.
 
 \vspace{0.25em}
 
-\noindent\textbf{SVC+AQP: }  Given a clean sample view $\widehat{S}'$, the query $q$, and a scaling factor $s$.
-We apply the query to the sample and scale it by $N$:
+\noindent\textbf{SVC+AQP: }  Given a clean sample view $\widehat{S}'$, the query $q$, and a scaling factor $s$. 
+We apply the query to the sample and scale it by $N$: \reminder{what is $N$?}
 \[
 q(S') \approx s*q(\widehat{S}')
 \]
@@ -57,13 +57,15 @@ We call this approach \svcnospace+CORR.
 
 \vspace{0.25em}
 
-\noindent\textbf{SVC+CORR: } Given a clean sample $\widehat{S}'$, its corresponding dirty sample $\widehat{S}$, a query q, and a scaling factor $N$:
+\noindent\textbf{SVC+CORR: } Given a clean sample $\widehat{S}'$, its corresponding dirty sample $\widehat{S}$, a query q, and a scaling factor $N$: \reminder{$N$ or $s$?}
 \begin{enumerate}[noitemsep]
-\item Apply \svcnospace+AQP to $\widehat{S}'$
+\item Apply \svcnospace+AQP to $\widehat{S}'$ \reminder{This looks not very formal.}
 \item Apply \svcnospace+AQP to $\widehat{S}$
 \item Apply q to the full stale view.
 \item Take the difference between (2) and (1) and add it to (3).
 \end{enumerate}
+
+\reminder{It would be better to add a detailed example here to explain how SVC+SQP and SVC+CORR work. You can use a SUM (or COUNT/AVG) query, and show how to rewrite it against a sample data for SVC+SQP and SVC+CORR, respectively.}
 
 An unbiased result estimate means that average value of the estimate over all possible samples is $q(S')$.
 If \svcnospace+AQP is unbiased then \svcnospace+CORR gives unbiased results.
@@ -85,6 +87,7 @@ If there exists a bounded bias sample estimator for $q$ then there exists a boun
 \end{corollary}
 
 \subsection{Analyzing Result Estimates}
+\reminder{I did not quite understand this section. (1) If it is analysis of result estimates, why not incorperate the biasness analysis above into this section.  (2) It also seems that you want Sec 5.3 and Sec 5.4 to be the subsections of sec 5.2. }
 To analyze result estimates, we taxonomize common SQL aggregate queries into different \emph{estimator families}.
 For example, \sumfunc, \countfunc, and \avgfunc can written as sample means (see \cite{wang1999sample} for details).
 It turns out that the \svcnospace+AQP and \svcnospace+CORR inherit the properties of the estimator family.
@@ -109,17 +112,19 @@ Now we will discuss bounding our estimates in confidence intervals for \sumfunc,
 estimated with ``sample mean" estimators.
 
 \subsubsection{Confidence Intervals}
+\reminder{From this section, I know how to get confidence intervals, but I don't know why you do it in this way, why it is correct, why it is challenging, and why we need row-by-row difference, }
+
 The first step is a query rewriting step where we express the query on the view in terms of a \textsf{case} statement (1 if true, 0 if false)
 instead of a predicate.
 Let \emph{attr} be the aggregate attribute and $m$ be the sampling ratio. 
 We define an intermediate result $trans$ which is a table of transformed rows with the first column the 
 primary key and the second column defined in terms of a \texttt{case} statement and scaling.
-For \sumfunc:
+For \sumfunc: \reminder{``*" has two meaning in the following query, which is a little confusing.}
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 trans(sample):= SELECT pk, 
 1.0/m * attr*cond(*) as trans_attr
-FROM sample
-\end{lstlisting}
+FROM sample 
+\end{lstlisting} 
 For \avgfunc since there is no scaling we do not need to re-write:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 trans(sample) := SELECT pk, attr as trans_attr 
@@ -210,6 +215,8 @@ However, even for many discrete parametric distributions, the sample mean estima
 Our approach is valid for any choice of estimator, even though we do the analysis for sample mean estimators as they are sensible in many applications.
 
 \subsection{General Estimators}
+\reminder{What's our contribution compared to typical bootstrap techniques?}
+
 The theory for bounding general estimators outside of the sample mean family is more complex.
 We may not get analytic confidence intervals on our results, nor is it guaranteed that our estimates are optimal.
 We can use a technique called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound our correction.
@@ -228,7 +235,7 @@ We use these repeated executions to build a distribution of values that the corr
 \begin{enumerate}[noitemsep]
 \item Subsample $\widehat{S}_{sub}'$ and $\widehat{S}_{sub}$ with replacement from $\widehat{S}'$ and $\widehat{S}$ respectively
 \item Apply SVC+AQP to $\widehat{S}_{sub}'$ and $\widehat{S}_{sub}$
-\item Record the difference $e_q(\widehat{S}_{sub}')-e_q(\widehat{S}_{sub})$
+\item Record the difference $e_q(\widehat{S}_{sub}')-e_q(\widehat{S}_{sub})$ \reminder{Have you defined $e_q$ before?}
 \item Return to 1, for k iterations.
 \item Return the 97.5\% and the 2.5\% percentile of the distribution of results.
 \end{enumerate}
@@ -262,6 +269,7 @@ This bound has a slightly different interpretation than the confidence intervals
 This gives the probability that a larger (or smaller) element exists in the unsampled view.
 
 \subsection{Example}
+\reminder{This example is only about result estimation. I would suggest to put it before Sec 5.2.}
 Returning to our example \tbl{visitView}, suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM visitView 
