@@ -7,12 +7,12 @@ However, even for these optimized systems, some materialized views are computati
 In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magnitude variation in maintenance
 throughput over the 22 TPCH queries defined as MVs.
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
-SVC is complementary to existing maintenance algorithms, whether 1st order like classical change-table IVM or higher order like DBToaster, provided they are specified in standard relational algebra.
+SVC is complementary to existing maintenance algorithms, recomputation, IVM, or higher order like DBToaster, provided they are specified in standard relational algebra.
 Through the use of sampling, we provide the user another tool to flexibly manage and schedule maintenance of MVs for aggregate analytics.
 
 \vspace{0.25em}
 
-\noindent \textbf{Log Analysis Example: } Let us consider a typical use case for an Online Analytics Processing.
+\noindent \textbf{Log Analysis Example: } %Let us consider a typical use case for Online Analytics Processing.
 Suppose we are a video streaming company analyzing user engagement.
 Our database consists of two tables \tbl{Log} and \tbl{Video}, with the following schema:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
@@ -55,9 +55,9 @@ Traditionally, data cleaning has explored expensive, up-front cleaning of entire
 Those who were unwilling to pay the full cleaning cost avoided data cleaning altogether.
 We proposed SampleClean to add an additional trade-off to this design space by using sampling, i.e. bounded results for aggregate queries when only a sample of data is cleaned.
 The problem of high computational costs for accurate results mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (expensive and up-to-date) and deferred maintenance (inexpensive and stale). 
-Thus, we explore how samples of ``clean" data can be used for improved query processing on MVs without incurring the full cost of maintenance.
+Thus, we explore how samples of ``clean" (up-to-date) data can be used for improved query processing on MVs without incurring the full cost of maintenance.
 
-However, the metaphor of Stale MVs as a Sample-and-Clean problem only holds to a point.
+However, the metaphor of stale MVs as a Sample-and-Clean problem only holds to a point.
 In SampleClean, we modeled data cleaning as a row-by-row transformation of relation with an unknown expensive cost. 
 This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
 In the MV setting, we found that the staleness cleaning problem interacts with sampling in complex ways. 
