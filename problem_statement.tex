@@ -63,4 +63,7 @@ This transformation was a user-specified  ``black box'' that operated on each ro
 In the MV setting, we found that the staleness cleaning problem interacts with sampling in complex ways. 
 MV maintenance does not necessarily commute with sampling, nor is sampling guaranteed to save on maintenance cost.
 The row-by-row transformation model will have to be modified to handle these new challenges. 
+In this work, we also greatly expand the query processing scope of SampleClean beyond \sumfunc, \countfunc, and \avgfunc queries as studied in that work.
+This requires new analytic tools such as statistical bootstrap estimation to calculate bounds.
+We additionally have to expand the framework to support handling of missing rows which we did not consider before.
 

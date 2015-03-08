@@ -179,33 +179,24 @@ Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, re
 \end{property}
 
 \subsection{Example}
-We illustrate our proposed approach on our example view \textsf{countView} (Figure \ref{exexpr}).
-The maintenance strategy of this view is described in the previous section.
-We first use the rules described in Section \ref{lin} to get the primary key of the view.  
-The primary key for base relations \tbl{Log} and \tbl{Video} are \textsf{sessionId} and \textsf{videoId}, respectively.
-If we move up the tree in Figure \ref{exexpr}, the first expression in the maintenance strategy is a join making the primary key of that expression (\textsf{sessionId}, \textsf{videoId}).
-Then, next there is an aggregation which groups by \textsf{videoId} making that the primary key of the MV.
-
-%This result is an equality the stale view (which has \textsf{videoId} as the primary key) making \textsf{videoId} the primary key of the expression\reminder{unclear}.
-
-We can apply our hash operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy.
-In Figure \ref{exexpr2}, we illustrate the pushdown process.
-At the top of the expression tree is the MV, whose primary key is \textsf{videoId}. 
+We illustrate our proposed approach on our example view \texttt{visitView} (Figure \ref{exexpr2}). 
+The primary key for the view is the tuple (\texttt{videoId}, \texttt{ownerId}, \texttt{language}, \texttt{duration}) making that the primary key of the MV.
+We can apply our hash operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy. 
 We start by applying the hashing operator to this key.
-The next operator we see in the expression tree is a projection that increments the \textsf{visitCount} in the view, and this allows
-for push down since \textsf{videoId} is in the projection.
-The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree.
+The next operator we see in the expression tree is a projection that increments the \texttt{visitCount} in the view, and this allows
+for push down since primary key is in the projection.
+The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree using our special case for equality joins.
 On the left side, we reach the stale view so we stop.
-Since the stale view does not change, we can calculate the sample of the stale view once (e.g., during periodic maintenance). 
-On the right side, we reach the aggregate query (count) and since \textsf{videoId} is in group by clause, we can push down the sampling.
-Then, we reach another point where we hash the equality join key allowing us to push down the sampling to the relation \tbl{LogIns} and \tbl{Video}.
+On the right side, we reach the aggregate query (count) and since the primary key is in group by clause, we can push down the sampling.
+Then, we reach another point where we hash the equality join key allowing us to push down the sampling to the relations \tbl{LogIns} and \tbl{Video}.
+In terms of increased efficiency, since both the aggregation and joins are ``above'' the sampling operator, they require less computation and less memory.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.24]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
- \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \reminder{Add more margin between the two figures.} \label{exexpr2}}\vspace{-1.75em}
+ \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 
-In terms of increased efficiency, since both the aggregation and joins are ``above'' the sampling operator, they require less computation and less memory.
+
 
 

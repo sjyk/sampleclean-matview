@@ -95,7 +95,7 @@ If new records have been added to (or deleted from) the Log table the visitView 
 Incorrect rows in the view are videos for which the visitCount is incorrect, missing rows are videos that had not yet been viewed once at the time of materialization, and
 superfluous rows are videos whose Log records have all been deleted.
 
-The maintenance strategy for this view is as follows (for simplicity consider the case with no deletions):
+The maintenance strategy (visualized in Figure \ref{maintstrat}) for this view is as follows (for simplicity consider the case with no deletions):
 \vspace{-.55em}
 \begin{enumerate}[noitemsep]
 \item Create a ``delta view" by applying the view definition to LogIns. That is, calculate the visit count per video, language, and ownerId on the new logs.
@@ -104,6 +104,12 @@ The maintenance strategy for this view is as follows (for simplicity consider th
 \end{enumerate}
 
 \end{example}
+
+\begin{figure}[t] \vspace{-2em}
+\centering
+ \includegraphics[scale=0.35]{figs/example_expression_tree.pdf} \vspace{-.5em}
+ \caption{We illustrate the maintenance strategy of our example view, visitView, in an expression tree. \label{maintstrat}}\vspace{-1.75em}
+\end{figure}
 
 %While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
 %Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
