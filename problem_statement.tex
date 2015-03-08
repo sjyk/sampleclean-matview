@@ -22,7 +22,7 @@ Video(videoId$\textrm{,}$ ownerId$\textrm{,}$ lang$\textrm{,}$ duration)
 The \tbl{Log} table stores each visit to a specific video with primary key (\texttt{sessionId}), a foreign-key to the \tbl{Video} table (\texttt{videoId}), latency of the visit (\texttt{responseTime}), and the browser used to access the video (\texttt{userAgent}).
 The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerId}), language (\texttt{lang}), and the video duration (\texttt{duration}).
 
-For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits \reminder{visit?} per video and the total number of visits for each language, predicated on different subsets of owners (e.g., premium users vs. free users) \reminder{There is no owner information in the Log and Video tables. Should we still say that?}. 
+For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits per video and the total number of visits for each language, predicated on different subsets of owners. 
 To avoid repeatedly performing the join and visit aggregation, we could define the following MV:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 CREATE VIEW visitView
@@ -38,11 +38,12 @@ SELECT agg(visitCount) FROM visitView
 WHERE Condition(*)
 \end{lstlisting}
 
-As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions to the table as:
+As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions and deltions to the table as:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
+LogDels(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
-Intuitively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} to just those rows, we can reduce the maintenance time of the view.
+Intuitively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} and \texttt{LogDels} to just those rows, we can reduce the maintenance time of the view.
 If we are intelligent about restricting the computation, this can reduce the number of \tbl{Log} records to aggregate and to join with the \texttt{Video} table.
 However, from this uniform sample, we can still estimate our aggregate queries of interest, trading off maintenance throughput for accuracy.
 

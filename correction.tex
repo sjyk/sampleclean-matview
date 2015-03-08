@@ -8,15 +8,13 @@ To illustrate the challenges in deriving $\mathcal{C}$, we present two naive sol
 First, the maintenance strategy $\mathcal{M}$ can be thought of as a data cleaning procedure to clean these errors, since applying the strategy to a stale view $S$ and the delta relations $\partial \mathcal{D}$ returns an up-to-date view $S'$ without data error.
 We could trivially apply $\mathcal{M}$ to the entire stale view $S$ and update it to $S'$, and then sample.
 While the result is correct according to our problem formulation, it does not save us on any computation for maintenance.
-The intent is that restricting cleaning (maintenance) to a sample requires less computation; thus avoiding materialization of up-to-date rows outside of the sample.
+The intent is that restricting cleaning (maintenance) to a sample requires less computation; thus avoiding materialization of up-to-date rows outside of the sample.Alternatively, we could just apply $\mathcal{M}$ to the stale sample $\widehat{S}$ and a sample of the delta relations $\widehat{\partial \mathcal{D}}$. 
+However, for general maintenance strategies, $\mathcal{M}$ does not commute with sampling. 
 
-Alternatively, we could just apply $\mathcal{M}$ to the stale sample $\widehat{S}$ and a sample of the delta relations $\widehat{\partial \mathcal{D}}$. 
-However, for general maintenance strategies, $\mathcal{M}$ does not commute with sampling. \reminder{I am confused why you have this subsubsection to separate the explanation of this alternative method. }
-
-\subsubsection{Provenance}
+\subsection{Provenance}
 \label{lin}
-We explore with commutativity problem in more detail.
-Consider the simple but illustrative case of maintaining a view that is a group by aggregate:
+We explore the commutativity problem in more detail.
+Consider the case of maintaining a view that is a group by aggregate:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT videoId, count(1) 
 FROM Log
@@ -61,9 +59,42 @@ For every node at the expression tree, these keys are guaranteed to uniquely ide
 These rules define a constructive definition that can always be applied for our defined relational expressions. 
 We only have to ensure that any projection operation $\Pi$ includes the operand's primary key, and enforcing this condition
 defines an equivalent materialized view.
+As we will subsequently see, this primary key definition allows us to efficiently sample the relational expression.
+For the relational expressions defined in the previous section, this method will always work.
+However, in the future, if we expand the allowed set of relational expressions there are some limitations which we defer to future work.
 
-\reminder{Why do you need to define Primary Key Provenance?}
-These primary keys define the provenance of a row $r$:
+\begin{example}
+A variant of our running example view that does not have a primary key is:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+CREATE VIEW visitView
+AS SELECT count(1) as visitCount
+FROM Log, Video
+WHERE Log.videoId = Video.videoId
+GROUP BY videoId, ownerId, language, duration
+\end{lstlisting}
+
+To ensure that this view has a primary key for all subexpression,
+we add the primary key to the projection:
+\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
+CREATE VIEW visitView
+AS SELECT videoId, ownerId, language, duration,
+count(1) as visitCount
+FROM Log, Video
+WHERE Log.videoId = Video.videoId
+GROUP BY videoId, ownerId, language, duration
+\end{lstlisting}
+These two views are equivalent, as any query that can be answered with the previous view can be answered with 
+the new view with the additional attributes.
+
+Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
+We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}.
+Then, we can apply the rules above to propagate this key up the expression tree.
+\end{example}
+
+\subsection{Hashing Operator}
+\label{push}
+These primary keys define the provenance of a row $r$, which allows us to easily determine the set of rows in subexpressions that contribute
+to $r$:
 \begin{proposition}[Primary Key Provenance]\label{provalg}
 Let $R$ and $U$ be relations as defined in Definition \ref{prov}. 
 Let $A_R$ be the primary key set of $R$ and $A_U$ be the primary key 
@@ -73,19 +104,8 @@ $p_U(r)$ is defined as follows: (1) if $A_R \subseteq A_U$ then
 $\{u \in U: u(A_R) = r(A_R)\}$, (2) if $A_R \not \subseteq A_U$ then
 return $U$.
 \end{proposition}
-
-As we will subsequently see, this primary key definition allows us to efficiently sample the relational expression.
-For the relational expressions defined in the previous section, this method will always work.
-However, in the future, if we expand the allowed set of relational expressions there are some limitations which we defer to future work.
-
-\reminder{I highly recommend to add an example here to explain how to compute a primary key for a MV using our rules. This example can also help reviewers to understand primary key is not an assumption that we enforce for a MV.}
-
-\subsection{Hashing Operator}
-\label{push}
-Proposition \ref{provalg} gives an procedure of determining the set of rows that contribute to $r$. 
 We now explore how we can design a sampling technique to guarantee that all of the rows in Proposition \ref{provalg} are sampled if $r$ is sampled.
 If we have a deterministic way of mapping a primary key defined in the previous subsection to Boolean true or false, we can ensure that all contributing rows are also sampled. 
-
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.
@@ -117,48 +137,46 @@ Given the hash function $\eta_{a, m}(R)$:
 
 \vspace{.25em}
 
-{\noindent \textbf{Foreign Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with pk $a$) and $R_2$ (dimension table with fk $b$) and we are sampling the key $a$ or $(a,b)$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$.
+{\noindent \textbf{Foreign Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with foreign key $a$) and $R_2$ (dimension table with primary key $b \subseteq a$) and we are sampling the key $a$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$. This case happens in our running example. If we sample the view on the primary key (\texttt{videoId}, \texttt{ownerId}, \texttt{language}, \texttt{duration}), since each video has only one owner, language and duration, we can push down the sampling of \texttt{videoId} to the \tbl{Log} relation and the \tbl{LogIns} table.
 
 %A special case of the equality join rule is if we have a join with two foreign-key relations $R_1$ (fact table) and $R_2$ (dimension table). If we are sampling the foreign key (the primary key of the dimension table), then we can push down $\eta$ to both relations as in the equality join case. 
 
-\vspace{.25em}
+%\vspace{.25em}
 
-{\noindent \textbf{(Semi/Anti)-Join:}} Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
+%{\noindent \textbf{(Semi/Anti)-Join:}} Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
+
+\vspace{0.25em}
 
 The result of this hash operator pushdown on $\mathcal{M}$ is the cleaning expression $\mathcal{C}$. 
-When applied to a stale sample of a view \reminder{only the stale sample?}, it produces an up-to-date sample:
+When applied to a stale sample of a view $\widehat{S}$, the database $\mathcal{D}$, and the delta relations $\partial \mathcal{D}$, it produces an up-to-date sample with sampling ratio $m$:
 \[
-\widehat{S}' = \mathcal{C}(\widehat{S},\partial \mathcal{D})
+\widehat{S}' = \mathcal{C}(\widehat{S},\mathcal{D},\partial \mathcal{D})
 \]
+Thus, it addresses Problem 1 from the previous section.
 
 \subsection{Corresponding Samples}
-\reminder{I am still a little worried about this section because (1) in the proble formulation, you said $\widehat{S}'$ has to be a random sample; but here, the sample you generated depends on $\widehat{S}$. Is it still a random sample; (2) why does this sample give you the best answer? why not generate others?}
-$\widehat{S}'$ and $\widehat{S}$ are not arbitrary random samples of the up-to-date and stale view respectively, since $\widehat{S}'$ is a cleaned version of $\widehat{S}$.
-We next formalize the relationship between the samples $\widehat{S}'$ and $\widehat{S}$, with a property we call correspondence.
-Statistically, correspondence positively correlates the query result $q(\widehat{S}')$ and $q(\widehat{S})$, if the two samples were unrelated they would be independent estimates. 
-We will see how this property can be leveraged to improve query estimation accuracy. \reminder{ref sec 5.3.2? }
+We started with a uniform random sample $\widehat{S}$ of the stale view $S$.
+The hash push down allows us to efficiently materialize the sample $\widehat{S}'$.
+$\widehat{S}'$ is a uniform random sample of the up-to-date view S.
+While both of these samples are uniform random samples of their respective relations, 
+the two samples are correlated since $\widehat{S}'$ is generated by cleaning $\widehat{S}$.
+In particular, our hashing technique ensures that the primary keys in $\widehat{S}'$ depend on the primary keys in $\widehat{S}$.
+Statistically, this positively correlates the query result $q(\widehat{S}')$ and $q(\widehat{S})$. 
+We will see how this property can be leveraged to improve query estimation accuracy (Section \ref{re}). 
 
-\reminder{Is it a definition or property? }
-
-\begin{definition}[Correspondence]
-Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, respectively.  We say $\widehat{S'}$ and $\widehat{S}$ correspond if and only if:
+We call this property correspondence:
+\begin{property}[Correspondence]
+Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, respectively.  Let $u$ denote the primary key. We say $\widehat{S'}$ and $\widehat{S}$ correspond if and only if:
 \vspace{-.25em}
 \begin{itemize}[noitemsep]
-\item Uniformity: Both $\widehat{S'}$ and $\widehat{S}$ have sampling ratio of $m$ which means the expected value of the size of the samples is a fraction $m$ of the total size of the view: \[\mathbb{E}(\frac{\mid\widehat{S}\mid}{\mid S \mid}) = \mathbb{E}(\frac{\mid\widehat{S}'\mid}{\mid S' \mid}) = m\] \reminder{I think you can remove this point and say in the beginning that ``$\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$ with a sampling ratio of $m$"}
-\item Removal of Superfluous Rows: $D = \{\forall r \in \widehat{S} \wedge r \not\in S'\}$, $D \cup \widehat{S'} = \emptyset$ \reminder{$\cup$?}
-\item Sampling of Missing Rows: $I = \{\forall r \not\in S : r \not \in S\}$, \[\mathbb{E}(\mid I \cup \widehat{S'} \mid) = m\mid I \mid \]
-\item Key Preservation: Let $A$ be the primary key of $S$, \[N_S = \{\forall r(A) \in \widehat{S}\}, N_{S'} = \{\forall r(A) \in \widehat{S}'\}\] \[N_S = N_{S'}\]
+\item Uniformity: $\widehat{S'}$ and $\widehat{S}$ are uniform random samples of $S'$ and $S$ respectively with a sampling ratio of $m$
+\item Removal of Superfluous Rows: $D = \{\forall u \in \widehat{S} \wedge u \not\in S'\}$, $D \cap \widehat{S'} = \emptyset$ 
+\item Sampling of Missing Rows: $I = \{\forall u \not\in S : u \not \in S\}$, \[\mathbb{E}(\mid I \cup \widehat{S'} \mid) = m\mid I \mid \]
+\item Key Preservation: For all $u\in \widehat{S}$ and not in $D$ or $I$, $u\in \widehat{S}'$.
 \end{itemize}
 \vspace{-.25em}
 \label{correspondence}
-\end{definition}
-
-\reminder{Always give one sentence in the begining or the end of a paragraph to say what's the point of this paragraph. Do you want to say our method can gurantee to get a coresponding sample that you defined above? }
-
-Since the primary keys are key consistent between $\hat{S'}$ and $\hat{S}$, included and excluded rows are preserved by the hashing.
-Trivially satisfying the key preservation condition.
-The deletion condition is satisfied since if $r$ is deleted, then $r \not \in S'$ which implies that $r \not\in \hat{S'}$.
-Since our hash push down is guaranteed to give a sample of the up-to-date view the uniformity condition and the insertion condition are also satisfied.
+\end{property}
 
 \subsection{Example}
 We illustrate our proposed approach on our example view \textsf{countView} (Figure \ref{exexpr}).

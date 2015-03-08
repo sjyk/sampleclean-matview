@@ -4,9 +4,7 @@
 %The result of the previous section is a cleaned sampled materialized view $\hat{S'}$.
 \svc returns two corresponding samples, $\widehat{S}$ and $\widehat{S}'$.
 $\widehat{S}$ is a ``dirty" sample (sample of the stale view) and $\widehat{S}'$ is a ``clean" sample (sample of the up-to-date view).
-In this section, we discuss how to estimate query results using the two corresponding samples. 
-We first describe two result estimation procedures, which we denote as \svcnospace+CORR and \svcnospace+AQP. \reminder{I forgot when you first used AQP and CORR. But make sure that readers can understand what AQP and CORR stand for.}
-These procedures are extensions of the query processing approaches proposed in SampleClean \cite{wang1999sample}, extending it to missing data and aggregates beyond \sumfunc, \countfunc, and \avgfunc.
+In this section, we first discuss how to estimate query results using the two corresponding samples. 
 Then, we discuss the bounds and guarantees on different classes of aggregate queries.
 
 %Our data cleaning perspective allows us to look at each dirty row in an MV and what cleaning was applied to clean it (insert, delete, or update).
@@ -25,7 +23,7 @@ Then, we discuss the bounds and guarantees on different classes of aggregate que
 
 
 
-\subsection{Result Estimation}
+\subsection{Result Estimation}\label{re}
 Suppose, we have an aggregate query $q$ of the following form:
 \begin{lstlisting} [mathescape]
 $\;\;\;\;$q(View) := SELECT f(attr) FROM View WHERE cond(*)
@@ -43,9 +41,9 @@ result estimation technique.
 \vspace{0.25em}
 
 \noindent\textbf{SVC+AQP: }  Given a clean sample view $\widehat{S}'$, the query $q$, and a scaling factor $s$. 
-We apply the query to the sample and scale it by $N$: \reminder{what is $N$?}
+We apply the query to the sample and scale it by $s$:
 \[
-q(S') \approx s*q(\widehat{S}')
+q(S') \approx s \cdot q(\widehat{S}')
 \]
 For example, for the \sumfunc and \countfunc the scaling factor is $\frac{1}{m}$. For the \avgfunc the scaling factor is 1.
 
@@ -57,16 +55,40 @@ We call this approach \svcnospace+CORR.
 
 \vspace{0.25em}
 
-\noindent\textbf{SVC+CORR: } Given a clean sample $\widehat{S}'$, its corresponding dirty sample $\widehat{S}$, a query q, and a scaling factor $N$: \reminder{$N$ or $s$?}
+\noindent\textbf{SVC+CORR: } Given a clean sample $\widehat{S}'$, its corresponding dirty sample $\widehat{S}$, a query q, and a scaling factor $s$:
 \begin{enumerate}[noitemsep]
-\item Apply \svcnospace+AQP to $\widehat{S}'$ \reminder{This looks not very formal.}
-\item Apply \svcnospace+AQP to $\widehat{S}$
-\item Apply q to the full stale view.
-\item Take the difference between (2) and (1) and add it to (3).
+\item Apply \svcnospace+AQP to $\widehat{S}'$:
+\[ r_{est\_fresh} = s \cdot q(\widehat{S}') \] 
+\item Apply \svcnospace+AQP to $\widehat{S}$:
+\[ r_{est\_stale} = s \cdot q(\widehat{S}) \] 
+\item Apply q to the full stale view:
+\[ r_{stale} = q(S) \]
+\item Take the difference between (1) and (2) and add it to (3):
+\[
+q(S') \approx r_{stale} + (r_{est\_fresh} - r_{est\_stale})
+\]
 \end{enumerate}
 
-\reminder{It would be better to add a detailed example here to explain how SVC+SQP and SVC+CORR work. You can use a SUM (or COUNT/AVG) query, and show how to rewrite it against a sample data for SVC+SQP and SVC+CORR, respectively.}
+\begin{example}
+We can formalize our earlier example in Section \ref{infexample} in terms of SVC+CORR and SVC+AQP.
+\begin{lstlisting}[basicstyle={\scriptsize}]
+SELECT COUNT(1) FROM visitView 
+WHERE visitCount > 100;
+\end{lstlisting}
+Let us suppose the initial query result is $45$.
+There now have been new log records inserted into the Log table making the old result stale, and suppose we are working with a sampling ratio of 5\%.
+For SVC+AQP, we count the number of videos in the sample that currently have counts greater than 100 and scale that result by 20.
+For SVC+CORR, suppose 2 videos have changed their counts from less than 100 to greater than 100.
+From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
+We extrapolate that $40$ new videos throughout the view should now be included in the count.
+This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
+\end{example}
 
+\subsection{Analyzing Result Estimates}
+To analyze result estimates, we taxonomize common SQL aggregate queries into different \emph{estimator families}.
+For example, \sumfunc, \countfunc, and \avgfunc can written as sample means (see \cite{wang1999sample} for details).
+It turns out that the \svcnospace+AQP and \svcnospace+CORR inherit the properties of the estimator family.
+A key property of interest in unbiasedness.
 An unbiased result estimate means that average value of the estimate over all possible samples is $q(S')$.
 If \svcnospace+AQP is unbiased then \svcnospace+CORR gives unbiased results.
 \begin{lemma}\label{lemma:unbiased}
@@ -86,13 +108,7 @@ A corollary to the previous lemma, is that if we can bound the bias for our esti
 If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
 \end{corollary}
 
-\subsection{Analyzing Result Estimates}
-\reminder{I did not quite understand this section. (1) If it is analysis of result estimates, why not incorperate the biasness analysis above into this section.  (2) It also seems that you want Sec 5.3 and Sec 5.4 to be the subsections of sec 5.2. }
-To analyze result estimates, we taxonomize common SQL aggregate queries into different \emph{estimator families}.
-For example, \sumfunc, \countfunc, and \avgfunc can written as sample means (see \cite{wang1999sample} for details).
-It turns out that the \svcnospace+AQP and \svcnospace+CORR inherit the properties of the estimator family.
-If the estimator family is unbiased and consistent, the techniques are also unbiased and consistent.
-Table \ref{estimators} describes these families for common queries.
+Table \ref{estimators} describes these families and their properties for common queries.
 Sample mean family of estimators (\sumfunc, \countfunc, and \avgfunc) has analytic solutions and has been the focus of other approximate query processing works \cite{OlkenR86, wang1999sample}, we analyze this family in detail.
 The general case can only be bounded empirically.
 
@@ -267,22 +283,6 @@ The same estimator can be modified for \minfunc, with a corresponding bound:
 \]
 This bound has a slightly different interpretation than the confidence intervals seen before.
 This gives the probability that a larger (or smaller) element exists in the unsampled view.
-
-\subsection{Example}
-\reminder{This example is only about result estimation. I would suggest to put it before Sec 5.2.}
-Returning to our example \tbl{visitView}, suppose a user wants to know how many videos have received more than 100 views.
-\begin{lstlisting}[basicstyle={\scriptsize}]
-SELECT COUNT(1) FROM visitView 
-WHERE visitCount > 100;
-\end{lstlisting}
-Let us suppose the initial query result is $45$.
-There now have been new log records inserted into the Log table making the old result stale.
-For example, if our sampling ratio is 5\%, that means for 5\% of the videos (distinct \tbl{videoId}), we update just the view counts of those videos.
-For SVC+AQP, we count the number of videos in the sample that currently have counts greater than 100 and scale that result by 20.
-For SVC+CORR, suppose 2 videos have changed their counts from less than 100 to greater than 100.
-From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
-From this sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
-This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
 
 \iffalse
 \vspace{-.25em}

@@ -2,7 +2,7 @@
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
 Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
-Finally, we overview the system architecture and discuss a numerical example of how this works in practice \reminder{inconsistent; no architecture; no example}. 
+Finally, we overview the \svc workflow. 
 
 \subsection{Notation and Definitions}\label{notation}
 In \svc, we explore the problem of approximate aggregate query processing on stale materialized views using a data cleaning approach.
@@ -33,10 +33,15 @@ We denote the entire row for that primary key as a selection $\sigma_u(S)$.
 
 \vspace{.25em}
 
-\noindent \textbf{Staleness: } We denote the set of insertions to a relation $R_i$ as $\Delta R_i$ and deletions as $\nabla R_i$.
-An ``update'' to a relation can be modeled as a deletion and then an insertion.
-A view $S$ is considered \emph{stale} when there exist insertions or deletions to its base relations.
-We jointly refer to these relations as the delta relations $\partial \mathcal{D}$. \reminder{$\partial \mathcal{D}$ is not well defined. It sounds that they refer to the base relations who have updates.}
+\noindent \textbf{Staleness: } For each relation $R_i$ there is a set of insertions $\Delta R_i$ (modeled as a relation)
+and a set of deletions $\nabla R_i$.
+An ``update'' to $R_i$ can be modeled as a deletion and then an insertion.
+We refer to the set of insertion and deletion relations as ``delta relations" denoted by $\partial \mathcal{D}$:
+\[
+	\partial \mathcal{D} = \{\Delta R_1,...,\Delta R_k\} \cup \{\nabla R_1,...,\nabla R_k\}
+\]
+A view $S$ is considered \emph{stale} when there exist insertions or deletions to any of its base relations.
+This means that at least one of the delta relations in $\partial \mathcal{D}$ is non-empty.
 
 \vspace{.25em}
 
@@ -46,12 +51,12 @@ A maintenance strategy is a relational expression the execution of which will re
 It is a function of the database $\mathcal{D}$, the stale view $S$, and all the insertion and deletion relations $\partial \mathcal{D}$. 
 In this work, we consider maintenance strategies composed of the same relational expressions as materialized views described above.
 \[
-S' = \mathcal{M}(S,\partial D)
+S' = \mathcal{M}(S,\mathcal{D}, \partial D)
 \]
 
 \vspace{.25em}
 
-\noindent \textbf{Staleness as Data Error: } The consequences of staleness are dirty data incorrect, missing, and superfluous rows\reminder{syntactic error?}. 
+\noindent \textbf{Staleness as Data Error: } The consequences of staleness are incorrect, missing, and superfluous rows. 
 Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \begin{itemize}[noitemsep] \sloppy
 	\item \textbf{Incorrect: } Incorrect row errors are the set of rows (identified by the primary key) that are updated in $S'$: \[\{\forall u \in S : (\exists u \in S' \wedge (\sigma_u(S) \ne \sigma_u(S')))\}\]
@@ -61,6 +66,7 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 
 \vspace{.25em}
 
+\iffalse
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.32]{figs/example_expression_tree.pdf} \vspace{-.5em}
@@ -68,6 +74,7 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \end{figure}
 
 \vspace{0.45em}
+\fi
 
 \noindent \textbf{Uniform Random Sampling: }
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
@@ -78,42 +85,60 @@ We say a sample is \emph{clean} if an only if it is a uniform random sample of t
 
 \vspace{0.25em}
 
-\noindent \emph{Example:  
-In Figure \ref{exexpr}, we illustrate the example view from the previous section.
-Our example view joins the Log table with the Video table and counts the visits for each video grouped by videoId, language, and ownerId.
-The primary key of Log is sessionId and the primary key of Video is videoId.
-If new records have been added to Log staged in the temporary table LogIns, then the expressions are needed to update the view (Figure \ref{exexpr}):}
+\begin{example}\label{concepts}
+In this example, we summarize all of the key concepts and terminolgy pertaining to materialized views, stale data error, and maintenance strategies.
+Our example view, visitView, joins the Log table with the Video table and counts the visits for each video grouped by videoId, language, ownerId, and duration.
+Since there is a foreign key relationship between the relations, this is just a visit count for each unique video with additional attributes. 
+The primary keys of the base relations are: sessionId for Log and videoId for Video.
 
+If new records have been added to (or deleted from) the Log table the visitView is considered stale.
+Incorrect rows in the view are videos for which the visitCount is incorrect, missing rows are videos that had not yet been viewed once at the time of materialization, and
+superfluous rows are videos whose Log records have all been deleted.
+
+The maintenance strategy for this view is as follows (for simplicity consider the case with no deletions):
 \vspace{-.55em}
 \begin{enumerate}[noitemsep]
-\item \emph{Create a ``delta view'' by applying the view definition to LogIns. That is, calculate the visit count per video, language, and ownerId on the new logs.}
-\item \emph{Take the full outer join (equality on videoId, language, ownerId) of the ``delta view'' and the stale view.}
-\item \emph{Apply the generalized projection operator to increment visitCount (adding the delta view visitCount  and the stale visitCount where NULL is treated as zero).}
+\item Create a ``delta view" by applying the view definition to LogIns. That is, calculate the visit count per video, language, and ownerId on the new logs.
+\item Take the full outer join of the ``delta view" with the stale view visitView (equality on videoId, language, ownerId).
+\item Apply the generalized projection operator to add the visitCount in the delta view to each of the rows in visitView and treating the outer join NULL for either visitView or the ``delta view" as 0.
 \end{enumerate}
-\vspace{-.5em}
 
-\reminder{This example did a good job to explain maintenance strategy; But it did not help to understand other concepts; You can either have one giant example that tells a story connecting all concepts together or add a small example to the end of each concept.}
+\end{example}
 
 %While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
 %Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
 %However, this requires that we know our query workload in advance.  
 %In this paper, we do not discuss stratified sampling and will explore this further in future work.
 
-\subsection{Stale Sample View Cleaning}
-\reminder{1. Make the problem formalization as a definition; 2. Try to think how to use a figure or an example to explain this definition.}
-The first problem addressed in this paper is how to clean a sample of the stale materialized view.
-We are given a stale materialized view $S$ and a maintenance strategy $\mathcal{M}$.
-We have a sample of this view $\widehat{S}$ with ratio $m$, the insertion and deletion set $\partial \mathcal{D}$, and a maintenance strategy $\mathcal{M}$.
-We want to find a relational expression $\mathcal{C}$ that takes the above relations as input and returns a clean sample $\widehat{S}'$, a sample of the up-to-date view, with sampling ratio $m$:
-\[
-\widehat{S}' = \mathcal{C}(\widehat{S},\partial \mathcal{D})
-\]
+\subsection{\svc Workflow}
+%We summarize the system in Figure \ref{sys-arch} in our introduction.
+Formally, the workflow of \svc is:
+\begin{enumerate}[noitemsep]
+\item We are given a view $S$.
+\item $\mathcal{M}$ defines the maintenance strategy that updates $S$ at each maintenance period.
+\item The view $S$ is stale between periodic maintenance, and the up-to-date view should be $S'$.
+\item \emph{(Problem 1: Stale Sample View Cleaning)} We find an expression $\mathcal{C}$ derived from $\mathcal{M}$ 
+that cleans a uniform random sample of the stale view $\widehat{S}$ to produce a ``clean" sample of the up-to-date
+view $\widehat{S'}$.
+\item \emph{(Problem 2. Query Result Estimation)} For an aggregate query $q$, we use $\widehat{S'}$ to estimate the up-to-date result.
+\item We optionally maintain an index of outliers $o$ for improved estimation in skewed data.
+\end{enumerate} 
 
-\reminder{Do you need $\mathcal{D}$? This makes me more confused about the definition of $\partial \mathcal{D}$. }
+\subsection{Stale Sample View Cleaning}
+The first problem addressed in this paper is how to clean a sample of the stale materialized view.
+\begin{problem}[Stale Sample View Cleaning]
+We are given a stale view $S$, a sample of this stale view $\widehat{S}$ with ratio $m$, the maintenance strategy $\mathcal{M}$, the base relations $\mathcal{D}$, and
+the insertion and deletion relations $\partial \mathcal{D}$.
+We want to find a relational expression $\mathcal{C}$ such that:
+\[
+\widehat{S}' = \mathcal{C}(\widehat{S},\mathcal{D},\partial \mathcal{D})
+\]
+Where $\widehat{S}'$ is a sample of the up-to-date view with ratio $m$. 
+\end{problem}
 
 \subsection{Query Result Estimation}
-\reminder{1. Make the problem formalization as a definition; 2. Try to think how to use a figure or an example to explain this definition.}
 The second problem addressed in this paper is query result estimation.
+\begin{problem}[Query Result Estimation]
 Let $q$ be an aggregate query of the following form \footnote{\scriptsize For simplicity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $agg(a)$ FROM View WHERE Condition(A);
@@ -122,23 +147,28 @@ If the view $S$ is stale, then the result will be incorrect by some value $c$:
 \[
 q(S') = q(S) + c
 \]
-Our objective is to estimate $q(S')$ using $q(S)$, $\widehat{S}$, and $\widehat{S}'$.
-We propose two query result estimation approaches: \svcnospace+AQP which estimates $q(S')$ directly from a sample, and
-\svcnospace+CORR which estimates $c$ from the differences between $\widehat{S}$ and $\widehat{S}'$.
+Our objective is to find an estimator $f$ such that:
+\[
+q(S') \approx f(q(S),\widehat{S},\widehat{S}')
+\] 
+\end{problem}
 
-\subsection{\svc Workflow}
-\reminder{(a). This workflow does not match Figure 1; Maybe you need to draw a new figure. (b) I think it is better to put this section before Secs 3.2 and 3.3. Based on this workflow, you can abstract two challenging problems which are Secs 3.2 and 3.3. (c) I think Sec 3.2-3.4 are very important. We need to write them as clear as possible and as formal as possible. }
-We summarize the system in Figure \ref{sys-arch} in our introduction.
-Formally, the workflow of \svc is:
-\begin{enumerate}[noitemsep]
-\item Given a view $S$.
-\item $\mathcal{M}$ defines the maintenance strategy that updates $S$ to $S'$ at each maintenance period.
-\item The view $S$ is stale between periodic maintenance.
-\item We find an expression $\mathcal{C}$ that updates a sample of the materialized view $\widehat{S}$ to 
-	$\widehat{S}'$.
-\item For an aggregate query $q$ on the view $S$, we use $\widehat{S'}$ to estimate the up-to-date result.
-\item We optionally maintain an index of outliers $o$ for improved estimation in skewed data.
-\end{enumerate} 
+\subsection{Example}\label{infexample}
+We describe the \svc framework with our running example \tbl{visitView}.
+Suppose a user wants to know how many videos have received more than 100 views.
+\begin{lstlisting}[basicstyle={\scriptsize}]
+SELECT COUNT(1) FROM visitView 
+WHERE visitCount > 100;
+\end{lstlisting}
+Let us suppose the user runs the query and result is $45$.
+However, there have now been new records inserted into the Log table making this result stale (for clarity no changes to \tbl{Video} or deletions).
+First, we take a sample of \tbl{visitView} and suppose this sample is a 5\% sample.
+In Stale Sample View Cleaning (Problem 1), we calculate an expression $\mathcal{C}$ that takes the maintenance strategy $\mathcal{M}$ described in Example \ref{concepts},
+takes the database $\mathcal{D}$ (\tbl{Log} and \tbl{Video}), and the delta relation $\partial \mathcal{D}$ (\tbl{LogIns}) as input and updates the visit counts for the sample.
+In Query Result Estimation (Problem 2), we take the result of running $\mathcal{C}$, which is a sample of the up-to-date visit counts, and estimate our above query.
+Suppose 2 videos have changed their counts from less than 100 to greater than 100.
+From this 5\% sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
+This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
 
 \iffalse
 Our query correction component takes the two corresponding samples $\widehat{S'}$ and $\widehat{S}$, and calculates a correction to~$q(S)$.
