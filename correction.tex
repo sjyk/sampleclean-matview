@@ -8,19 +8,19 @@ To illustrate the challenges in deriving $\mathcal{C}$, we present two naive sol
 First, the maintenance strategy $\mathcal{M}$ can be thought of as a data cleaning procedure to clean these errors, since applying the strategy to a stale view $S$ and the delta relations $\partial \mathcal{D}$ returns an up-to-date view $S'$ without data error.
 We could trivially apply $\mathcal{M}$ to the entire stale view $S$ and update it to $S'$, and then sample.
 While the result is correct according to our problem formulation, it does not save us on any computation for maintenance.
-The intent is that restricting cleaning (maintenance) to a sample requires less computation; thus avoiding materialization of up-to-date rows outside of the sample.Alternatively, we could just apply $\mathcal{M}$ to the stale sample $\widehat{S}$ and a sample of the delta relations $\widehat{\partial \mathcal{D}}$. 
-However, for general maintenance strategies, $\mathcal{M}$ does not commute with sampling. 
+We want to restrict our cleaning to a sample requires so that it requires less computation by avoiding materialization of up-to-date rows outside of the sample. However, the alternative solution is also flawed. 
+For example, we could just apply $\mathcal{M}$ to the stale sample $\widehat{S}$ and a sample of the delta relations $\widehat{\partial \mathcal{D}}$. 
+For general maintenance strategies, $\mathcal{M}$ does not commute with sampling. 
 
 \subsection{Provenance}
 \label{lin}
 We explore the commutativity problem in more detail.
 Consider the case of maintaining a view that is a group by aggregate:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
-SELECT videoId, count(1) 
-FROM Log
+SELECT videoId, count(1) FROM Log
 GROUP BY videoId
 \end{lstlisting}
-The resulting view has one row for every distinct videoId.
+The resulting view has one row for every distinct \texttt{videoId}.
 We want to materialize a sample of $S'$, that is a sample of videos with up-to-date counts.
 If we randomly sample the delta relations $\widehat{\partial \mathcal{D}}$, we get a subset of records from LogIns.
 The problem is that if we propagate the updates based on $\widehat{\partial \mathcal{D}}$ to $\widehat{S}$ it is not guaranteed that 
@@ -176,7 +176,6 @@ In particular, our hashing technique ensures that the primary keys in $\widehat{
 Statistically, this positively correlates the query result $q(\widehat{S}')$ and $q(\widehat{S})$. 
 We will see how this property can be leveraged to improve query estimation accuracy (Section \ref{re}). 
 
-We call this property correspondence:
 \begin{property}[Correspondence]
 Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, respectively.  Let $u$ denote the primary key. We say $\widehat{S'}$ and $\widehat{S}$ correspond if and only if:
 \vspace{-.25em}

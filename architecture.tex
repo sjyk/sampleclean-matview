@@ -1,8 +1,7 @@
 \vspace{-1em}
 \section{Framework Overview}\label{sec-arch}
 We first define notation, terminology, and the problem setting that we address in this work.
-Then, we formalize the two main problems that \svc addresses: (1) materialized view maintenance as data cleaning and optimizing this data cleaning, and (2) query processing on stale MVs with a sample of up-to-date data.
-Finally, we overview the \svc workflow. 
+Then, we formalize the two main problems that \svc addresses: (1) cleaning the staleness errors in a sample of a MV and (2) answering an aggregate query with a clean sample.
 
 \subsection{Notation and Definitions}\label{notation}
 In \svc, we explore the problem of approximate aggregate query processing on stale materialized views using a data cleaning approach.
@@ -20,9 +19,10 @@ We use the following parametrized notation for joins, aggregations and generaliz
 	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes.  
 	The DISTINCT operation can be considered as a special case of the Aggregation operation. 
 \end{itemize}
-The composition of relational expressions can be represented as a tree, which is called the \emph{expression tree}.
+The composition of the unary and binary relational expressions can be represented as a tree, which is called the \emph{expression tree}.
 At the leaves of the tree are all of the \emph{base relations} for a view.
 Each node of the tree is the result of applying one of the above relational expressions to a relation.
+To avoid ambiguity, we refer to tuples of the base relations as \emph{records} and tuples of derived relations as \emph{rows}.
 
 \noindent \textbf{Primary Key: } We assume that each of the base relations has a \emph{primary key}. If this is not the case, we can always add an extra column 
 that assigns an increasing sequence of integers to each record.

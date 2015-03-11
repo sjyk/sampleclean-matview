@@ -176,7 +176,7 @@ For a 10\% sample \svcnospace+CORR required 2.69 secs to execute a \sumfunc over
 However, when we compare this overhead to the savings in maintenance time it is small.
 
 
-\svcnospace+CORR is most accurate when the materialized view is less stale, since it relies on correct a stale result.
+\svcnospace+CORR is most accurate when the materialized view is less stale as predicted by our analysis.
 On the other hand \svcnospace+AQP is more robust to the staleness and gives a consistent relative error.
 The error for \svcnospace+CORR grows proportional to the staleness.
 In Figure \ref{exp-1-total}(b), we explore which query processing technique should be used \svcnospace+CORR or \svcnospace+AQP.

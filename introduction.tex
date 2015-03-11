@@ -30,15 +30,15 @@ Since stale MVs are dirty data, an approach similar to SampleClean raises a new 
 
 In this paper, we propose \svcfull (\svc), which uses data cleaning to stale MVs.
 \svc (Figure~\ref{sys-arch}) provides a framework that efficiently cleans a sample of rows from a stale MV resulting in a uniform sample of ``clean" (up-to-date) rows.
-After cleaning, to answer a query, we can analyze how that sample has changed because of the cleaning, and calculate a correction that compensates for the data error. 
-The query results from this procedure, while approximate, are up-to-date in the sense that they reflect the most recent data. 
+After cleaning, we use the clean sample of rows to estimate a result for an aggregate query on the view.
+The estimates from this procedure, while approximate, are up-to-date in the sense that they reflect the most recent data. 
 The approximation error due to sampling is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parametrized by the sample size which the user can control trading off accuracy for computation.
 \svc is complementary to existing deferred maintenance approaches.
 When the MVs become stale between maintenance cycles, we apply \svc for a far smaller cost than having to maintain the entire view but still get approximate, up-to-date answers.
 
 %Both MVs and queries can be complex.
 
-To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation allowing us to apply query processing similar to SampleClean, (2) we propose efficient techniques to implement the view-cleaning operation on a sample of the view, (3) we devise a query processing approach to answer queries accurately using the sample of up-to-date data, (4) we propose an outlier index to increase the accuracy of the approach for power-law, long-tailed, and skewed distributions, and (5) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
+To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation on the sample, (2) we propose an optimization technique that materializes the clean sample efficiently while preserving correctness, (3) we derive a query processing approach to answer aggregate queries accurately using the clean sample, (4) we propose an outlier index to reduce sensitivity to skewed datasets, and (5) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
 %\end{itemize}
 
 The paper is organized as follows: 
@@ -48,5 +48,5 @@ In Sections~\ref{sampling} and~\ref{correction}, we describe the sampling and qu
 In Section~\ref{outlier}, we describe the outlier indexing framework.
 Then, in Section~\ref{exp}, we evaluate our approach.
 Finally, we discuss Related Work in Section~\ref{related}.
-In Section~\ref{sec:disc}, we discuss the limitations and new opportunities of our approach, and we present our Conclusions in Section~\ref{conclusion}.
+In Section~\ref{sec:disc}, we discuss the limitations of our approach, and we present our Conclusions in Section~\ref{conclusion}.
 %Full versions of our proofs and experimental details are available in our extended technical report \cite{technicalReport}.
