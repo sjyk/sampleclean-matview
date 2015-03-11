@@ -3,11 +3,11 @@
 \label{exp}
 We evaluate \svc first on a single node MySQL database to evaluate its accuracy, performance, and efficiency in a variety of materialized view 
 scenarios.
-We look at three main applications, join view maintenance, aggregate view maintenance, and an application with complex materialized views, on a skewed version of the benchmark TPCD-Skew.
+%We look at three main applications, join view maintenance, aggregate view maintenance, and an application with complex materialized views, on a skewed version of the benchmark TPCD-Skew.
 Then, we evaluate the outlier indexing approach in terms of improved query accuracy and also evaluate the overhead associated with using the index.
-After evaluation on the benchmark, we present an end-to-end application of server log analysis with a dataset from a video streaming company, Conviva.
+After evaluation on the benchmark, we present an application of server log analysis with a dataset from a video streaming company, Conviva.
 In this application, we look at the real query workload of the company and materialize views that could improve performance of these queries.
-These queries correspond to summary statistics of customer data like how many visits to all of a customers videos or the number of vistors who encountered errors.
+%These queries correspond to summary statistics of customer data like how many visits to all of a customers videos or the number of vistors who encountered errors.
 %We implement \svc in Spark 1.1 and deploy it on a 10-node cluster to analyze 1TB of logs.
 
 \subsection{Experimental Setup} %\vspace{-.5em}
@@ -34,11 +34,11 @@ Out of 22 parameterized queries in the specification, 12 are group-by aggregates
 Therefore, we define a materialized view of the foreign-key join of \textsf{lineitem} and \textsf{orders}, and compare incremental view maintenance and \svc.
 We treat the 12 group-by aggregates as queries on the view.
 
-\textbf{Aggregate View: } We apply \svc in an application similar to data cubes \cite{gray1997data}.
-We define the following ``base cube'' as a materialized view that calculates the total revenue 
-grouped by distinct customer, nation, region, and part number.
-The queries on this view are ``roll-up'' queries that aggregate over 
-subsets of the groups (e.g., total of all customers in North America).
+%\textbf{Aggregate View: } We apply \svc in an application similar to data cubes \cite{gray1997data}.
+%We define the following ``base cube'' as a materialized view that calculates the total revenue 
+%grouped by distinct customer, nation, region, and part number.
+%The queries on this view are ``roll-up'' queries that aggregate over 
+%subsets of the groups (e.g., total of all customers in North America).
 %The specification of this data cube and the queries are listed in the appendix \reminder{TR}.
 
 \textbf{Complex Views:} Our goal is to demonstrate the applicability of \svc outside of simple materialized views that include nested queries and other more complex relational algebra.
@@ -59,27 +59,25 @@ We select a random subset of this domain ,e.g., if the attribute is country then
 We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 
 \subsubsection{Distributed Experimental Setup}
-We evaluated performance on Apache Spark 1.1.0 with a 10 node r3.large Amazon EC2 cluster.
-Systems like Spark are increasingly popular, and Spark supports materialization through a distributed data structure called an RDD \cite{zaharia2012resilient}.
-In the most recent release of Spark, there is a SQL interface that allows users to persist query results in memory.
+We evaluated our approach on a real dataset with Apache Spark 1.1.0 on a 10 node r3.large Amazon EC2 cluster.
+%Systems like Spark are increasingly popular, and Spark supports materialization through a distributed data structure called an RDD \cite{zaharia2012resilient}.
+%In the most recent release of Spark, there is a SQL interface that allows users to persist query results in memory.
 %Refer to our extended paper for more details on how we implemented \svc in Spark \reminder{TR}.
-
-However, in real-world application, RDDs have limitations.
-As RDDs are an immutable data structure, any maintenance must be done synchronously.
-As Spark also does not have support for indices, we rely on partitioned joins for incremental maintenance of the views.
-We partitioned the views by primary-by key, and apply a full outer join of the updates with the partitioned view.
-With this set of experiments, we show that \svc implemented on Spark can help overcome some of these limitations and allow users to take advantage of materialized views and incremental maintenance.
-
+%However, in real-world application, RDDs have limitations.
+%As RDDs are an immutable data structure, any maintenance must be done synchronously.
+%As Spark also does not have support for indices, we rely on partitioned joins for incremental maintenance of the views.
+%We partitioned the views by primary-by key, and apply a full outer join of the updates with the partitioned view.
+%With this set of experiments, we show that \svc implemented on Spark can help overcome some of these limitations and allow users to take advantage of materialized views and incremental maintenance.
 We evaluate \svc on a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
 The dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
-1TB corresponded to a sample of customer data from 1 year of logs.
+%1TB corresponded to a sample of customer data from 1 year of logs.
 With this dataset, there was a corresponding dataset of analyst SQL queries on the log table.
 Using the dataset of analyst queries, we identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics for specific customers on a certain day.
 We generalized these queries by turning them into group-by queries over customers and dates; that is a view that calculates the metric for every customer on every day.
 We generated aggregate random queries over this view by taking either random time ranges or random subsets of customers.
-We list high-level characteristics of the queries:
-%\iffalse
-While, we cannot give the details of the queries, we can present some of the high-level characteristics of 8 summary-statistics type views. 
+%We list high-level characteristics of the queries:
+\iffalse
+%While, we cannot give the details of the queries, we can present some of the high-level characteristics of 8 summary-statistics type views. 
 \begin{itemize}[noitemsep]
 \item \textbf{V1.} Counts of various error types grouped by resources, users, date
 \item \textbf{V2.} Sum of bytes transferred grouped by resource, users, date
@@ -90,7 +88,7 @@ While, we cannot give the details of the queries, we can present some of the hig
 \item \textbf{V7.} Aggregate network statistics group by resources, users, date with many aggregates.
 \item \textbf{V8.} Aggregate visit statistics group by resources, users, date with many aggregates.
 \end{itemize}
-%\fi
+\fi
 
 \begin{figure}[t]\vspace{-2.5em}
 \centering
@@ -103,28 +101,26 @@ While, we cannot give the details of the queries, we can present some of the hig
 To illustrate how \svc gives the user access to this new trade-off space, we will illustrate that \svc is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 In our evaluation, we separate maintenance from query processing.
 We use the following notation to represent the different approaches:
-\vspace{-.25em}
-\begin{itemize}[noitemsep]
-\item No maintenance (Stale): The baseline for evaluation is not applying any maintenance to the materialized view.
-\item Incremental View Maintenance (IVM): We apply incremental view maintenance (change-table based maintenance \cite{gupta2006incremental}) to the full view.
-\item \svcnospace+AQP: We maintain a sample of the materialized view using \svc and estimate the result with SVC+AQP.
-\item \svcnospace+CORR: We maintain a sample of the materialized view using \svc and process queries on the view using \svcnospace+CORR.
-\end{itemize}
-\vspace{-.25em}
+
+\noindent\textbf{No maintenance (Stale): } The baseline for evaluation is not applying any maintenance to the materialized view.
+
+\noindent\textbf{Incremental View Maintenance (IVM): } We apply incremental view maintenance (change-table based maintenance \cite{gupta2006incremental}) to the full view.
+
+\noindent\textbf{\svcnospace+AQP: } We maintain a sample of the materialized view using \svc and estimate the result with SVC+AQP.
+
+\noindent\textbf{\svcnospace+CORR: } We maintain a sample of the materialized view using \svc and process queries on the view using \svcnospace+CORR.
+
+
 %\reminder{Do you think we need to say something about another solution which maintains a sample of ``base'' table and transform a query on a view to a query on the base table?}
 Since \svc has a sampling parameter, we denote a sample size of $x \% $ as \svcnospace+CORR-x or \svcnospace+AQP-x, respectively. 
 To evaluate accuracy and performance, we define the following metrics:
-\begin{itemize}[noitemsep]
-\item Relative Error: For a query result $r$ and an incorrect result $r'$, the relative error is $\frac{\mid r-r' \mid}{r}.$
+
+\noindent\textbf{Relative Error: } For a query result $r$ and an incorrect result $r'$, the relative error is $\frac{\mid r-r' \mid}{r}.$
 When a query has multiple results (a group-by query), then, unless otherwise noted, relative error is defined as the median over all the errors.
-\item Maintenance Time: We define the maintenance time as the time needed to produce the up-to-date view for incremental view maintenance, and the time needed to produce the up-to-date sample in \svc. 
-\end{itemize}
 
-\subsection{Single-node Accuracy and Performance}
-\vspace{-.5em}
-\subsubsection{Join View}
+\noindent\textbf{Maintenance Time: } We define the maintenance time as the time needed to produce the up-to-date view for incremental view maintenance, and the time needed to produce the up-to-date sample in \svc. 
 
-
+\subsection{Join View}
 
 \begin{figure}[t]
 \centering
@@ -132,7 +128,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
  \caption{For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we generate 100 of each TPCD parameterized queries and answer the queries using the stale materialized view, \svcnospace+CORR, and \svcnospace+AQP. We plot the median relative error for each query.\label{exp-1-acc}}\vspace{-1em}
 \end{figure}
 
-\begin{figure}[t]\vspace{-2.5em}
+\begin{figure}[t]\vspace{-2em}
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
  \includegraphics[scale=0.13]{exp/msj_6.pdf}\vspace{-.5em}
@@ -194,11 +190,11 @@ For a 10\% sample, we find that \svcnospace+CORR is more accurate until the upda
 %We can make \svcnospace+CORR and \svcnospace+AQP even more accurate using the outlier indexing which we will evaluate in the later sections.
 
 
-
+\iffalse
 \subsubsection{Aggregate View}
 \label{exp-datacube}
 
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/msdc_1.pdf}
  \includegraphics[scale=0.14]{exp/msdc_2.pdf}\vspace{-.5em}
@@ -207,7 +203,7 @@ For a 10\% sample, we find that \svcnospace+CORR is more accurate until the upda
 \end{figure}
 
 
-\begin{figure}[t]\vspace{-.5em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/msdc_3.pdf}\vspace{-.5em}
  %\includegraphics[scale=0.13]{exp/msdc_5.pdf}
@@ -254,10 +250,11 @@ Finally, we also use the data cube to illustrate how \svc can support a broader 
 We change all of the roll-up queries to use the \textbf{median} function (Figure \ref{exp2-median}).
 First, both \svcnospace+CORR and \svcnospace+AQP are more accurate as estimating the median than they were for estimating sums. 
 This is because the median is less sensitive to variance in the data.
+\fi
 
-\subsubsection{Complex Views}\label{complexviews}
+\subsection{Complex Views}\label{complexviews}
 
-\begin{figure}[t]\vspace{-2em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/msqv_1.pdf}\vspace{.5em}
  \includegraphics[scale=0.14]{exp/msqv_2.pdf} %\vspace{-1em}
@@ -280,9 +277,9 @@ There might be a way to derive an equivalent expression with joins that could be
 For the most part, these results are consistent with our previous experiments showing that \svc is faster than IVM and more accurate than \svcnospace+AQP and no maintenance.
 
 
-\subsubsection{Outlier Indexing}
+\subsection{Outlier Indexing}
 
-\begin{figure}[t] \vspace{-.5em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/msoi_2.pdf}
  \includegraphics[scale=0.14]{exp/msoi_1.pdf}\vspace{-1em}
@@ -306,11 +303,10 @@ While there is an overhead, it is still small compared to the gains made by samp
 \subsection{Conviva}
 %In our next set of experiments, we applied \svc to a 1TB dataset of logs from Conviva.
 %Recall, that we implement \svc on a 10-node Spark cluster. 
-\subsubsection{Performance and Accuracy}
-\begin{figure}[t] \vspace{-2em}
+\begin{figure}[t]
 \centering
- \includegraphics[scale=0.12]{exp/con_3.pdf}
- \includegraphics[scale=0.12]{exp/con_4.pdf} \vspace{-1.0em}
+ \includegraphics[scale=0.14]{exp/con_3.pdf}
+ \includegraphics[scale=0.14]{exp/con_4.pdf} \vspace{-1.0em}
  \caption{(a) We compare the maintenance time of \svc with a 10\% sample and full incremental maintenance, and find that as with TPCD \svc saves significant maintenance time. (b) We also compare \svcnospace+CORR to \svcnospace+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive the views from 800GB of base data and add 80GB of updates.
@@ -322,6 +318,7 @@ In the following experiments, we will use V2 and V5 as exemplary views.
 V5 is the most expensive to maintain due to its nested query and V2 is a single level group by aggregate.
 These results show consistency with our results on the synthetic datasets.
 
+\iffalse
 \subsubsection{End-to-end integration with periodic maintenance}
 \begin{figure}[t]
 \centering
@@ -387,6 +384,7 @@ We find that \svc takes advantage of the idle times in the system; which are com
 In a way, these experiments present a worst-case application for \svc, yet it still gives improvements in terms of query accuracy.
 In many deployments, throughput demands are variable (e.g., peak traffic) which means incremental maintenance is not at all feasible leaving systems with longer idle times.
 %The same way that \svc takes advantage of micro idle times during communication steps, it can provide large gains during controlled idle times when no maintenance is going on concurrently.
+\fi
 
 
 

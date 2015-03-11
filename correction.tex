@@ -154,6 +154,18 @@ When applied to a stale sample of a view $\widehat{S}$, the database $\mathcal{D
 \]
 Thus, it addresses Problem 1 from the previous section.
 
+\begin{example}
+We illustrate our proposed approach on our example view \texttt{visitView} (Figure \ref{exexpr2}). 
+The primary key for the view is the tuple (\texttt{videoId}, \texttt{ownerId}, \texttt{language}, \texttt{duration}) making that the primary key of the MV.
+We start by applying the hashing operator to this key.
+The next operator we see in the expression tree is a projection that increments the \texttt{visitCount} in the view, and this allows
+for push down since primary key is in the projection.
+The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree using our special case for equality joins.
+On the left side, we reach the stale view so we stop.
+On the right side, we reach the aggregate query (count) and since the primary key is in group by clause, we can push down the sampling.
+Then, we reach another point where we hash the equality join key allowing us to push down the sampling to the relations \tbl{LogIns} and \tbl{Video}.
+\end{example}
+
 \subsection{Corresponding Samples}
 We started with a uniform random sample $\widehat{S}$ of the stale view $S$.
 The hash push down allows us to efficiently materialize the sample $\widehat{S}'$.
@@ -178,22 +190,9 @@ Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, re
 \label{correspondence}
 \end{property}
 
-\subsection{Example}
-We illustrate our proposed approach on our example view \texttt{visitView} (Figure \ref{exexpr2}). 
-The primary key for the view is the tuple (\texttt{videoId}, \texttt{ownerId}, \texttt{language}, \texttt{duration}) making that the primary key of the MV.
-We can apply our hash operator to this key, and use the pushdown rules described in Section \ref{push} to efficiently sample the maintenance strategy. 
-We start by applying the hashing operator to this key.
-The next operator we see in the expression tree is a projection that increments the \texttt{visitCount} in the view, and this allows
-for push down since primary key is in the projection.
-The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree using our special case for equality joins.
-On the left side, we reach the stale view so we stop.
-On the right side, we reach the aggregate query (count) and since the primary key is in group by clause, we can push down the sampling.
-Then, we reach another point where we hash the equality join key allowing us to push down the sampling to the relations \tbl{LogIns} and \tbl{Video}.
-In terms of increased efficiency, since both the aggregation and joins are ``above'' the sampling operator, they require less computation and less memory.
-
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.24]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
+ \includegraphics[scale=0.20]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \label{exexpr2}}\vspace{-1.75em}
 \end{figure}
 

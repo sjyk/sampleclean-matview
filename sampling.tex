@@ -80,23 +80,19 @@ If there exists an unbiased sample estimator for q(S') then there exists an unbi
 Suppose, we have an unbiased sample estimator $e_q$ of $q$. 
 Then, it follows that \[\mathbb{E}\big[e_q(\hat{S'})\big] = q(S')\]
 If we substitute in this expression:
-\[ c = \mathbb{E}\big[e_q(\hat{S'})\big] -q(s) \] 
+$c = \mathbb{E}\big[e_q(\hat{S'})\big] -q(s) $
 Applying the linearity of expectation:
 \[ c = \mathbb{E}\big[e_q(\hat{S'}) - q(s)\big] \]
 \end{proof}
 Some queries do not have unbiased sample estimators, but the bias of their sample estimators can be bounded. Example queries include: \medfunc, \percfunc.
 A corollary to the previous lemma, is that if we can bound the bias for our estimator then we can achieve a bounded bias for $c$ as well.
-\begin{corollary}
-If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
-\end{corollary}
+%\begin{corollary}
+%If there exists a bounded bias sample estimator for $q$ then there exists a bounded bias sample estimator for $c$.
+%\end{corollary}
 
 
 \begin{example}
-We can formalize our earlier example in Section \ref{infexample} in terms of SVC+CORR and SVC+AQP.
-\begin{lstlisting}[basicstyle={\scriptsize}]
-SELECT COUNT(1) FROM visitView 
-WHERE visitCount > 100;
-\end{lstlisting}
+We can formalize our earlier example query in Section \ref{infexample} in terms of SVC+CORR and SVC+AQP.
 Let us suppose the initial query result is $45$.
 There now have been new log records inserted into the Log table making the old result stale, and suppose we are working with a sampling ratio of 5\%.
 For SVC+AQP, we count the number of videos in the sample that currently have counts greater than 100 and scale that result by 20.
@@ -251,18 +247,7 @@ The theory for bounding general estimators outside of the sample mean family is 
 We may not get analytic confidence intervals on our results, nor is it guaranteed that our estimates are optimal.
 In AQP, the commonly used technique is called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound the results.
 In this approach, we repeatedly subsample with replacement from our sample and apply the query to the sample.
-This gives us a technique to bound SVC+AQP. 
-
-\vspace{0.35em}
-
-\noindent\textbf{SVC+AQP: } To use bootstrap to find a $\alpha$\% confidence interval:
-\begin{enumerate}[noitemsep]
-\item Take a subsample $\widehat{S}_{sub}'$ with replacement from $\widehat{S}'$
-\item Apply SVC+AQP to $\widehat{S}_{sub}'$.
-\item Return to 1, for k iterations.
-\item Return the $100-\alpha$\% and the $\alpha$\% percentile of the distribution of results.
-\end{enumerate}
-
+This gives us a technique to bound SVC+AQP the details of which can be found in \cite{AgarwalMPMMS13, agarwalknowing, DBLP:conf/sigmod/ZengGMZ14}. 
 For SVC+CORR, we have to propose a new variant of bootstrap to bound the estimate of $c$.
 In this variant, repeatedly estimate $c$ from subsamples and build an empirical distribution for $c$.
 
@@ -277,11 +262,11 @@ In this variant, repeatedly estimate $c$ from subsamples and build an empirical 
 \item Return the $100-\alpha$\% and the $\alpha$\% percentile of the distribution of results.
 \end{enumerate}
 
-Bootstrap is known to be computationally intensive.
-There has been recent research in using techniques such as Poissonized resampling \cite{agarwalknowing}, analytical bootstrap\cite{DBLP:conf/sigmod/ZengGMZ14}, and bagging \cite{DBLP:conf/kdd/KleinerTASJ13} to make this algorithm better suited for latency-sensitive query processing application.
-Furthermore, bootstrap will only work when estimator satisfies some differentiability conditions \cite{agarwalknowing}.
+%Bootstrap is known to be computationally intensive.
+%There has been recent research in using techniques such as Poissonized resampling \cite{agarwalknowing}, analytical bootstrap\cite{DBLP:conf/sigmod/ZengGMZ14}, and bagging \cite{DBLP:conf/kdd/KleinerTASJ13} to make this algorithm better suited for latency-sensitive query processing application.
+%Furthermore, bootstrap will only work when estimator satisfies some differentiability conditions \cite{agarwalknowing}.
 %Refer to the extended technical report for the details on the bootstrap procedure \cite{technicalReport}.
-
+\iffalse
 \subsubsection{MIN and MAX}
 \minfunc and \maxfunc fall into their own category since this is a canonical case where bootstrap fails.
 We devise an estimation procedure that corrects these queries.
@@ -305,7 +290,7 @@ The same estimator can be modified for \minfunc, with a corresponding bound:
 This bound has a slightly different interpretation than the confidence intervals seen before.
 This gives the probability that a larger (or smaller) element exists in the unsampled view.
 
-\iffalse
+
 \vspace{-.25em}
 \subsection{Select Queries}
 In \svc, we also explore how to extend this correction procedure to Select queries.

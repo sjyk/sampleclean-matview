@@ -95,7 +95,7 @@ If new records have been added to (or deleted from) the Log table the visitView 
 Incorrect rows in the view are videos for which the visitCount is incorrect, missing rows are videos that had not yet been viewed once at the time of materialization, and
 superfluous rows are videos whose Log records have all been deleted.
 
-The maintenance strategy (visualized in Figure \ref{maintstrat}) for this view is as follows (for simplicity consider the case with no deletions):
+The maintenance strategy for this view is as follows (for simplicity consider the case with no deletions):
 \vspace{-.55em}
 \begin{enumerate}[noitemsep]
 \item Create a ``delta view" by applying the view definition to LogIns. That is, calculate the visit count per video, language, and ownerId on the new logs.
@@ -105,11 +105,11 @@ The maintenance strategy (visualized in Figure \ref{maintstrat}) for this view i
 
 \end{example}
 
-\begin{figure}[t] \vspace{-2em}
-\centering
- \includegraphics[scale=0.35]{figs/example_expression_tree.pdf} \vspace{-.5em}
- \caption{We illustrate the maintenance strategy of our example view, visitView, in an expression tree. \label{maintstrat}}\vspace{-1.75em}
-\end{figure}
+%\begin{figure}[t] \vspace{-2em}
+%\centering
+% \includegraphics[scale=0.35]{figs/example_expression_tree.pdf} \vspace{-.5em}
+% \caption{We illustrate the maintenance strategy of our example view, visitView, in an expression tree. \label{maintstrat}}\vspace{-1.75em}
+%\end{figure}
 
 %While, uniform sampling supports a wide variety of query types, it may have issues with queries with highly selective predicates.
 %Stratfied sampling has been proposed to mitigate this problem as in the BlinkDB project \cite{AgarwalMPMMS13}.
@@ -130,7 +130,7 @@ view $\widehat{S'}$.
 \item We optionally maintain an index of outliers $o$ for improved estimation in skewed data.
 \end{enumerate} 
 
-\subsection{Stale Sample View Cleaning}
+\noindent\textbf{Stale Sample View Cleaning: }
 The first problem addressed in this paper is how to clean a sample of the stale materialized view.
 \begin{problem}[Stale Sample View Cleaning]
 We are given a stale view $S$, a sample of this stale view $\widehat{S}$ with ratio $m$, the maintenance strategy $\mathcal{M}$, the base relations $\mathcal{D}$, and
@@ -142,7 +142,7 @@ We want to find a relational expression $\mathcal{C}$ such that:
 Where $\widehat{S}'$ is a sample of the up-to-date view with ratio $m$. 
 \end{problem}
 
-\subsection{Query Result Estimation}
+\noindent\textbf{Query Result Estimation: }
 The second problem addressed in this paper is query result estimation.
 \begin{problem}[Query Result Estimation]
 Let $q$ be an aggregate query of the following form \footnote{\scriptsize For simplicity, we exclude the group by clause for all queries in the paper, as it can be modeled as part of the \textsf{Condition}.}:
@@ -159,12 +159,10 @@ q(S') \approx f(q(S),\widehat{S},\widehat{S}')
 \] 
 \end{problem}
 
-\subsection{Example}\label{infexample}
-We describe the \svc framework with our running example \tbl{visitView}.
+\begin{example}\label{infexample}
 Suppose a user wants to know how many videos have received more than 100 views.
 \begin{lstlisting}[basicstyle={\scriptsize}]
-SELECT COUNT(1) FROM visitView 
-WHERE visitCount > 100;
+SELECT COUNT(1) FROM visitView WHERE visitCount > 100;
 \end{lstlisting}
 Let us suppose the user runs the query and result is $45$.
 However, there have now been new records inserted into the Log table making this result stale (for clarity no changes to \tbl{Video} or deletions).
@@ -175,6 +173,7 @@ In Query Result Estimation (Problem 2), we take the result of running $\mathcal{
 Suppose 2 videos have changed their counts from less than 100 to greater than 100.
 From this 5\% sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
 This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
+\end{example}
 
 \iffalse
 Our query correction component takes the two corresponding samples $\widehat{S'}$ and $\widehat{S}$, and calculates a correction to~$q(S)$.
