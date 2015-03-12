@@ -30,7 +30,7 @@ We build an index on the primary keys of the view, the base data, but not on the
 Below we describe the view definitions and the queries on the views:
 
 \textbf{Join View: } In the TPCD specification, two tables receive insertions and updates: \textsf{lineitem} and \textsf{orders}.
-Out of 22 parameterized queries in the specification, 12 are group-by aggregates of the join of \textsf{lineitem} and \textsf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
+Out of 22 parametrized queries in the specification, 12 are group-by aggregates of the join of \textsf{lineitem} and \textsf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
 Therefore, we define a materialized view of the foreign-key join of \textsf{lineitem} and \textsf{orders}, and compare incremental view maintenance and \svc.
 We treat the 12 group-by aggregates as queries on the view.
 
@@ -44,7 +44,7 @@ We treat the 12 group-by aggregates as queries on the view.
 \textbf{Complex Views:} Our goal is to demonstrate the applicability of \svc outside of simple materialized views that include nested queries and other more complex relational algebra.
 We take the TPCD schema and denormalize the database, and treat each of the 22 
 TPCD queries as views on this denormalized schema. 
-The 22 TPCD queries are actually parameterized queries where parameters, such as the selectivity of the predicate, are randomly set by the TPCD \textsf{qgen} program.
+The 22 TPCD queries are actually parametrized queries where parameters, such as the selectivity of the predicate, are randomly set by the TPCD \textsf{qgen} program.
 Therefore, we use the program to generate 10 random instances of each query and use each random instance as a materialized view.
 10 out of the 22 sets of views can benefit from \svc.
 For the 12 excluded views, 3 were static (i.e, this means that there are no updates to the view based on the TPCD workload), and the remaining 9 views have a small cardinality not making them suitable for sampling.

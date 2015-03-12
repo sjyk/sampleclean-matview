@@ -32,7 +32,7 @@ processing on stale materialized views using a data-cleaning approach.
 We assume that these materialized views are periodically
 maintained and thus are stale in between maintenance periods. The
 focus of this paper is analytic workloads where the typical query on the view is a group by aggregate. SVC provides a framework for increased
-query accuracy for a flexible additional \reminder{Remove additional?} maintenance cost that can
+query accuracy for a flexible maintenance cost that can
 scale with system constraints.\end{displayquote}
 
 We believe this concisely summarizes our problem domain and applicability of our proposal. 
@@ -53,7 +53,7 @@ In our setting, we do not know these constraints a priori and we would have to m
 
 \vspace{.25em}
 
-{\bf Responses:} We have addressed all of the details from reviewer comments in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table (called a delta table in our work) algorithm described in “Incremental maintenance of aggregate and outerjoin expressions” by Gupta and Mumick 2006. We further clarified our contribution for the two compared query processing approaches, SVC+CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. There were also reviewer concerns about selectivity (for which we added a theoretical analysis) and update size (for which we clarified the experiment in which those results can be seen).
+{\bf Responses:} We have addressed all of the details from reviewer comments in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table (called a delta table in our work) algorithm described in “Incremental maintenance of aggregate and outer join expressions” by Gupta and Mumick 2006. We further clarified our contribution for the two compared query processing approaches, SVC+CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. There were also reviewer concerns about selectivity (for which we added a theoretical analysis) and update size (for which we clarified the experiment in which those results can be seen).
 In addition, two reviewers suggest removing our detailed evaluation on a distributed platform to save space. We have rearranged our experiments such that we still present accuracy and performance results for the real dataset from Conviva Inc. but do not describe the details of our implementation and deployment on Apache Spark.
 
 \vspace{1em}
@@ -119,16 +119,14 @@ To make the presentation more accessible, we have revised the work with the clar
 
 {\bf Responses:} We address the first part of this question in the Meta Review section (M2). For the second part of the question, we expanded the Limitations section (Section~9) at the end of the paper:
 \begin{displayquote}
-While our experiments show that \svc works for a variety applications, as with all sampling and approximation techniques, there are a few limitations which we summarize in this section.
-\svc addresses the problem of aggregate query processing on stale views as these are the queries that can be answered with a sample.
-The more selective the queries are, the larger the sample will have to be.
-Sampled-based methods are fundamentally limited in the way they can support ``point lookup" queries.
-\svc also does not support views with ordering or ``top-k'' clauses, as our sampling assumes no ordering on the rows of the MV and it is not clear how sampling commutes with general ordering operations.
-Furthermore, while there are a few key special cases (equality joins) arbitrary joins do not commute with sampling, making \svc inefficient in those cases.
-In fact, there is reason to believe that devising rules for arbitrary joins is vastly more complex than the ones presented in this paper \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}.
-\svc also requires the maintenance strategy to be parameterized in terms of relational algebra which may not always be possible.
+While our experiments show that \svc works for a variety applications, there are a few limitations which we summarize in this section.
+There are three primary limitations for \svc: class of queries, types of materialized views, and the specification of maintenance strategy.
+In this work, we primarily focused on aggregate queries and showed that accuracy decreases as the selectivity of the query increases.
+Sampled-based methods are fundamentally limited in the way they can support ``point lookup" queries that select a single row.
+This is predicted by our theoretical result that accuracy decreases with $\frac{1}{p}$ where $p$ is the fraction of rows that satisfy the predicate.
+In terms of more view definitions, \svc does not support views with ordering or ``top-k'' clauses, as our sampling assumes no ordering on the rows of the MV and it is not clear how sampling commutes with general ordering operations.
+\svc also requires the maintenance strategy to be parametrized in terms of relational algebra which may not always be possible.
 Tools like DBToaster achieve some of their performance gains by code generation and not specifying maintenance in SQL.
-It is also unclear how our approach interacts with user defined functions or recursive table expressions. \reminder{It reads like SVC has so many limitations. We need to think about how to better organize this section. Maybe you can start by saying there are some queries and views that SVC cannot support. Then, we give one example for either case, and say why it is challenging for sampling. }
 \end{displayquote}
 
 \emph{E2-1. In 3.3.2 for the sql I was also expecting an experiment to see different quality results depending on the selectivity of the query}
@@ -137,8 +135,9 @@ It is also unclear how our approach interacts with user defined functions or rec
 
 {\bf Responses:} We included a theoretical analysis of selectivity in Section 5.3.3:
 \begin{displayquote}
-Let $p$ be the selectivity of the query; that is, a fraction $p$ records from the relation satisfy the predicate.
-For these queries, we can model selectivity as a reduction of effective sample size $kp$ \reminder{what is k?}.
+Let $p$ be the selectivity of the query and $k$ be the sample size; that is, a fraction $p$ records from the relation satisfy the predicate.
+For these queries, we can model selectivity as a reduction of effective sample size $k\cdot p$ making the
+estimate variance: $O(\frac{1}{k*p})$.
 Thus, the confidence interval's size is scaled up by $\frac{1}{\sqrt{p}}$.
 Just like there is a tradeoff between accuracy and maintenance cost, for a fixed accuracy, 
 there is also a tradeoff between answering more selective queries and maintenance cost.
@@ -150,8 +149,8 @@ For each of the views, we generated \emph{queries on the views}.
 Since the outer queries of our views were group by aggregates, we picked a random attribute $a$ from the group by clause and a random attribute $b$ from aggregation.
 We use $a$ to generate a predicate.
 For each attribute $a$, the domain is specified in the TPCD standard.
-We select a random subset of this domain, e.g., if the attribute is country then the predicate can be $\text{countryCode} > 50$ and $\text{countryCode} < 100$.
-We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view. \reminder{Make tense consistent}
+We selected a random subset of this domain, e.g., if the attribute is country then the predicate can be $\text{countryCode} > 50$ and $\text{countryCode} < 100$.
+We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 \end{displayquote}
 For example, in Figure 4, the average selectivity was 24.1\%.
 If we chose twice as selective queries, the errors would scale by up $\sqrt{2} \approx 1.4$.
@@ -195,24 +194,18 @@ In this setting, outlier indexing significantly helps for both SVC+AQP and SVC+C
 {\bf Responses:} To address this comment, we clarified the contributions of our approach. In our Stale Sample View Cleaning problem, we study how to efficiently maintain a sample of a materialized view. After maintenance, there are two query result estimation approaches that can be used: SVC+CORR and SVC+AQP. Thus, the “maintenance time” for both SVC+CORR and SVC+AQP is the same as they both use SVC as an underlying sample maintenance framework.  In fig 7.a, 9.a, and 11.a, we measure the maintenance time so there is no need to compare the methods. We clarify this point in the Section 7.1.2 of the experiments:
 We use the following notation to represent the different approaches:
 \begin{displayquote}
-\noindent\textbf{No maintenance (Stale): } The baseline for evaluation is not applying any maintenance to the materialized view.
-
-\noindent\textbf{Incremental View Maintenance (IVM): } We apply incremental view maintenance (change-table based maintenance \cite{gupta2006incremental}) to the full view.
-
 \noindent\textbf{\svcnospace+AQP: } We maintain a sample of the materialized view using \svc and estimate the result with SVC+AQP.
 
 \noindent\textbf{\svcnospace+CORR: } We maintain a sample of the materialized view using \svc and process queries on the view using \svcnospace+CORR.
 \end{displayquote}
-\reminder{Do you need to show No maintenance (Stale) and Incremental View Maintenance (IVM)?}
 
 \vspace{1em}
 \emph{E5. I got the justification for Def 1 only after reading the rest of the paper (e.g., sec 4.4). While it is natural, the first time I read it I was wondering why don't model it as a graph homomorphism, or any common, existing definition to describe a transformation between two instances. It would be easier to understand and justify.}
 
 \vspace{.25em}
 
-{\bf Responses:} We have clarified this point by re-arranging the text. The correspondence definition is now in Section 4.5, where we carefully explain the intuition behind this property. Correspondence formalizes the link between the unique keys in sample of a stale materialized view and a sample of an up-to-date materialized view. From the text: \reminder{do we need to show the following text? It seems not to help answer this question, but make the answer a little distracting.}\begin{displayquote} 
-We started with a uniform random sample $\widehat{S}$ of the stale view $S$. The hash push down allows us to efficiently materialize the sample $\widehat{S}'$. $\widehat{S}'$ is a uniform random sample of the up-to-date view S. While both of these samples are uniform random samples of their respective relations, the two samples are correlated since $\widehat{S}'$ is generated by cleaning $\widehat{S}$. In particular, our hashing technique ensures that the primary keys in $\widehat{S}'$ depend on the primary keys in $\widehat{S}$. Statistically, this positively correlates the query result $q(\widehat{S}')$ and $q(\widehat{S})$. We will see how this property can be leveraged to improve query estimation accuracy (Section \ref{re}).\end{displayquote} 
-We also clarified the correspondence formally in Property 1 (Section~4.5), where we define four intuitive conditions: uniformity, removal of superfluous rows, sampling of missing rows, and key preservation for updated rows.
+{\bf Responses:} We have clarified this point by re-arranging the text. The correspondence definition is now in Section 4.5, where we carefully explain the intuition behind this property. Correspondence formalizes the link between the unique keys in sample of a stale materialized view and a sample of an up-to-date materialized view. 
+We also clarified the correspondence formally in Property 1 (Section~4.5), where we define four conditions: uniformity, removal of superfluous rows, sampling of missing rows, and key preservation for updated rows.
 
 \vspace{1em}
 \emph{E6. typos:
@@ -257,7 +250,8 @@ We also clarified the correspondence formally in Property 1 (Section~4.5), where
 
 \vspace{.25em}
 
-{\bf Responses:} We first clarify that SVC is complementary to the choice of maintenance algorithm. Sampling has the potential to reduce maintenance costs for any algorithm (provided it can be specified in relational algebra) by reducing the number tuples processed. In the specific case of DBToaster, over the TPCH queries there was a 3 order of magnitude variation in maintenance throughput with some refresh latencies as high as .1s for even a 100MB database. If this data grows, is distributed, or resources are contended by other tasks, this latency can easily grow significantly. While approaches like DBToaster greatly accelerate IVM, there are some views that are slow to maintain just due to processing each tuple for aggregates and joins. Sampling reduces the number of tuples processed and trades off accuracy in these settings where eager maintenance is expensive. \reminder{This answer is not as good as the Meta Review 5. For example, ``some refresh latencies as high as .1s for even a 100MB database". 0.1s looks very fast. I would suggest to give a similar response with WP3.}
+{\bf Responses:} 
+We address this issue in the Meta Review Section (M5). We first clarify that SVC is complementary to the choice of maintenance algorithm. Sampling has the potential to reduce maintenance costs for any algorithm (provided it can be specified in relational algebra) by reducing the number tuples processed. In the specific case of DBToaster, over the TPCH queries there was a 3 order of magnitude variation in maintenance throughput. If this data grows, is distributed, or resources are contended by other tasks, this latency can easily grow significantly. While approaches like DBToaster greatly accelerate IVM, there are some views that are slow to maintain just due to processing each tuple for aggregates and joins. Sampling reduces the number of tuples processed and trades off accuracy in these settings where eager maintenance is expensive. 
 
 \vspace{1em}
 \emph{B1. What is the exact IVM algorithm that is used in the experiments?}
@@ -323,7 +317,7 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 
 \vspace{.25em}
 
-{\bf Responses:} We have also incorporated the reviewer’s space saving suggestions by revising the presentation of the relational algebra. \reminder{How about the other suggestions?}
+{\bf Responses:} We have also incorporated the reviewer’s space saving suggestions by revising the presentation of the relational algebra, experiment 7.3.2, and consolidated our experiment on real data and the TPCD data cubing example.
 
 \vspace{1em}
 \emph{C2. Algorithms: Please try to introduce the algorithms formally (e.g., through pseudocode). Also consider adding a more formal description of the entire workflow followed by SVC apart from Figure 1 (something close to the itemization in Section 5.2 but with formal notation instead).}

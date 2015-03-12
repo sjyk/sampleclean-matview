@@ -70,7 +70,7 @@ q(S') \approx r_{stale} + (r_{est\_fresh} - r_{est\_stale})
 \]
 \end{enumerate}
 
-A commonly studied property in the AQP liture is unbiasedness.
+A commonly studied property in the AQP literature is unbiasedness.
 An unbiased result estimate means that average value of the estimate over all possible samples is $q(S')$.
 We can prove that if \svcnospace+AQP is unbiased (there is an AQP method that gives an unbiased result) then \svcnospace+CORR also gives unbiased results.
 \begin{lemma}\label{lemma:unbiased}
@@ -212,8 +212,8 @@ Thus, we guarantee an approximation error of at most $\frac{\sigma_{S'}^2}{k}$.
 In our experiments (Figure \ref{exp-1-total}(b)), we evaluate this break even point empirically. 
 
 \subsubsection{Selectivity For Sample Means}
-Let $p$ be the selectivity of the query; that is, a fraction $p$ records from the relation satisfy the predicate.
-For these queries, we can model selectivity as a reduction of effective sample size making the
+Let $p$ be the selectivity of the query and $k$ be the sample size; that is, a fraction $p$ records from the relation satisfy the predicate.
+For these queries, we can model selectivity as a reduction of effective sample size $k\cdot p$ making the
 estimate variance: $O(\frac{1}{k*p})$.
 Thus, the confidence interval's size is scaled up by $\frac{1}{\sqrt{p}}$.
 Just like there is a tradeoff between accuracy and maintenance cost, for a fixed accuracy, 

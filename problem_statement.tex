@@ -38,7 +38,7 @@ SELECT agg(visitCount) FROM visitView
 WHERE Condition(*)
 \end{lstlisting}
 
-As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions and deltions to the table as:
+As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions and deletions to the table as:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 LogDels(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
