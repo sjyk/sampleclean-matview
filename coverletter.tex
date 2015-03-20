@@ -1,12 +1,12 @@
 {\noindent \normalsize \bf Dear PVLDB Chair and Referees: }
 
 \vspace{.5em}
-We thank the reviewers for the very helpful feedback on our paper. We have tried to address all of the listed concerns and have included references to the revised text in the cover letter. 
-To summarize the major revisions:
+We thank the reviewers and chair for the very helpful feedback on our paper. We have addressed all of the listed concerns and include references to the revised text in the cover letter. 
+To summarize :
 \begin{enumerate}
 \item We revised our background section (Section \ref{subsec-inc}) to include a detailed running example which is referenced in Examples 1-6 after each major concept.
 \item We revised our overview section (Section 3) to formalize our problem setting, assumptions, terminology, and key prerequisite concepts in our work and included more formal problem statements.
-\item The sampling section (Section 4) included a detailed discussion about the challenges and new ideas (Section 4.1) and clarified a significant reviewer request about the definition of ``primary keys".
+\item The sampling section (Section 4) included a detailed discussion about the challenges and new ideas (Section 4.1) and clarified a reviewer request about the definition of ``primary keys".
 \item The result estimation (Section 5) has been revised to include itemized descriptions of all of the algorithms and is self-contained with respect to our prior work.
 \item Experiments (Section 7) have been revised to merge redundant experimental results. Rather than presenting two different experimental results, we use our real dataset to evaluate \svc on group by aggregate views.
 \end{enumerate}
@@ -44,23 +44,25 @@ Furthermore, we have clarified that the primary key definition proposed in 4.2
 
 \vspace{.25em}
 
-{\bf Responses:} We have added a paragraph to our related work (Section 8) contrasting these works from ours. 
-While, all three of these works address the issue of dirty materialized views and using lineage to trace the errors to base data, they are not directly applicable in
- the materialized view setting.
-These three works require an explicit specification of erroneous rows in a materialized view.
-Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
-Instead, in our work, we use the formalism of a ``maintenance strategy", the relational expression that updates the view, and uses this expression to understand how errors occur and how to sample the view while preserving uniformity.
-Additionally, for this reason, in our outlier indexing method, we propagate outliers up from base data rather than tracing errors back to base data.
-From the text:
+{\bf Responses:} Thank you for bringing this to our attention.
+\svc builds on the prior work about cleaning materialized views by using ideas like provenance.
+However, the materialized view problem setting addes some new challenges that prior work does not address.
+We have added a paragraph to our related work (Section 8) contrasting these works from \svc:
 \begin{displayquote}For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries. The technique used to trace the provenance of an outlier row in a result is very similar to the technique proposed in this work. However, this work addressed a different cleaning problem from \svc. In \svc, we look to find a relational expression that update an erroneous row such that it is correct. In \cite{DBLP:journals/pvldb/0002M13}, the authors remove base data such that the row is no longer an outlier. Also, Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
-In our setting, we do not know these constraints a priori and we would have to materialize the entire up-to-date view to be able to specify which rows are erroneous. Finally, the work by Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} also explores tracing lineage through materialized views. Like \cite{DBLP:journals/pvldb/0002M13}, it requires an explicit specification of the errors and also does not suggest a cleaning operation to fix these errors.\end{displayquote}
+In constrast to \svc, these three works require an explicit specification of erroneous rows in a materialized view.
+Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
+In \svc, we assume a very specific model of data error, namely staleness, which allows us to avoid this problem.
+We use the formalism of a ``maintenance strategy", the relational expression that updates the view, to allow us to sample rows that are not yet materialized.
+Additionally, in our outlier indexing method, we propagate outliers up from base data rather than tracing errors back to base data due to this materialization problem.
+However, while not directly applicable for staleness, we see \svc as complementary to these works in the dirty data setting. 
+The sampling technique proposed in Section 4 of our paper could be used to approximate the data cleaning techniques in \cite{DBLP:journals/pvldb/0002M13, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14}.\end{displayquote}
 
 \vspace{1em}
 \emph{M4. The experiments sections needs to be improved to include comparison with relevant work, more details and explanation. Please look at the detailed comments E2, E4, and E5 of reviewer 1, and B1 and B2 of reviewer 2 for more details. }
 
 \vspace{.25em}
 
-{\bf Responses:} We have addressed all of the details from reviewer comments in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table (called a delta table in our work) algorithm described in “Incremental maintenance of aggregate and outer join expressions” by Gupta and Mumick 2006. We further clarified our contribution for the two compared query processing approaches, SVC+CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. There were also reviewer concerns about selectivity (for which we added a theoretical analysis) and update size (for which we clarified the experiment in which those results can be seen).
+{\bf Responses:} We have addressed all of the details from reviewer comments in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table (also called a delta table e.g \cite{DBLP:journals/vldb/KochAKNNLS14}) algorithm described in “Incremental maintenance of aggregate and outer join expressions” by Gupta and Mumick 2006. We further clarified our contribution for the two compared query processing approaches, SVC+CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. There were also reviewer concerns about selectivity (for which we added a theoretical analysis) and update size (for which we clarified the experiment in which those results can be seen).
 In addition, two reviewers suggested removing our detailed evaluation on a distributed platform to save space. We have consolidated our experiments such that we still present accuracy and performance results for the real dataset from Conviva Inc. but do not describe the details of our implementation and deployment on Apache Spark.
 
 \vspace{1em}
@@ -68,19 +70,30 @@ In addition, two reviewers suggested removing our detailed evaluation on a distr
 
 \vspace{.25em}
 
-{\bf Responses:} In the paper (Section 2.1), we have added the following clarification and motivation of the work:
-\begin{displayquote}There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14}. However, even for these optimized systems, some materialized views are computationally difficult to maintain. In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magnitude variation in maintenance throughput over the 22 TPCH queries defined as MVs. Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput. SVC is complementary to existing maintenance algorithms, whether 1st order like classical change-table IVM or higher order like DBToaster, provided they are specified in standard relational algebra. Through the use of sampling, we provide the user another tool to flexibly manage and schedule maintenance of MVs for aggregate analytics.\end{displayquote}
+{\bf Responses:} Thank you for brining this to our attention. In the paper (Section 2.1), we have added the following clarification and motivation of the work:
+\begin{displayquote}
+There has been recent research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14}. 
+However, even for these optimized systems, some materialized views are computationally difficult to maintain. 
+In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magnitude variation in maintenance throughput over the 22 TPCH queries defined as materialized views. 
+Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput. 
+\end{displayquote}
+
+We further an opportunity for future work in our Limitations and Opportunities section (Section 9):
+\begin{displayquote}
+In the future, we will explore maintenance optimizations proposed in recent work.
+For example, DBToaster has two main components, higher-order delta processing and a SQL query compiler, both of which are complementary to \svc.
+Higher-order maintenance extends delta-table IVM algorithms by intermediately maintaining the delta tables or delta tables of delta tables.
+This technique is shown theoretically and empirically to be faster as it consolidates redundant numerical operations.
+While we only experiment with first-order delta-table IVM in this paper, it is a straight forward extension to apply \svc to higher-order maintenance.
+\svc can also benefit from SQL query compilation as we can compile the sample maintenance strategy to make \svc even faster.
+\end{displayquote}
 
 \vspace{1em}
 \emph{M6. Typos and other minor issues as listed by E6 of reviewer 1 and C7, C8, C9, C10 and C11 of reviewer 2 should be addressed.}
 
 \vspace{.25em}
 
-{\bf Responses:} We thank the reviewers for their careful read of the paper, and have addressed these issues.
-
-
-
-
+{\bf Responses:} We thank the reviewers for their careful read of the paper, and have addressed all of these issues.
 
 \vspace{2em}
 \noindent\textbf{[Reviewer 1]}
@@ -132,8 +145,6 @@ In this work, we primarily focused on aggregate queries and showed that accuracy
 Sampled-based methods are fundamentally limited in the way they can support ``point lookup" queries that select a single row.
 This is predicted by our theoretical result that accuracy decreases with $\frac{1}{p}$ where $p$ is the fraction of rows that satisfy the predicate.
 In terms of more view definitions, \svc does not support views with ordering or ``top-k'' clauses, as our sampling assumes no ordering on the rows of the MV and it is not clear how sampling commutes with general ordering operations.
-\svc also requires the maintenance strategy to be parametrized in terms of relational algebra which may not always be possible.
-Tools like DBToaster achieve some of their performance gains by code generation and not specifying maintenance in SQL.
 \end{displayquote}
 
 \emph{E2-1. In 3.3.2 for the sql I was also expecting an experiment to see different quality results depending on the selectivity of the query}
