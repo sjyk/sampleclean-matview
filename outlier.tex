@@ -97,7 +97,7 @@ Returning to the example query from the previous section:
 \begin{lstlisting}[basicstyle={\scriptsize}]
 SELECT COUNT(1) FROM visitView WHERE visitCount > 100;
 \end{lstlisting}
-We run SVC+AQP and SVC+CORR on the set of rows with durations longer than 1.5 hours.
+We run SVC+AQP and SVC+CORR on the set of rows with durations longer than 1.5 hours. \reminder{What do you mean by running SVC+AQP and SVC+CORR on a non-sampling dataset.}
 Then we use the update rule in Section \ref{oqp} to update the result based on the number of records in the index and the total size of the view.
 \end{example}
 

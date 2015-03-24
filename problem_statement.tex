@@ -17,13 +17,13 @@ Suppose we are a video streaming company analyzing user engagement.
 Our database consists of two tables \tbl{Log} and \tbl{Video}, with the following schema:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 Log(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
-Video(videoId$\textrm{,}$ ownerId$\textrm{,}$ lang$\textrm{,}$ duration)
+Video(videoId$\textrm{,}$ ownerId$\textrm{,}$ language$\textrm{,}$ duration)
 \end{lstlisting}
 The \tbl{Log} table stores each visit to a specific video with primary key (\texttt{sessionId}), a foreign-key to the \tbl{Video} table (\texttt{videoId}), latency of the visit (\texttt{responseTime}), and the browser used to access the video (\texttt{userAgent}).
-The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerId}), language (\texttt{lang}), and the video duration (\texttt{duration}).
+The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerId}), language (\texttt{language}), and the video duration (\texttt{duration}).
 
 For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits per video and the total number of visits for each language, predicated on different subsets of owners. 
-To avoid repeatedly performing the join and visit aggregation, we could define the following MV:
+To avoid repeatedly performing the join and visit aggregation, we could define the following MV: \reminder{I am a little confused about this example. In the video table, videoId is the primary key. Why do you need to put ownerId, language, and duration in the group-by clause?}
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 CREATE VIEW visitView
 AS SELECT videoId, ownerId, language, duration
@@ -32,13 +32,13 @@ FROM Log, Video
 WHERE Log.videoId = Video.videoId
 GROUP BY videoId, ownerId, language, duration
 \end{lstlisting}
-Our queries of interest are aggregates on this view, are of the form:
+Our queries of interest are aggregates on this view, are of the form: \reminder{Does this sentence have a syntax error?}
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 SELECT agg(visitCount) FROM visitView 
 WHERE Condition(*)
 \end{lstlisting}
 
-As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions and deletions to the table as:
+As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions and deletions to the table as: \reminder{It seems that you only use the LogIns table in the following examples (e.g., Fig 2). }
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 LogDels(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)

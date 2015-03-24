@@ -80,7 +80,7 @@ If there exists an unbiased sample estimator for q(S') then there exists an unbi
 Suppose, we have an unbiased sample estimator $e_q$ of $q$. 
 Then, it follows that \[\mathbb{E}\big[e_q(\hat{S'})\big] = q(S')\]
 If we substitute in this expression:
-$c = \mathbb{E}\big[e_q(\hat{S'})\big] -q(s) $
+$c = \mathbb{E}\big[e_q(\hat{S'})\big] -q(s) $. \reminder{$q(s)$ or $q(S)$}
 Applying the linearity of expectation:
 \[ c = \mathbb{E}\big[e_q(\hat{S'}) - q(s)\big] \]
 \end{proof}
@@ -94,12 +94,16 @@ A corollary to the previous lemma, is that if we can bound the bias for our esti
 \begin{example}
 We can formalize our earlier example query in Section \ref{infexample} in terms of SVC+CORR and SVC+AQP.
 Let us suppose the initial query result is $45$.
-There now have been new log records inserted into the Log table making the old result stale, and suppose we are working with a sampling ratio of 5\%.
-For SVC+AQP, we count the number of videos in the sample that currently have counts greater than 100 and scale that result by 20.
+There now have been new log records inserted into the Log table making the old resu lt stale, and suppose we are working with a sampling ratio of 5\%.
+
+\reminder{It's better to follow the algorithm that you described above to estimate query results. For example, in the algorithm of SVC+CORR, you applied SVC+AQP twice, but I did not see this kind of process in the example}
+
+For SVC+AQP, we count the number of videos in the sample that currently have counts greater than 100 and scale that result by 20. \reminder{Tell the reader where 20 comes from, i.e., $\frac{1}{5\%} = 20$ }\reminder{Give the final answer returned by SVC+AQP.}
+
 For SVC+CORR, suppose 2 videos have changed their counts from less than 100 to greater than 100.
 From this sample, we calculate how many new videos changed from less than 100 views to times greater than 100; let us suppose this answer is $2$.
-We extrapolate that $40$ new videos throughout the view should now be included in the count.
-This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
+We extrapolate that 40 \reminder{Tell the reader where 40 comes from, i.e., $2\times \frac{1}{5\%} = 40$} new videos throughout the view should now be included in the count.
+This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$. \reminder{This example is duplicated with Example 2.}
 \end{example}
 
 \subsection{Estimate Accuracy}
@@ -129,7 +133,7 @@ Now we will discuss bounding our estimates in confidence intervals for \sumfunc,
 estimated with ``sample mean" estimators.
 Sample means for uniform random samples (also called sampling without replacement) converge to the population mean by the Central Limit Theorem (CLT).
 Let $\hat{\mu}$ be a sample mean calculated from $k$ samples, $\sigma^2$ be the variance of the sample, and $\mu$ be the population mean. 
-Then, the error in the estimate is normally distributed\footnote{We can include a finite population correction if our relation size is small $\frac{N-k}{N-1}$.}:
+Then, the error in the estimate is normally distributed\footnote{We can include a finite population correction if our relation size is small $\frac{N-k}{N-1}$. \reminder{This looks not very clear. }}:
 \[
 (\mu - \hat{\mu}) \sim N(0,\frac{\sigma^2}{k})
 \]
@@ -137,29 +141,28 @@ Therefore, the confidence interval is given by:
 \[
 \hat{\mu} \pm \gamma \sqrt{\frac{\sigma^2}{k}}
 \]
-where $\gamma$ is the Gaussian tail probability value (eg. 1.96 for 95\%, 2.57 for 99\%).
+where $\gamma$ is the Gaussian tail probability value (e.g., 1.96 for 95\%, 2.57 for 99\%).
 
 Next, we discuss how to calculate this confidence interval in SQL for SVC+AQP.
 The first step is a query rewriting step where we express the query on the view in terms of a \textsf{case} statement (1 if true, 0 if false)
-instead of a predicate.
+instead of a predicate. \reminder{The case statement is not well defined. I did not see it in the following queries. }
 Let \emph{attr} be the aggregate attribute and $m$ be the sampling ratio. 
 We define an intermediate result $trans$ which is a table of transformed rows with the first column the 
 primary key and the second column defined in terms of a \texttt{case} statement and scaling.
 For \sumfunc:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-trans(sample):= SELECT pk, 
-1.0/m $\cdot$ attr $\cdot$ cond(*) as trans_attr
-FROM sample 
+trans:= SELECT pk, 1.0/m $\cdot$ attr $\cdot$ cond(*) as trans_attr
+        FROM sample 
 \end{lstlisting} 
-For \avgfunc since there is no scaling we do not need to re-write:
+For \avgfunc since there is no scaling we do not need to re-write: \reminder{It seems more natural to show count right after sum, but show avg in the end. }
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-trans(sample) := SELECT pk, attr as trans_attr 
-WHERE cond(*) FROM sample
+trans := SELECT pk, attr as trans_attr WHERE cond(*) 
+         FROM sample
 \end{lstlisting}
 For \countfunc:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-trans(sample) := SELECT pk, 1.0/m $\cdot$ cond(*) as trans_attr
-FROM sample
+trans := SELECT pk, 1.0/m $\cdot$ cond(*) as trans_attr
+         FROM sample
 \end{lstlisting}
 
 \vspace{0.25em}
@@ -172,10 +175,10 @@ SELECT $\gamma\cdot$stdev(trans_attr)/sqrt(count(1)) FROM trans
 
 \vspace{0.25em}
 
-To calculate the confidence intervals for \svcnospace+CORR we have to look at the statistics of $c$ the difference i.e. $c = q(S) - q(S')$ from a sample.
+To calculate the confidence intervals for \svcnospace+CORR we have to look at the statistics of $c$ \reminder{Do you need $c$ here?} the difference, i.e., $c = q(S) - q(S')$, from a sample.
 For queries that can be estimated with a sample mean, we can use the associativity of addition and subtraction to rewrite this as:
-\[c = q(S - S')\]
-Where $-$ is the row-by-row difference between $S$ and $S'$.
+\[c = q(S - S'),\]
+where $-$ is the row-by-row difference between $S$ and $S'$. \reminder{ $-$ is not well defined. Think about whether it is possible to avoid having $-$ here.}
 The problem is that some rows in $\widehat{S}$ do not exist in $\widehat{S}'$ and vice versa. 
 Thus, we have define the following null-handling semantics with a subtraction operator we call $\dot{-}$.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 
@@ -203,7 +206,7 @@ Therefore, a correction will have less variance when:
 \[\sigma_{S}^2 \le 2cov(S,S')\]
 
 As we saw in the previous section, correspondence correlates the samples.
-If the difference is small, i.e. $S$ is nearly identical to $S'$,then $cov(S,S')~\approx~\sigma_{S}^2$. 
+If the difference is small, i.e. $S$ is nearly identical to $S'$, then $cov(S,S')~\approx~\sigma_{S}^2$. 
 This result also shows that there is a point when updates to the stale MV are significant enough that direct estimates are more accurate.
 When we cross the break-even point we can switch from using \svcnospace+CORR to \svcnospace+AQP.
 %An intersting implication of this break-even point is it gives us a bound on the approximation error no matter how significant the staleness is.
@@ -225,9 +228,9 @@ Optimality in unbiased estimation theory is defined in terms of the variance of 
 An estimator is called a minimum variance unbiased estimator (MVUE) if it is unbiased and the variance of the estimate is less than or equal to that of any other unbiased estimate.
 \end{proposition}
 
-A sampled relation $R$ defines a discrete distribution. It is important to note that this distribution is different from the data generating distribution, since even if $R$ has continuous valued attributes $R$ still defines a discrete distribution. Our population is finite and we take a finite sample thus every sample takes on only a discrete set of values. In the general case, this distribution is only described by the set of all of its values (i.e no smaller parametrized representation). In this setting, the sample mean is an MVUE. In other words, if we make no assumptions about the underlying distribution of values in $R$, SVC+AQP and SVC+CORR are optimal for their respective estimates ($q(S')$ and $c$). Since they estimate different variables, even with optimality SVC+CORR might be more accurate than SVC+AQP and vice versa. 
+A sampled relation $R$ defines a discrete distribution. It is important to note that this distribution is different from the data generating distribution, since even if $R$ has continuous valued attributes $R$ still defines a discrete distribution. Our population is finite and we take a finite sample thus every sample takes on only a discrete set of values. In the general case, this distribution is only described by the set of all of its values (i.e., no smaller parametrized representation). In this setting, the sample mean is an MVUE. In other words, if we make no assumptions about the underlying distribution of values in $R$, SVC+AQP and SVC+CORR are optimal for their respective estimates ($q(S')$ and $c$). Since they estimate different variables, even with optimality SVC+CORR might be more accurate than SVC+AQP and vice versa. 
 
-However, if we do know more about the distribution, this optimality is not true in general. The intuitive problem is that if there are a small number of parameters that completely describe the discrete distribution there might be a way to reconstruct the distribution from those parameters rather than estimating the mean. As a simple counter example, if we knew our attributes were exactly on a line, a sample size of two is sufficient to answer any aggregate query. However, even for many parametric distributions, the sample mean estimators are still MVUEs, eg. poisson, bernouilli, binomial, normal, exponential. It is often difficult and unknown in many cases to derive an MVUE other than a sample mean. Furthermore, the sample mean is unbiased for all distribution, but it is often the case that alternative MVUEs are biased when the data is not exactly from correct model family (such as our example of the line). Our approach is valid for any choice of estimator if one exists, even though we do the analysis for sample mean estimators and this is the setting in which that estimator is optimal.
+However, if we do know more about the distribution, this optimality is not true in general. The intuitive problem is that if there are a small number of parameters that completely describe the discrete distribution there might be a way to reconstruct the distribution from those parameters rather than estimating the mean. As a simple counter example, if we knew our attributes were exactly on a line, a sample size of two is sufficient to answer any aggregate query. However, even for many parametric distributions, the sample mean estimators are still MVUEs, e.g., poisson, bernouilli, binomial, normal, exponential. It is often difficult and unknown in many cases to derive an MVUE other than a sample mean. Furthermore, the sample mean is unbiased for all distribution, but it is often the case that alternative MVUEs are biased when the data is not exactly from correct model family (such as our example of the line). Our approach is valid for any choice of estimator if one exists, even though we do the analysis for sample mean estimators and this is the setting in which that estimator is optimal.
 
 \subsubsection{General Estimators}
 The theory for bounding general estimators outside of the sample mean family is more complex.
@@ -244,9 +247,9 @@ In this variant, repeatedly estimate $c$ from subsamples and build an empirical 
 \begin{enumerate}[noitemsep]
 \item Subsample $\widehat{S}_{sub}'$ and $\widehat{S}_{sub}$ with replacement from $\widehat{S}'$ and $\widehat{S}$ respectively
 \item Apply SVC+AQP to $\widehat{S}_{sub}'$ and $\widehat{S}_{sub}$
-\item Record the difference $s\cdot(q(\widehat{S}_{sub}')-q(\widehat{S}_{sub}))$
+\item Record the difference $s\cdot(q(\widehat{S}_{sub}')-q(\widehat{S}_{sub}))$ \reminder{Make sure this is correct. For example, if it is avg, you don't need $s$ here. }
 \item Return to 1, for k iterations.
-\item Return the $100-\alpha$\% and the $\alpha$\% percentile of the distribution of results.
+\item Return the $100-\alpha$\% and the $\alpha$\% percentile of the distribution of results. \reminder{Since you are trying to find a 95\% confidence interval, you can set $\alpha$\% to 2.5\%. }
 \end{enumerate}
 
 %Bootstrap is known to be computationally intensive.

@@ -11,7 +11,7 @@ The focus of this paper is analytic workloads where the typical query is a group
 
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
-View definitions are composed of standard relational algebra expressions: Select ($\sigma_{\phi}$), Project ($\Pi$), Join ($\bowtie$), Aggregation ($\gamma$), Union ($\cup$), and Intersection ($\cap$).
+View definitions are composed of standard relational algebra expressions: Select ($\sigma_{\phi}$), Project ($\Pi$), Join ($\bowtie$), Aggregation ($\gamma$), Union ($\cup$), and Intersection ($\cap$) \reminder{Do we consider Difference (-) in the paper?}. 
 We use the following parametrized notation for joins, aggregations and generalized projections:
 \begin{itemize}[noitemsep] \sloppy
 	\item $\Pi_{a_1,a_2,...,a_k}(R)$: Generalized projection selects attributes $\{a_1,a_2,...,a_k\}$ from $R$, allowing for new columns that are arithmetic transformations of attributes (e.g., $a_1+a_2$).
@@ -78,8 +78,8 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 
 \noindent \textbf{Uniform Random Sampling: }
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
-We use the ``hat'' notation (e.g., $\widehat{S}, \widehat{\mathcal{M}(\cdot)}$) to denote sampled relations and sampled relational expressions.
-We say the relation $\hat{S}$ is a \emph{uniform sample} of $S$ if
+We use the ``hat'' notation (e.g., $\widehat{S}, \widehat{\mathcal{M}(\cdot)}$) to denote sampled relations and sampled relational expressions. \reminder{ It's unclear to me what $\widehat{\mathcal{M}(\cdot)}$ is? Did you use it somewhere?}
+We say the relation $\hat{S}$ \reminder{Make the notation consisitent, i.e., $\widehat{S}$ and $\hat{S}$} is a \emph{uniform sample} of $S$ if
 \[\text{(1) } \forall s \in \hat{S} : s \in S\text{;~~~~~ (2) }Pr(s_1 \in \hat{S}) =  Pr(s_2 \in \hat{S}) = m\]
 We say a sample is \emph{clean} if an only if it is a uniform random sample of the up-to-date view $S'$. 
 
@@ -95,11 +95,13 @@ If new records have been added to (or deleted from) the Log table the visitView 
 Incorrect rows in the view are videos for which the visitCount is incorrect, missing rows are videos that had not yet been viewed once at the time of materialization, and
 superfluous rows are videos whose Log records have all been deleted.
 
+
+\reminder{The maintenance strategy part of the example tells me how to maintain a MV, but does not help me understand the definition of the maintenance strategy. It's better to follow the maintenance strategy definition and show what it looks like for the example MV. For example, you can say what  $S,\mathcal{D}, \partial D$ are, and how to compose them using relational expressions to get the maintenance strategy.}
 The maintenance strategy for this view is as follows (for simplicity consider the case with no deletions):
 \vspace{-.55em}
 \begin{enumerate}[noitemsep]
 \item Create a ``delta view" by applying the view definition to LogIns. That is, calculate the visit count per video, language, and ownerId on the new logs.
-\item Take the full outer join of the ``delta view" with the stale view visitView (equality on videoId, language, ownerId).
+\item Take the full outer join of the ``delta view" with the stale view visitView (equality on videoId, language, ownerId \reminder{no duration?}).
 \item Apply the generalized projection operator to add the visitCount in the delta view to each of the rows in visitView and treating the outer join NULL for either visitView or the ``delta view" as 0.
 \end{enumerate}
 
@@ -118,7 +120,7 @@ The maintenance strategy for this view is as follows (for simplicity consider th
 
 \subsection{\svc Workflow}
 %We summarize the system in Figure \ref{sys-arch} in our introduction.
-Formally, the workflow of \svc is:
+In this section, we first present an overview of the \svc workflow, and then formalize two challenging problems that we address in the workflow. Formally, the workflow of \svc is:
 \begin{enumerate}[noitemsep]
 \item We are given a view $S$.
 \item $\mathcal{M}$ defines the maintenance strategy that updates $S$ at each maintenance period.
@@ -126,7 +128,7 @@ Formally, the workflow of \svc is:
 \item \emph{(Problem 1: Stale Sample View Cleaning)} We find an expression $\mathcal{C}$ derived from $\mathcal{M}$ 
 that cleans a uniform random sample of the stale view $\widehat{S}$ to produce a ``clean" sample of the up-to-date
 view $\widehat{S'}$.
-\item \emph{(Problem 2. Query Result Estimation)} For an aggregate query $q$, we use $\widehat{S'}$ to estimate the up-to-date result.
+\item \emph{(Problem 2. Query Result Estimation)} For an aggregate query $q$, we use $\widehat{S'}$ \reminder{Is $\widehat{S'}$ enough to estimate query results?} to estimate the up-to-date result.
 \item We optionally maintain an index of outliers $o$ for improved estimation in skewed data.
 \end{enumerate} 
 
@@ -149,7 +151,7 @@ Let $q$ be an aggregate query of the following form \footnote{\scriptsize For si
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT $agg(a)$ FROM View WHERE Condition(A);
 \end{lstlisting}
-If the view $S$ is stale, then the result will be incorrect by some value $c$:
+If the view $S$ is stale, then the result will be incorrect by some value~$c$:
 \[
 q(S') = q(S) + c
 \]
@@ -167,12 +169,14 @@ SELECT COUNT(1) FROM visitView WHERE visitCount > 100;
 Let us suppose the user runs the query and result is $45$.
 However, there have now been new records inserted into the Log table making this result stale (for clarity no changes to \tbl{Video} or deletions).
 First, we take a sample of \tbl{visitView} and suppose this sample is a 5\% sample.
+
 In Stale Sample View Cleaning (Problem 1), we calculate an expression $\mathcal{C}$ that takes the maintenance strategy $\mathcal{M}$ described in Example \ref{concepts},
-takes the database $\mathcal{D}$ (\tbl{Log} and \tbl{Video}), and the delta relation $\partial \mathcal{D}$ (\tbl{LogIns}) as input and updates the visit counts for the sample.
-In Query Result Estimation (Problem 2), we take the result of running $\mathcal{C}$, which is a sample of the up-to-date visit counts, and estimate our above query.
+takes the database $\mathcal{D}$ (\tbl{Log} and \tbl{Video}), and the delta relation $\partial \mathcal{D}$ (\tbl{LogIns}) as input and updates the visit counts for the sample. \reminder{Be more clear about the output of $\mathcal{C}$ }
+
+In Query Result Estimation (Problem 2), we take the result of running $\mathcal{C}$, which is a sample of the up-to-date visit counts \reminder{If you clarify the output of $\mathcal{C}$ above, then you don't need this sentence here.}, and estimate our above query.
 Suppose 2 videos have changed their counts from less than 100 to greater than 100.
 From this 5\% sample, we extrapolate that $40$ new videos throughout the view should now be included in the count.
-This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
+This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$. \reminder{This is duplicate with Example 5. It also looks a little werid that you only show SVC+CORR but not SVC+AQP. }
 \end{example}
 
 \iffalse

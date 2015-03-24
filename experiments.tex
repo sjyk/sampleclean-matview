@@ -29,7 +29,7 @@ We build an index on the primary keys of the view, the base data, but not on the
 %\fi
 Below we describe the view definitions and the queries on the views:
 
-\textbf{Join View: } In the TPCD specification, two tables receive insertions and updates: \textsf{lineitem} and \textsf{orders}.
+\textbf{Join View:} In the TPCD specification, two tables receive insertions and updates: \textsf{lineitem} and \textsf{orders}.
 Out of 22 parametrized queries in the specification, 12 are group-by aggregates of the join of \textsf{lineitem} and \textsf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
 Therefore, we define a materialized view of the foreign-key join of \textsf{lineitem} and \textsf{orders}, and compare incremental view maintenance and \svc.
 We treat the 12 group-by aggregates as queries on the view.
@@ -145,7 +145,7 @@ In our first experiment, we evaluate how \svc performs on a materialized view of
 We generate a 10GB base TPCD dataset with skew $z=1$, and derive the view from this dataset.
 We first generate 1GB (10\% of the base data) of updates (insertions and updates to existing records), and vary the sample size.
 
-\textbf{Performance: }
+\textbf{Performance:}
 Figure \ref{exp-1-samplesize}(a), shows the maintenance time of \svc as a function of sample size.
 With the bolded dashed line, we note the time for full IVM. 
 For this materialized view, sampling allows for significant savings in maintenance time; albeit for approximate answers.
@@ -160,13 +160,13 @@ As the update size gets larger, \svc becomes more efficient, since for a 20\% up
 The super-linearity is because this view is a join of \textsf{lineitem} and \textsf{orders} and we assume that there is not a join index on the updates.
 Since both tables are growing sampling reduces computation super-linearly. 
 
-\textbf{Accuracy: }
+\textbf{Accuracy:}
 At the same design point with a 10\% sample, we evaluate the accuracy of \svc.
 In Figure \ref{exp-1-acc}, we answer TPCD queries with this view.
 The TPCD queries are group-by aggregates and we plot the median relative error for \svcnospace+CORR, No Maintenance, and \svcnospace+AQP.
 On average over all the queries, we found that \svcnospace+CORR was 11.7x more accurate than the stale baseline, and 3.1x more accurate than applying \svcnospace+AQP to the sample.
 
-\textbf{\svcnospace+CORR vs. \svcnospace+AQP: }
+\textbf{\svcnospace+CORR vs. \svcnospace+AQP:}
 While more accurate, it is true that \svcnospace+CORR correction technique moves some of the computation from maintenance to query execution.
 \svcnospace+CORR calculates a correction to a query on the full materialized view.
 On top of the query time on the full view (as in IVM) there is additional time to calculate a correction from a sample.
