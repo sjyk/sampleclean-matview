@@ -90,7 +90,10 @@ Furthermore, since $c_{out}$ is deterministic (and in fact its bias/variance is 
 Suppose, we want to use outlier indexing to process queries on \tbl{visitView}.
 We chose an attribute in the base data to index, for example \texttt{duration}.
 We can set an threshold of 1.5 hours (e.g, indexes all of the movies served by the system).
-Using our push-up rules, this materializes the entire set of rows whose duration is longer than 1.5 hours.
+Using the push up rules, we first push the index through the join of \tbl{Log} and \tbl{Video}.
+Then, we hit the group by aggregate, where select all the distinct groups (videos) for which 
+the duration is longer than 1.5 hours.
+This materializes the entire set of rows whose duration is longer than 1.5 hours.
 
 Returning to the example query from the previous section:
 \begin{lstlisting}[basicstyle={\scriptsize}]

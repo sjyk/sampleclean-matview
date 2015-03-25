@@ -5,7 +5,7 @@
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
 However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the data (e.g, correlated aggregate in a sub-query).
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
-In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data.
+In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data for a reduced maintenance cost.
 \svc is complementary to the choice of maintenance algorithm and maintenance setting (e.g mini-batch or large period deferral).
 
 \vspace{0.5em}

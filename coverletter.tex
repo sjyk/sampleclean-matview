@@ -63,10 +63,10 @@ The sampling technique proposed in Section 4 of our paper could be used to appro
 
 \vspace{.25em}
 
-{\bf Responses:} We have addressed all of the details from reviewer comments in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table (also called a delta table e.g \cite{DBLP:journals/vldb/KochAKNNLS14}) algorithm described in “Maintenance of Materialized Views: Problems, Techniques, and Applications” by Gupta et al. \cite{gupta1995maintenance, gupta2006incremental}. 
+{\bf Responses:} We have addressed all of the details in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table algorithm (also called a delta table e.g \cite{DBLP:journals/vldb/KochAKNNLS14}) described in “Maintenance of Materialized Views: Problems, Techniques, and Applications” by Gupta et al. \cite{gupta1995maintenance, gupta2006incremental}. 
 We further clarified our contribution for the two compared query processing approaches, SVC+CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. 
 
-There were also reviewer concerns about selectivity (for which we added a theoretical analysis) and update size (for which we clarified the experiment in which those results can be seen).
+There were also reviewer concerns about the selectivity (for which we added a theoretical analysis) and the update size (for which we clarified the experiment in which those results can be seen).
 In addition, two reviewers suggested removing our detailed evaluation on a distributed platform to save space. We have consolidated our experiments such that we still present accuracy and performance results for the real dataset from Conviva Inc. but do not describe the details of our implementation and deployment on Apache Spark.
 
 \vspace{1em}
@@ -79,7 +79,7 @@ In addition, two reviewers suggested removing our detailed evaluation on a distr
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
 However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the data (e.g, correlated aggregate in a sub-query).
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
-In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data.
+In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data for a reduced maintenance cost.
 \svc is complementary to the choice of maintenance algorithm and maintenance setting (e.g mini-batch or large period deferral).
 \end{displayquote}
 
@@ -366,7 +366,7 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 
 \vspace{.25em}
 
-{\bf Responses:} We introduced a running example in Section 2.1 based on our experimental dataset. In Section 3.1, we used this running example to clarify our prerequisite concepts and terminology. In Section 3.2, we give an intuitive end-to-end example of the entire workflow. In Section 4.3, we use this example to describe the primary key generation method. In Section 4.4, we describe our hash pushdown optimization. In Section 5.2, we use the example to describe our query result estimation approaches.  In Section 6.4, we describe a concrete example of how to use the outlier index to generate a query result estimation plan. \reminder{I did not find the generated plan in the example.}
+{\bf Responses:} We introduced a running example in Section 2.1 based on our experimental dataset. In Section 3.1, we used this running example to clarify our prerequisite concepts and terminology. In Section 3.2, we give an intuitive end-to-end example of the entire workflow. In Section 4.3, we use this example to describe the primary key generation method. In Section 4.4, we describe our hash pushdown optimization. In Section 5.2, we use the example to describe our query result estimation approaches.  In Section 6.4, we describe a concrete example of how to use the outlier index. We present an example of using the pushup rules to propagate indexes from the base data to the view and then using the index to estimate a query result. 
 
 \vspace{1em}
 \emph{C5. Figures/References: Please increase the size of both figures and references, as they are currently extremely hard to read. In the case of figures you may be able to achieve this simply by using more concise captions.}
