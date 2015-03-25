@@ -2,13 +2,13 @@
 %In this section, we briefly overview the problem setting.
 
 \subsection{Motivation And Example}\label{subsec-inc}
-There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14}.
-However, even for these optimized systems, some materialized views are computationally difficult to maintain.
-In their evaluation of DBToaster, Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14} reported a three order of magnitude variation in maintenance
-throughput over the 22 TPCH queries defined as MVs.
+There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
+However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the data (e.g, correlated aggregate in a sub-query).
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
-SVC is complementary to existing maintenance algorithms, whether recomputation, IVM, or higher order methods like DBToaster, provided they are specified in standard relational algebra.
-Through the use of sampling, we provide the user another tool to flexibly manage and schedule maintenance of MVs for aggregate analytics.
+Even when view maintenance should be relatively inexepensive such as in Twitter's Rainbird \cite{rainbird} which is restricted to commutative/associative aggregates, 
+in these systems, maintenance is not completely eager with some degree of batching ($\sim 60$ seconds).
+In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data.
+\svc is complementary to the choice of maintenance algorithm and maintenance setting (e.g mini-batch or large period deferral).
 
 \vspace{0.5em}
 
@@ -16,32 +16,30 @@ Through the use of sampling, we provide the user another tool to flexibly manage
 Suppose we are a video streaming company analyzing user engagement.
 Our database consists of two tables \tbl{Log} and \tbl{Video}, with the following schema:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-Log(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
-Video(videoId$\textrm{,}$ ownerId$\textrm{,}$ language$\textrm{,}$ duration)
+Log(sessionId$\textrm{,}$ videoId)
+Video(videoId$\textrm{,}$ ownerId$\textrm{,}$ duration)
 \end{lstlisting}
-The \tbl{Log} table stores each visit to a specific video with primary key (\texttt{sessionId}), a foreign-key to the \tbl{Video} table (\texttt{videoId}), latency of the visit (\texttt{responseTime}), and the browser used to access the video (\texttt{userAgent}).
-The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerId}), language (\texttt{language}), and the video duration (\texttt{duration}).
+The \tbl{Log} table stores each visit to a specific video with primary key (\texttt{sessionId}) and a foreign-key to the \tbl{Video} table (\texttt{videoId}).
+The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerId}), and the video duration (\texttt{duration}).
 
-For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits per video and the total number of visits for each language, predicated on different subsets of owners. 
-To avoid repeatedly performing the join and visit aggregation, we could define the following MV: \reminder{I am a little confused about this example. In the video table, videoId is the primary key. Why do you need to put ownerId, language, and duration in the group-by clause?}
+For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits per video and the total number of visits predicated on different subsets of owners. 
+To avoid repeatedly performing the join and visit aggregation, we could define the following MV that counts the visits for each videoId associated with owners and the duration: 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 CREATE VIEW visitView
-AS SELECT videoId, ownerId, language, duration
+AS SELECT videoId, ownerId, duration
 count(1) as visitCount
 FROM Log, Video
 WHERE Log.videoId = Video.videoId
-GROUP BY videoId, ownerId, language, duration
+GROUP BY videoId
 \end{lstlisting}
-Our queries of interest are aggregates on this view, are of the form: \reminder{Does this sentence have a syntax error?}
+We want to answer queries of the following form: 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 SELECT agg(visitCount) FROM visitView 
 WHERE Condition(*)
 \end{lstlisting}
-
-As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions and deletions to the table as: \reminder{It seems that you only use the LogIns table in the following examples (e.g., Fig 2). }
+As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertions to the table as:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
-LogDels(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
 Intuitively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} and \texttt{LogDels} to just those rows, we can reduce the maintenance time of the view.
 If we are intelligent about restricting the computation, this can reduce the number of \tbl{Log} records to aggregate and to join with the \texttt{Video} table.
