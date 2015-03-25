@@ -65,7 +65,7 @@ For the relational expressions defined in the previous section, this method will
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.20]{figs/primary_key.png} \vspace{-.5em}
+ \includegraphics[scale=0.18]{figs/primary_key.png} \vspace{-.5em}
  \caption{Applying the rules described in Definition \ref{pk}, we illustrate how to assign a primary key to a view. \label{pk-fig}}\vspace{-1em}
 \end{figure}
 
@@ -83,14 +83,6 @@ To ensure that this view has a primary key for all subexpressions, we apply the 
 Since both base tables \tbl{Video} and \tbl{Log} have primary keys videoId and sessionId respectively,
 the result of the join will have a primary key (videoId, sessionId).
 Then, since the group by attribute of the count is videoId, that is the primary key of the view.
-In SQL, this is:
-\begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-CREATE VIEW visitView
-AS SELECT videoId, count(1) as visitCount
-FROM Log, Video
-WHERE Log.videoId = Video.videoId
-GROUP BY videoId
-\end{lstlisting}
 Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
 We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}.
 Then, we can apply the rules above to propagate this key up the expression tree.
@@ -161,7 +153,7 @@ Thus, it addresses Problem 1 from the previous section.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.20]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
+ \includegraphics[scale=0.18]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \label{exexpr2}}\vspace{-1em}
 \end{figure}
 

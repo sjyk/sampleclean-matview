@@ -114,7 +114,8 @@ Table \ref{estimators} describes these families and their properties for common 
 Sample mean family of estimators (\sumfunc, \countfunc, and \avgfunc) has analytic solutions and has been the focus of other approximate query processing works \cite{OlkenR86, wang1999sample}, we analyze this family in detail.
 The general case can only be bounded empirically which is more challenging.
 
-\begin{table}\scriptsize
+\begin{table}\scriptsize \vspace{-1em}
+\centering
 \begin{tabular}{ l l l l}
   SQL Query & Estimator Family & Unbiased & Estimate Variance \\ \hline
   \avgfunc, \sumfunc, \countfunc & Sample Mean & Yes & Optimal \\
@@ -122,7 +123,7 @@ The general case can only be bounded empirically which is more challenging.
   \medfunc, \percfunc & Sample Ranking & Bounded & Suboptimal \\
   \maxfunc, \minfunc & Sample Extrema & Unbounded & Suboptimal \\
 \end{tabular}
-\caption{SQL queries and the properties of their statistical estimation family. \label{estimators}}
+\caption{SQL queries and the properties of their statistical estimation family. \label{estimators}}\vspace{-0.5em}
 \end{table}
 
 \subsubsection{Confidence Intervals For Sample Means}
@@ -130,10 +131,10 @@ Now we will discuss bounding our estimates in confidence intervals for \sumfunc,
 estimated with ``sample mean" estimators.
 Sample means for uniform random samples (also called sampling without replacement) converge to the population mean by the Central Limit Theorem (CLT).
 Let $\hat{\mu}$ be a sample mean calculated from $k$ samples, $\sigma^2$ be the variance of the sample, and $\mu$ be the population mean. 
-Then, the error in the estimate is normally distributed:
-\[
-(\mu - \hat{\mu}) \sim N(0,\frac{\sigma^2}{k})
-\]
+Then, the error $(\mu - \hat{\mu})$ is normally distributed:
+$
+ N(0,\frac{\sigma^2}{k})
+$
 Therefore, the confidence interval is given by:
 \[
 \hat{\mu} \pm \gamma \sqrt{\frac{\sigma^2}{k}}
@@ -173,8 +174,7 @@ SELECT $\gamma\cdot$stdev(trans_attr)/sqrt(count(1)) FROM trans
 
 To calculate the confidence intervals for \svcnospace+CORR we have to look at the statistics of the difference, i.e., $c = q(S) - q(S')$, from a sample.
 If we did not have rows in $\widehat{S}$ do not exist in $\widehat{S}'$ and vice versa, we could use the associativity of addition and subtraction to rewrite this as:
-\[c = q(S - S'),\]
-where $-$ is the row-by-row difference between $S$ and $S'$.
+$c = q(S - S')$, where $-$ is the row-by-row difference between $S$ and $S'$.
 The challenge is that the missing rows make this ill-defined.
 Thus, we have define the following null-handling semantics with a subtraction operator we call $\dot{-}$.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 

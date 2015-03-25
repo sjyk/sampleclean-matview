@@ -17,23 +17,23 @@ Both the problems of efficiently sampling relations \cite{olken1993random} and p
 In \svc, we look at a new problem, where we efficiently sample from a maintenance strategy, a relational expression that updates a materialized view.
 We generalize uniform sampling procedures to work in this new context using lineage \cite{DBLP:journals/vldb/CuiW03} and hashing.
 We look the problem of approximate query processing \cite{AgarwalMPMMS13, agarwalknowing} from a different perspective by estimating a ``correction'' rather than estimating query results. 
-Srinivasan and Carey studied a problem related to query correction which they called compensation-based query processing \cite{srinivasanC92} for concurrency control.
+Srinivasan and Carey studied a problem related to query correction which they called compensation-based query processing \cite{srinivasanC92} for concurrency control but did not study this for sampled estimates.
 %This work was applied in the context of concurrency control.
-However, this work did not consider applications when the correction was applied to a sample as in \svc.
+%However, this work did not consider applications when the correction was applied to a sample as in \svc.
 %The sampling in \svc introduces new challenges such as sensitivity to outliers, questions of bias, and estimate optimality. 
 
-In the context of materialized view maintenance, sampling has primarily been studied from the perspective of maintaining samples \cite{DBLP:conf/icde/OlkenR92}.
-Similarly, in~\cite{joshi2008materialized}, Joshi and Jermaine studied indexed materialized views that are amenable to random sampling.
+Sampling has also been studied from the perspective of maintaining samples \cite{DBLP:conf/icde/OlkenR92}.
+In~\cite{joshi2008materialized}, Joshi and Jermaine studied indexed materialized views that are amenable to random sampling.
 While similar in spirit (queries on the view are approximate), the goal of this work was to optimize query processing not address the cost of incremental maintenance.
 There has been work using sampled views in a limited context of cardinality estimation \cite{larson2007cardinality}, which is the special case of our framework, namely, the \countfunc query.
 Nirkhiwale et al. \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}, studied an algebra for estimating confidence intervals in aggregate queries.
 The objective of this work is not sampling efficiency, as in \svc, but estimation.
-In a limited setting, where we consider only views constructed from select and project operators, \svc's hash pushdown will yield similar results to their model.
+As a special case, where we consider only views constructed from select and project operators, \svc's hash pushdown will yield the same results as their model.
 
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
 For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries. The technique used to trace the provenance of an outlier row in a result is very similar to the technique proposed in this work. However, this work addressed a different cleaning problem from \svc. In \svc, we look to find a relational expression that update an erroneous row such that it is correct. In \cite{DBLP:journals/pvldb/0002M13}, the authors remove base data such that the row is no longer an outlier. Also, Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
 However, the materialized view problem setting addes some new challenges that prior work does not address.
-In constrast to \svc, these three works require an explicit specification of erroneous rows in a materialized view.
+In constrast to \svc, these works require an explicit specification of erroneous rows in a materialized view.
 Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
 In \svc, we assume a very specific model of data error, namely staleness, which allows us to avoid this problem.
 We use the formalism of a ``maintenance strategy", the relational expression that updates the view, to allow us to sample rows that are not yet materialized.
@@ -49,8 +49,7 @@ The sampling technique proposed in Section 4 of our paper could be used to appro
 
 Finally, the theory community has has studied related problems.
 There has been work on the maintenance of approximate histograms, synopses, and sketches ~\cite{gibbons1997fast, DBLP:journals/ftdb/CormodeGHJ12}, which closely resemble aggregate materialized views.
-This work did not model queries on the approximate data structures as in \svc.
-Furthermore, the goals of this line work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
+The objectives of this work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
 %There is also close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
 %While this line work studies query processing on probabilistic views, it does not study their maintenance as in \svc.
 \vspace{-1em}
@@ -64,9 +63,8 @@ In terms of more view definitions, \svc does not support views with ordering or 
 In the future, we will explore maintenance optimizations proposed in recent work.
 For example, DBToaster has two main components, higher-order delta processing and a SQL query compiler, both of which are complementary to \svc.
 Higher-order maintenance extends delta-table IVM algorithms by intermediately maintaining the delta tables or delta tables of delta tables.
-This technique is shown theoretically and empirically to be faster as it consolidates redundant numerical operations.
 While we only experiment with first-order delta-table IVM in this paper, it is a straight forward extension to apply \svc to higher-order maintenance.
-\svc can also benefit from SQL query compilation as we can compile the sample maintenance strategy to make \svc even faster.
+\svc can also benefit from SQL query compilation as we can compile the sample maintenance strategy.
 
 %\svc proposes a new approach for accurate query processing with MVs.
 %Our results are promising and suggest many avenues for future work.
@@ -80,16 +78,13 @@ While we only experiment with first-order delta-table IVM in this paper, it is a
 \section{Conclusion}\label{conclusion}
 \vspace{-.3em}
 %In this paper, we propose a new framework, \svc, to address the staleness problem in materialized views.
-Materialized view maintenance is often expensive, and in practice, immediate view maintenance is avoided due to its costs.
-However, this leads to stale materialized views which have incorrect, missing, and superfluous rows.
+Materialized view maintenance is often expensive, and in practice, eager view maintenance is often avoided due to its costs.
+This leads to stale materialized views which have incorrect, missing, and superfluous rows.
 In this work, we formalize the problem of staleness and view maintenance as a data cleaning problem.
-
 \svc uses a sample-based data cleaning approach to get accurate query results that reflect the most recent data for a greatly reduced computational cost.
 To achieve this, we significantly extended our prior work in data cleaning, SampleClean \cite{wang1999sample}, for efficient cleaning of stale MVs. 
 This included processing a wider set of aggregate queries, handling missing data errors, and proving for which queries optimality of the estimates hold.
-Another significant contribution of \svc is our outlier indexing approach which reduces the sensitivity of sampling to skewed data distributions.
 We presented both empirical and theoretical results showing that our sample data cleaning approach is significantly less expensive than full view maintenance for a large class of materialized views, while still providing accurate aggregate query answers that reflect the most recent data.
-We evaluate \svc on a real dataset of server logs from Conviva and the TPCD benchmark dataset, and our experiments confirm our theoretical results: (1) cleaning an MV sample is more efficient than full view maintenance, (2) the corrected results are more accurate than using the stale MV, and (3) SVC can be efficiently integrated with deferred maintenance leading to increased query accuracy. 
 
 
 
