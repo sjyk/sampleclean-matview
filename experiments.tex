@@ -106,9 +106,9 @@ We use the following notation to represent the different approaches:
 
 \noindent\textbf{Incremental View Maintenance (IVM): } We apply incremental view maintenance (change-table based maintenance \cite{gupta2006incremental}) to the full view.
 
-\noindent\textbf{\svcnospace+AQP: } We maintain a sample of the materialized view using \svc and estimate the result with SVC+AQP.
+\noindent\textbf{\svcnospace+AQP: } We maintain a sample of the materialized view using \svc and estimate the result with AQP-style estimation technique. 
 
-\noindent\textbf{\svcnospace+CORR: } We maintain a sample of the materialized view using \svc and process queries on the view using \svcnospace+CORR.
+\noindent\textbf{\svcnospace+CORR: } We maintain a sample of the materialized view using \svc and process queries on the view using the correction with applies the AQP to both the clean and dirty samples, and uses both estimates to correct a stale query result.
 
 \vspace{0.5em}
 %\reminder{Do you think we need to say something about another solution which maintains a sample of ``base'' table and transform a query on a view to a query on the base table?}
