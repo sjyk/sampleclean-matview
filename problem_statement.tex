@@ -5,8 +5,6 @@
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
 However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the data (e.g, correlated aggregate in a sub-query).
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
-Even when view maintenance should be relatively inexepensive such as in Twitter's Rainbird \cite{rainbird} which is restricted to commutative/associative aggregates, 
-in these systems, maintenance is not completely eager with some degree of batching ($\sim 60$ seconds).
 In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data.
 \svc is complementary to the choice of maintenance algorithm and maintenance setting (e.g mini-batch or large period deferral).
 
@@ -41,7 +39,7 @@ As \tbl{Log} table grows, this MV becomes stale, and let us denote the insertion
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 LogIns(sessionId$\textrm{,}$ videoId$\textrm{,}$ responseTime$\textrm{,}$ userAgent)
 \end{lstlisting}
-Intuitively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} and \texttt{LogDels} to just those rows, we can reduce the maintenance time of the view.
+Intuitively, if we take a uniform sample of the rows in \texttt{visitView} and do sufficient computation to materialize updates from \texttt{LogIns} to just those rows, we can reduce the maintenance time of the view.
 If we are intelligent about restricting the computation, this can reduce the number of \tbl{Log} records to aggregate and to join with the \texttt{Video} table.
 However, from this uniform sample, we can still estimate our aggregate queries of interest, trading off maintenance throughput for accuracy.
 
@@ -55,7 +53,7 @@ We proposed SampleClean to add an additional trade-off to this design space by u
 The problem of high computational costs for accurate results mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (expensive and up-to-date) and deferred maintenance (inexpensive and stale). 
 Thus, we explore how samples of ``clean" (up-to-date) data can be used for improved query processing on MVs without incurring the full cost of maintenance.
 
-However, the metaphor of stale MVs as a Sample-and-Clean problem only takes so far.
+However, the metaphor of stale MVs as a Sample-and-Clean problem only goes so far.
 In SampleClean, we modeled data cleaning as a row-by-row transformation of relation with an unknown expensive cost. 
 This transformation was a user-specified  ``black box'' that operated on each row, and we applied this to a sample of dirty data.
 In the MV setting, we found that the staleness cleaning problem interacts with sampling in complex ways which results in missing and superfluous rows. 

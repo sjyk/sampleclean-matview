@@ -90,7 +90,7 @@ Furthermore, since $c_{out}$ is deterministic (and in fact its bias/variance is 
 Suppose, we want to use outlier indexing to process queries on \tbl{visitView}.
 We chose an attribute in the base data to index, for example \texttt{duration}.
 We can set an threshold of 1.5 hours (e.g, indexes all of the movies served by the system).
-This materializes the entire set of rows whose duration is longer than 1.5 hours.
+Using our push-up rules, this materializes the entire set of rows whose duration is longer than 1.5 hours.
 
 Returning to the example query from the previous section:
 \begin{lstlisting}[basicstyle={\scriptsize}]
