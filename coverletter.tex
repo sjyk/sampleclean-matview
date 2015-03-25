@@ -77,10 +77,13 @@ In addition, two reviewers suggested removing our detailed evaluation on a distr
 {\bf Responses:} Thank you for brining this to our attention. In the paper (Section 2.1), we have added the following clarification and motivation of the work:
 \begin{displayquote}
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
-However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the data (e.g, correlated aggregate in a sub-query).
+However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the size of data (e.g, correlated aggregate in a sub-query).
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput.
+When faced with such challenges, it is common to batch updates to amortize maintenance overheads and add flexibility to scheduling.
 In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data for a reduced maintenance cost.
-\svc is complementary to the choice of maintenance algorithm and maintenance setting (e.g mini-batch or large period deferral).
+Any amount of staleness can lead to erroneous query results where the user has no idea about the magnitude or the scope of query error. 
+\svc uses a small sample of up-to-date data to return a bounded approximation, which while still approximate, shows the user how far they are from the true answer.
+\svc is complementary to the choice of maintenance algorithm and maintenance setting (e.g mini-batch on the order of seconds/minutes or periodic deferral).
 \end{displayquote}
 
 We further an opportunity for future work in our Limitations and Opportunities section (Section 9):

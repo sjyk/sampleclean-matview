@@ -273,8 +273,8 @@ For the last two views, V21 and V22, we see that sampling does not lead to as la
 This is because both of those views contain nested structures which block the pushdown of hashing.
 V21 contains a subquery in its predicate that does not involve the primary key, but still requires a scan of the base relation to evaluate.
 V22 contains a string transformation of a key blocking the push down.
-There might be a way to derive an equivalent expression with joins that could be sampled more efficiently, and we will explore this in future work.
-For the most part, these results are consistent with our previous experiments showing that \svc is faster than IVM and more accurate than \svcnospace+AQP and no maintenance.
+%There might be a way to derive an equivalent expression with joins that could be sampled more efficiently, and we will explore this in future work.
+These results are consistent with our previous experiments showing that \svc is faster than IVM and more accurate than \svcnospace+AQP and no maintenance.
 
 
 \subsection{Outlier Indexing}
@@ -316,7 +316,7 @@ On average over all the views, \svc-10\% gives a 7.5x speedup.
 In Figure \ref{conv-1}(b), we show that \svc also gives highly accurate results with an average error of 0.98\%.
 In the following experiments, we will use V2 and V5 as exemplary views.
 V5 is the most expensive to maintain due to its nested query and V2 is a single level group by aggregate.
-These results show consistency with our results on the synthetic datasets.
+%These results show consistency with our results on the synthetic datasets.
 
 \iffalse
 \subsubsection{End-to-end integration with periodic maintenance}

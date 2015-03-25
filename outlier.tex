@@ -87,18 +87,13 @@ Since we are averaging two unbiased estimates $c_{reg}$ and $c_{out}$, the linea
 Furthermore, since $c_{out}$ is deterministic (and in fact its bias/variance is 0), $c_{reg}$ and $c_{out}$ are uncorrelated making the bounds described in the previous section applicable as well.
 
 \begin{example}
-Suppose, we want to use outlier indexing to process queries on \tbl{visitView}.
+Suppose, we want to use outlier indexing to process the query in the previous section on \tbl{visitView}.
 We chose an attribute in the base data to index, for example \texttt{duration}.
 We can set an threshold of 1.5 hours (e.g, indexes all of the movies served by the system).
 Using the push up rules, we first push the index through the join of \tbl{Log} and \tbl{Video}.
 Then, we hit the group by aggregate, where select all the distinct groups (videos) for which 
 the duration is longer than 1.5 hours.
 This materializes the entire set of rows whose duration is longer than 1.5 hours.
-
-Returning to the example query from the previous section:
-\begin{lstlisting}[basicstyle={\scriptsize}]
-SELECT COUNT(1) FROM visitView WHERE visitCount > 100;
-\end{lstlisting}
 For SVC+AQP, we run the query on the set of clean rows with durations longer than 1.5 hours.
 Then, we use the update rule in Section \ref{oqp} to update the result based on the number of records in the index and the total size of the view.
 For SVC+CORR, we additionally run the query on the set of dirty rows with durations longer than 1.5 hours and take the difference between SVC+AQP.
