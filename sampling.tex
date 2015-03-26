@@ -78,11 +78,11 @@ If there exists an unbiased sample estimator for q(S') then there exists an unbi
 \end{lemma}
 \begin{proof}[Sketch] 
 Suppose, we have an unbiased sample estimator $e_q$ of $q$. 
-Then, it follows that \[\mathbb{E}\big[e_q(\hat{S'})\big] = q(S')\]
+Then, it follows that \[\mathbb{E}\big[e_q(\widehat{S'})\big] = q(S')\]
 If we substitute in this expression:
-$c = \mathbb{E}\big[e_q(\hat{S'})\big] - q(S) $.
+$c = \mathbb{E}\big[e_q(\widehat{S'})\big] - q(S) $.
 Applying the linearity of expectation:
-\[ c = \mathbb{E}\big[e_q(\hat{S'}) - q(S)\big] \]
+\[ c = \mathbb{E}\big[e_q(\widehat{S'}) - q(S)\big] \]
 \end{proof}
 Some queries do not have unbiased sample estimators, but the bias of their sample estimators can be bounded. Example queries include: \medfunc, \percfunc.
 A corollary to the previous lemma, is that if we can bound the bias for our estimator then we can achieve a bounded bias for $c$ as well.
@@ -130,14 +130,14 @@ The general case can only be bounded empirically which is more challenging.
 Now we will discuss bounding our estimates in confidence intervals for \sumfunc, \countfunc, and \avgfunc, which can be
 estimated with ``sample mean" estimators.
 Sample means for uniform random samples (also called sampling without replacement) converge to the population mean by the Central Limit Theorem (CLT).
-Let $\hat{\mu}$ be a sample mean calculated from $k$ samples, $\sigma^2$ be the variance of the sample, and $\mu$ be the population mean. 
-Then, the error $(\mu - \hat{\mu})$ is normally distributed:
+Let $\bar{\mu}$ be a sample mean calculated from $k$ samples, $\sigma^2$ be the variance of the sample, and $\mu$ be the population mean. 
+Then, the error $(\mu - \bar{\mu})$ is normally distributed:
 $
  N(0,\frac{\sigma^2}{k})
 $
 Therefore, the confidence interval is given by:
 \[
-\hat{\mu} \pm \gamma \sqrt{\frac{\sigma^2}{k}}
+\bar{\mu} \pm \gamma \sqrt{\frac{\sigma^2}{k}}
 \]
 where $\gamma$ is the Gaussian tail probability value (e.g., 1.96 for 95\%, 2.57 for 99\%).
 

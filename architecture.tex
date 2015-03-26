@@ -78,8 +78,8 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \noindent \textbf{Uniform Random Sampling: }
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
 We use the ``hat'' notation (e.g., $\widehat{S}$) to denote sampled relations and sampled relational expressions.
-We say the relation $\hat{S}$ is a \emph{uniform sample} of $S$ if
-\[\text{(1) } \forall s \in \widehat{S} : s \in S\text{;~~~~~ (2) }Pr(s_1 \in \hat{S}) =  Pr(s_2 \in \widehat{S}) = m\]
+We say the relation $\widehat{S}$ is a \emph{uniform sample} of $S$ if
+\[\text{(1) } \forall s \in \widehat{S} : s \in S\text{;~~~~~ (2) }Pr(s_1 \in \widehat{S}) =  Pr(s_2 \in \widehat{S}) = m\]
 We say a sample is \emph{clean} if an only if it is a uniform random sample of the up-to-date view $S'$. 
 
 \vspace{0.25em}
