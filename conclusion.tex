@@ -33,17 +33,18 @@ There has been theoretical work on the maintenance of approximate histograms, sy
 The objectives of this work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
 
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
-For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries. 
-The technique used to trace the provenance of an outlier row to an error in the base data is similar to the way we push down a hashing operator to efficiently sample base data.However, this work addresses a different cleaning problem from \svc. 
-In \svc, we want to derive a relational expression that materializes a sample of up-to-date data, and Wu and Madden look at a more restrict base data removal model of cleaning. 
+Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} proposed a technique to trace errors in an MV to base data and find responsible erroneous tuples, they do not, however, propose a technique to correct the errors as in \svc.
+This problem addressed in Meliou et al. is hard since they do not assume a model for the errors.
+Through our formalization of staleness, we have a clear model of how changes in base data effect MVs, which allows to both trace errors and clean them.
+Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model for correct ``outliers" in and MV through deletion of records in the base data.
+This is a more restricted model of data cleaning than \svc, where it considers only changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expression (e.g., nested aggregates).
 Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
-In contrast to \svc, these works require an explicit specification of erroneous rows in a materialized view.
+In contrast to \svc, the three works \cite{DBLP:conf/sigmod/MeliouGNS11, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} require an explicit specification of erroneous rows in a materialized view.
 Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
-In \svc, we assume a very specific model of data error, namely staleness, which allows us to avoid this problem.
 We use the formalism of a ``maintenance strategy", the relational expression that updates the view, to allow us to sample rows that are not yet materialized.
 Additionally, in our outlier indexing method, we propagate outliers up from base data rather than tracing errors back to base data due to this materialization problem.
 However, while not directly applicable for staleness, we see \svc as complementary to these works in the dirty data setting. 
-The sampling technique proposed in Section 4 of our paper could be used to approximate the data cleaning techniques in \cite{DBLP:journals/pvldb/0002M13, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} and this is an exciting avenue of future work. 
+The sampling technique proposed in Section 4 of our paper could be used to approximate the data cleaning techniques in \cite{DBLP:journals/pvldb/0002M13, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} and this is an exciting avenue of future work.
 
 %Sampling has been explored in the streaming community, and a similar idea of sampling from incoming updates has also been applied in stream processing~\cite{tatbul2003load, Garofalakis, rabkin2014aggregation}.
 %While some of these works studied problems similar to materialization, for example, the JetStream project (Rabkin et al.) looks at how sampling can help with real-time analysis of aggregates.

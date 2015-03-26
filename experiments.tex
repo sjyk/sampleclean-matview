@@ -94,7 +94,7 @@ We generated aggregate random queries over this view by taking either random tim
 \centering
 \includegraphics[scale=0.14]{exp/msj_1.pdf}
 \includegraphics[scale=0.14]{exp/msj_2.pdf}\vspace{-1em}
- \caption{(a) On a 10GB view with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance. \vspace{-.5em}\label{exp-1-samplesize}}
+ \caption{(a) On a 10GB view with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance. \vspace{-.5em}\label{exp-1-samplesize}}\vspace{-1.0em}
 \end{figure}
 
 \subsubsection{Metrics and Evaluation}
@@ -131,7 +131,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
- \includegraphics[scale=0.13]{exp/msj_6.pdf}
+ \includegraphics[scale=0.13]{exp/msj_6.pdf}\vspace{-1.0em}
   \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. (b) \svcnospace+CORR is more accurate than \svcnospace+AQP until a break even point. \vspace{-2em} \label{exp-1-total}}
 \end{figure}
 
@@ -256,9 +256,9 @@ This is because the median is less sensitive to variance in the data.
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.14]{exp/msqv_1.pdf}\vspace{.5em}
- \includegraphics[scale=0.14]{exp/msqv_2.pdf} %\vspace{-1em}
- \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) For a 10\% sample size and 10\% update size, \svcnospace+CORR is more accurate than \svcnospace+AQP and No Maintenance.  \label{exp3-acc}}
+ \includegraphics[scale=0.14]{exp/msqv_1.pdf}
+ \includegraphics[scale=0.14]{exp/msqv_2.pdf}\vspace{-0.5em}
+ \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) For a 10\% sample size and 10\% update size, \svcnospace+CORR is more accurate than \svcnospace+AQP and No Maintenance.  \label{exp3-acc}}\vspace{-1.5em}
 \end{figure}
 In this experiment, we demonstrate the breadth of views supported by \svc by using the TPCD queries as materialized views.
 %Recall from our experiment description that each parameterized TPCD query is treated as a materialized view, and we use the \textsf{qgen} program 
@@ -307,7 +307,7 @@ While there is an overhead, it is still small compared to the gains made by samp
 \centering
  \includegraphics[scale=0.14]{exp/con_3.pdf}
  \includegraphics[scale=0.14]{exp/con_4.pdf} \vspace{-1.5em}
- \caption{(a) We compare the maintenance time of \svc with a 10\% sample and full incremental maintenance, and find that as with TPCD \svc saves significant maintenance time. (b) We also compare \svcnospace+CORR to \svcnospace+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
+ \caption{(a) We compare the maintenance time of \svc with a 10\% sample and full incremental maintenance, and find that as with TPCD \svc saves significant maintenance time. (b) We also compare \svcnospace+CORR to \svcnospace+AQP and No Maintenance and find it is more accurate. \label{conv-1}}\vspace{-1.5em}
 \end{figure}
 We derive the views from 800GB of base data and add 80GB of updates.
 In Figure \ref{conv-1}(a), we show that while full maintenance takes nearly 800 seconds for one of the views, a \svc-10\% can complete sample cleaning in less than 100s for all of them.
@@ -322,7 +322,7 @@ V5 is the most expensive to maintain due to its nested query and V2 is a single 
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/con_1.pdf}
- \includegraphics[scale=0.14]{exp/con_2.pdf}\vspace{-1em}
+ \includegraphics[scale=0.14]{exp/con_2.pdf}\vspace{-1.em}
  \caption{(a) Spark RDDs are most efficient when updated in batches. As batch sizes increase the system throughput increases. (b) When running multiple threads, the throughput reduces. \label{conv-2}}\vspace{-1.25em}
 \end{figure}
 
