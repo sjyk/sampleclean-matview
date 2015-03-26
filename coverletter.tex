@@ -49,7 +49,11 @@ Furthermore, we have clarified that the primary key definition proposed in 4.2
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
 However, the materialized view problem setting addes some new challenges that prior work does not address.
 We have added a paragraph to our related work (Section 8) contrasting these works from \svc:
-\begin{displayquote}For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries. The technique used to trace the provenance of an outlier row in a result is very similar to the technique proposed in this work. However, this work addressed a different cleaning problem from \svc. In \svc, we look to find a relational expression that update an erroneous row such that it is correct. In \cite{DBLP:journals/pvldb/0002M13}, the authors remove base data such that the row is no longer an outlier. Also, Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
+\begin{displayquote}
+For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries. 
+The technique used to trace the provenance of an outlier row to an error in the base data is similar to the way we push down a hashing operator to efficiently sample base data.However, this work addresses a different cleaning problem from \svc. 
+In \svc, we want to derive a relational expression that materializes a sample of up-to-date data, and Wu and Madden look at a more restrict base data removal model of cleaning. 
+Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
 In contrast to \svc, these works require an explicit specification of erroneous rows in a materialized view.
 Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
 In \svc, we assume a very specific model of data error, namely staleness, which allows us to avoid this problem.
