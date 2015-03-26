@@ -283,7 +283,7 @@ These results are consistent with our previous experiments showing that \svc is 
 \centering
  \includegraphics[scale=0.14]{exp/msoi_2.pdf}
  \includegraphics[scale=0.14]{exp/msoi_1.pdf}
- \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. (b) While the outlier index adds an overhead this is small relative to the total maintenance time. \vspace{-1.5em}\label{exp5-oi}}
+ \caption{(a) For one view V3 and 1GB of updates, we plot the 75\% quartile error with different techniques as we vary the skewness of the data. (b) While the outlier index adds an overhead this is small relative to the total maintenance time.\label{exp5-oi}}
 \end{figure}
 In our next experiment, we evaluate our outlier indexing.
 We note that none of the prior experiments used an outlier index. 
@@ -306,13 +306,12 @@ While there is an overhead, it is still small compared to the gains made by samp
 \begin{figure}[t]
 \centering
  \includegraphics[scale=0.14]{exp/con_3.pdf}
- \includegraphics[scale=0.14]{exp/con_4.pdf} \vspace{-1.0em}
+ \includegraphics[scale=0.14]{exp/con_4.pdf} \vspace{-1.5em}
  \caption{(a) We compare the maintenance time of \svc with a 10\% sample and full incremental maintenance, and find that as with TPCD \svc saves significant maintenance time. (b) We also compare \svcnospace+CORR to \svcnospace+AQP and No Maintenance and find it is more accurate. \label{conv-1}}
 \end{figure}
 We derive the views from 800GB of base data and add 80GB of updates.
 In Figure \ref{conv-1}(a), we show that while full maintenance takes nearly 800 seconds for one of the views, a \svc-10\% can complete sample cleaning in less than 100s for all of them.
 On average over all the views, \svc-10\% gives a 7.5x speedup.
-
 In Figure \ref{conv-1}(b), we show that \svc also gives highly accurate results with an average error of 0.98\%.
 In the following experiments, we will use V2 and V5 as exemplary views.
 V5 is the most expensive to maintain due to its nested query and V2 is a single level group by aggregate.

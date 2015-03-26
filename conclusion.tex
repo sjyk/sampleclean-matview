@@ -29,6 +29,8 @@ There has been work using sampled views in a limited context of cardinality esti
 Nirkhiwale et al. \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}, studied an algebra for estimating confidence intervals in aggregate queries.
 The objective of this work is not sampling efficiency, as in \svc, but estimation.
 As a special case, where we consider only views constructed from select and project operators, \svc's hash pushdown will yield the same results as their model.
+There has been theoretical work on the maintenance of approximate histograms, synopses, and sketches ~\cite{gibbons1997fast, DBLP:journals/ftdb/CormodeGHJ12}, which closely resemble aggregate materialized views.
+The objectives of this work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
 
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
 For example, Wu and Madden \cite{DBLP:journals/pvldb/0002M13} studied explanations for outliers in group-by aggregate queries. 
@@ -49,9 +51,7 @@ The sampling technique proposed in Section 4 of our paper could be used to appro
 %However, there are ideas from Rabkin et al. that could be applied in \svc in future work, for example, their description of coarsening operations in aggregates is very similar to our experiments with the ``roll-up'' queries in aggregate views.
 %There are a variety of other efforts proposing storage efficient processing of aggregate queries on streams \cite{dobra2002processing, greenwald2001space} which is similar to our problem setting and motivation.
 
-Finally, the theory community has has studied related problems.
-There has been work on the maintenance of approximate histograms, synopses, and sketches ~\cite{gibbons1997fast, DBLP:journals/ftdb/CormodeGHJ12}, which closely resemble aggregate materialized views.
-The objectives of this work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
+
 %There is also close relationship between sampling and probabilistic databases, and view maintenance and selection in the context of probabilistic databases have also been studied \cite{re2007materialized}.
 %While this line work studies query processing on probabilistic views, it does not study their maintenance as in \svc.
 \vspace{-1em}
@@ -64,10 +64,7 @@ This is predicted by our theoretical result that accuracy decreases with $\frac{
 In terms of more view definitions, \svc does not support views with ordering or ``top-k'' clauses, as our sampling assumes no ordering on the rows of the MV and it is not clear how sampling commutes with general ordering operations.
 In the future, we will explore maintenance optimizations proposed in recent work.
 For example, DBToaster has two main components, higher-order delta processing and a SQL query compiler, both of which are complementary to \svc.
-Higher-order maintenance extends delta-table IVM algorithms by intermediately maintaining the delta tables or delta tables of delta tables.
-While we only experiment with first-order delta-table IVM in this paper, it is a straight forward extension to apply \svc to higher-order maintenance.
-\svc can also benefit from SQL query compilation as we can compile the sample maintenance strategy.
-
+Higher-order maintenance extends delta-table IVM algorithms by intermediately maintaining the delta tables or delta tables of delta tables, and it is a straight forward extension to apply \svc to higher-order maintenance.
 %\svc proposes a new approach for accurate query processing with MVs.
 %Our results are promising and suggest many avenues for future work.
 %In particular, we are interested in deeper exploration of the multiple MV setting.
