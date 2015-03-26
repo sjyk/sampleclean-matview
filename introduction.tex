@@ -1,7 +1,7 @@
 \vspace{-0.5em}
 \section{Introduction}
-An increasingly popular approach for fast query processing on large datasets is to pre-compute query results.
-These pre-computed query results, known as Materialized views (MVs), have been well studied over the last 30 years in the
+An increasingly popular approach for fast query processing on large datasets pre-computing query results.
+These pre-computed results, known as Materialized views (MVs), have been well studied over the last 30 years in the
 research community \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized}.
 MVs are now supported by all major commercial vendors and key ideas from MV research have been recently found success in linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
 
@@ -18,7 +18,7 @@ While increasing the batching period gives the user more flexibility in scheduli
 As a result, queries using those MVs can return incorrect answers in the interim.
 Other than an educated guess based on past trends, in general, the user has no way of knowing how close or how far they are from the true answer.
 Thus, any amount of staleness is potentially dangerous, and this presents us a dichotomy between facing the cost of maintenance or coping with consequences of inaccuracy.
-In this paper, we explore an intruiging middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer with only a fraction of the maintenance cost. 
+In this paper, we explore an intruiging middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for only a fraction of the maintenance cost. 
 
 %This observation leads us to the main insight behind our work; namely, that a data cleaning approach can be applied to mitigate the negative impacts of deferred MV maintenance.
 
@@ -44,8 +44,7 @@ The approximation error in this estimate due to sampling is more manageable than
 When the MVs become stale between maintenance batches, we apply \svc for a far smaller cost than having to maintain the entire view but still get approximate, up-to-date answers.
 
 %Both MVs and queries can be complex.
-
-To summarize, our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation on the sample, (2) we propose an optimization technique that materializes the clean sample efficiently while preserving correctness, (3) we derive a query processing approach to answer aggregate queries accurately using the clean sample, (4) we propose an outlier index to reduce sensitivity to skewed datasets, and (5) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
+Our contributions are as follows: (1) we formalize maintenance of a sample MV as a data cleaning operation on the sample, (2) we propose an optimization technique that materializes the clean sample efficiently while preserving correctness, (3) we derive a query processing approach to answer aggregate queries accurately using the clean sample, (4) we propose an outlier index to reduce sensitivity to skewed datasets, and (5) we evaluate our approach on real and synthetic datasets confirming that indeed sampling can reduce view maintenance time while providing accurate query results. 
 %\end{itemize}
 
 The paper is organized as follows: 
