@@ -5,10 +5,10 @@ We thank the reviewers and chair for the very helpful feedback on our paper. We 
 To summarize :
 \begin{enumerate}
 \item We revised our background section (Section \ref{subsec-inc}) to include a detailed running example which is referenced in Examples 1-6 after each major concept.
-\item We revised our overview section (Section 3) to formalize our problem setting, assumptions, terminology, and key prerequisite concepts in our work and included more formal problem statements.
+\item We revised our overview section (Section 3) to formalize our problem setting, assumptions, terminology, and key prerequisite concepts and includes more formal problem statements.
 \item The sampling section (Section 4) included a detailed discussion about the challenges and new ideas (Section 4.1) and clarified a reviewer request about the definition of ``primary keys".
-\item The result estimation (Section 5) has been revised to include itemized descriptions of all of the algorithms and is self-contained with respect to our prior work.
-\item Experiments (Section 7) have been revised to merge redundant experimental results. We feel that the distributed experiment is a valuable contribution since it evaluates the technique at scale and on a real dataset. However, we noticed that the views in the distributed experiment were group by aggregates and we removed a TPCD evaluation of this same class of views.
+\item The result estimation section (Section 5) has been revised to include itemized descriptions of all of the algorithms and is self-contained with respect to our prior work.
+\item The experiments section (Section 7) has been revised to merge redundant experimental results. We feel that the distributed experiment is a valuable contribution since it evaluates the technique at scale and on a real dataset. However, we noticed that the views in the distributed experiment were group by aggregates and we removed a TPCD evaluation of this same class of views.
 Rather than presenting two different experimental results, we use our real dataset to evaluate \svc on group by aggregate views, while also discussing the performance at scale. 
 \end{enumerate}
 We first will detail our changes in response to the meta reviewer comments and then address the detailed reviewer comments subsequently.
@@ -20,7 +20,7 @@ We first will detail our changes in response to the meta reviewer comments and t
 \emph{M1. The definitions and discussions, which are currently presented in a very hand-waiving manner, need to be replaced with their formal counterparts. The presentation should be revised, also to avoid the continuous references to the tech report for details. Please see the detailed comments E1 of reviewer 1, and C1,C2, C4, C5, and C6 of reviewer 2 for more details.}
 \vspace{.25em}
 
-{\bf Responses:} We have significantly clarified the presentation of the concepts and the algorithms. Section 3.1 (Notations and Definitions) has been expanded to formally present the core preliminaries of our work: Materialized Views, Staleness, Relational Expressions for Maintenance, and Uniform Sampling. Section 3.2 presents an itemized workflow of SVC and formal descriptions of the problems that SVC solves. In our sampling section (Section 4), we replace the informal descriptions with their formal counterparts including Definition 1 (Provenance), Proposition 1 (Primary Key based Provenance), and Property 1 (Correspondence). We summarize the intutitions in these formal concepts with Example 3 and Example 4. We revised Section 5 to have an itemized description of the estimation algorithms proposed in this work.  Additionally, the technical report is now only cited in the Experiments section with reference to details in the experimental setup and materialized view choice.
+{\bf Responses:} We have significantly clarified the presentation of the concepts and the algorithms. Section 3.1 (Notations and Definitions) has been expanded to formally present the core preliminaries of our work: Materialized Views, Staleness, Relational Expressions for Maintenance, and Uniform Sampling. Section 3.2 presents an itemized workflow of SVC and formal descriptions of the problems that SVC solves. In our sampling section (Section 4), we replace the informal descriptions with their formal counterparts including Definition 1 (Provenance), Proposition 1 (Primary Key based Provenance), and Property 1 (Correspondence). We summarize the intuitions in these formal concepts with Example 3 and Example 4. We revised Section 5 to have an itemized description of the estimation algorithms proposed in this work.  Additionally, the technical report is now only cited in the Experiments section with reference to details in the experimental setup and materialized view choice.
 
 \vspace{1em}
 \emph{M2. There are several assumptions and restrictions that are not spelled out clearly in the first part of the paper. It should be clarified how much they limit the applicability of the proposal. The real-world scenarios used is very interesting, but do the techniques apply in other popular applications, where the assumption in sec 4.2 may not hold?}
@@ -47,16 +47,17 @@ Furthermore, we have clarified that the primary key definition proposed in 4.2
 
 {\bf Responses:} Thank you for bringing this to our attention.
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
-However, the materialized view problem setting addes some new challenges that prior work does not address.
+However, the materialized view problem setting adds new challenges that prior work does not address.
 We have added a paragraph to our related work (Section 8) contrasting these works from \svc:
 \begin{displayquote}
-\svc shares ides with prior work on cleaning materialized views by using ideas like provenance.
-Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} proposed a technique to trace errors in an MV to base data and find responsible erroneous tuples, they do not, however, propose a technique to correct the errors as in \svc.
+\svc shares ideas, such as provenance, with prior work on cleaning materialized views.
+Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} proposed a technique to trace errors in an MV to base data and find responsible erroneous tuples. 
+They do not, however, propose a technique to correct the errors as in \svc.
 Correcting general errors as in Meliou et al. is a hard constraint satisfaction problem.
-However, in \svc, through our formalization of staleness, we have a model of how changes in base data effect MVs, which allows to both trace errors and clean them.
-Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model to correct ``outliers" in and MV through deletion of records in the base data.
-This is a more restricted model of data cleaning than \svc, where the authors only consider changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expression (e.g., nested aggregates).
-Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
+However, in \svc, through our formalization of staleness, we have a model of how updates to the base data (modeled as errors) affect MVs, which allows us to both trace errors and clean them.
+Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model to correct ``outliers" in an MV through deletion of records in the base data.
+This is a more restricted model of data cleaning than \svc, where the authors only consider changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expressions (e.g., nested aggregates).
+Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed an approximate technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
 While complementary, one major difference between the three works \cite{DBLP:conf/sigmod/MeliouGNS11, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} and \svc is that they require an explicit specification of erroneous rows in a materialized view.
 Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
 We use the formalism of a ``maintenance strategy", the relational expression that updates the view, to allow us to sample rows that are not yet materialized.
@@ -69,7 +70,7 @@ The sampling technique proposed in Section 4 of our paper could be used to appro
 \vspace{.25em}
 
 {\bf Responses:} We have addressed all of the details in the reviewer section of the cover letter. To summarize, we cited the algorithm that we used for Incremental View Maintenance which is the change-table algorithm (also called a delta table e.g \cite{DBLP:journals/vldb/KochAKNNLS14}) described in “Maintenance of Materialized Views: Problems, Techniques, and Applications” by Gupta et al. \cite{gupta1995maintenance, gupta2006incremental}. 
-We further clarified our contribution for the two compared query processing approaches, SVC+CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. 
+We further clarified our contribution for the two compared query processing approaches, SVC+ CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. 
 
 There were also reviewer concerns about the selectivity (for which we added a theoretical analysis) and the update size (for which we clarified the experiment in which those results can be seen).
 In addition, two reviewers suggested removing our detailed evaluation on a distributed platform to save space. We have consolidated our experiments such that we still present accuracy and performance results for the real dataset from Conviva Inc. but do not describe the details of our implementation and deployment on Apache Spark.
@@ -79,14 +80,14 @@ In addition, two reviewers suggested removing our detailed evaluation on a distr
 
 \vspace{.25em}
 
-{\bf Responses:} Thank you for brining this to our attention. In the paper (Section 2.1), we have added the following clarification and motivation of the work:
+{\bf Responses:} Thank you for bringing this to our attention. In the paper (Section 2.1), we have added the following clarification and motivation of the work:
 \begin{displayquote}
 
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
 However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the size of data (e.g, correlated aggregate in a sub-query).
 Increasingly large views require distribution and this further increases maintenance costs due to coordination.
 Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput. 
-When faced with such challenges, it is common to batch updates to amortize maintenance overheads and add flexibility to scheduling.
+When faced with these challenges, it is common to batch updates to amortize maintenance overheads and add flexibility to scheduling.
 In such settings, we see an opportunity for approximation through sampling which can give bounded query results in rapidly changing data for a reduced maintenance cost.
 Any amount of staleness can lead to erroneous query results where the user has no idea about the magnitude or the scope of query error. 
 \svc uses a small sample of up-to-date data to return a bounded approximation, which while still approximate, shows the user how far they are from the true answer.
@@ -113,7 +114,7 @@ We see integration with DBToaster as an exciting opportunity for future work exp
 {\bf Responses:} This review is addressed above in Meta Review Section (M2).
 
 \vspace{1em}
-\emph{B2. It is great to see many technical and engineering contributions, but the paper is very dense and hard to read. The first clear example of what is going on appears at page 4, after the reader had tried hard to understand the problem statement in sec 3.3.1. The presentation should be revised, also to avoid the continuos references to the tech report for details.}
+\emph{B2. It is great to see many technical and engineering contributions, but the paper is very dense and hard to read. The first clear example of what is going on appears at page 4, after the reader had tried hard to understand the problem statement in sec 3.3.1. The presentation should be revised, also to avoid the continuous references to the tech report for details.}
 
 \vspace{.25em}
 

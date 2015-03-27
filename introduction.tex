@@ -9,7 +9,7 @@ However, as with any pre-computation, when the base data is updated, MVs become 
 There has been substantial work in deriving incremental updates (incremental maintenance) for many classes of MVs and optimizing their execution \cite{chirkova2011materialized, DBLP:journals/vldb/KochAKNNLS14}.
 In emerging MV applications, such as real time analytics \cite{rainbird}, throughput demands are growing at an ever increasing rate.
 For frequently changing tables, eager incremental maintenance can be inefficient since every update to the base data requires updating all the dependent views.
-Even with recently proposed optimizations such as DBToaster by Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14}, the cost of simulatenously maintaining multiple MVs can be very significant.
+Even with recently proposed optimizations such as DBToaster by Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14}, the cost of simultaneously maintaining multiple MVs can be very significant.
 These costs only become worse when the views are distributed and resources are contended.
 As a result, in production environments, it is common to batch updates together to amortize overheads \cite{chirkova2011materialized}.
 Batch sizes are set according to system constraints, and in production systems, they can vary from a few seconds to even nightly.  
@@ -18,7 +18,7 @@ While increasing the batching period gives the user more flexibility in scheduli
 As a result, queries using those MVs can return incorrect answers in the interim.
 Other than an educated guess based on past trends, in general, the user has no way of knowing how close or how far they are from the true answer.
 Thus, any amount of staleness is potentially dangerous, and this presents us a dichotomy between facing the cost of maintenance or coping with consequences of inaccuracy.
-In this paper, we explore an intruiging middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for only a fraction of the maintenance cost. 
+In this paper, we explore an intriguing middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for only a fraction of the maintenance cost. 
 
 %This observation leads us to the main insight behind our work; namely, that a data cleaning approach can be applied to mitigate the negative impacts of deferred MV maintenance.
 
