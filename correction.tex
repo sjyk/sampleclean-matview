@@ -11,7 +11,7 @@ While the result is correct according to our problem formulation, it does not sa
 We want to avoid materialization of up-to-date rows outside of the sample. 
 However, the naive alternative solution is also flawed. 
 For example, we could just apply $\mathcal{M}$ to the stale sample $\widehat{S}$ and a sample of the delta relations $\widehat{\partial \mathcal{D}}$. 
-For general maintenance strategies, $\mathcal{M}$ does not commute with sampling. 
+The challenge is that $\mathcal{M}$ does not always commute with sampling. 
 
 \subsection{Provenance}
 \label{lin}
@@ -41,8 +41,8 @@ This defined as the set of rows in $U$ such that for an update to any row $u \no
 \subsection{Primary Keys}
 For the relational expressions defined in the previous sections, this provenance is well defined and can be tracked using primary key rules that are enforced on
 each subexpression \cite{DBLP:journals/vldb/CuiW03}. 
-So each row will have a designated primary key that will propagate to the next level of the relational tree.
-Formally, we recursively define a set of primary keys for all nodes in the expression tree:
+Each row will have a designated primary key that will propagate to the next level of the relational tree.
+%Formally, we recursively define a set of primary keys for all nodes in the expression tree:
 \begin{definition} [Primary Key Generation]\label{pk}
 For every relational expression $R$, we define the primary key attribute(s) of every expression to be:
 \begin{itemize}[noitemsep]
@@ -72,19 +72,18 @@ For the relational expressions defined in the previous section, this method will
 \begin{example}
 A variant of our running example view that does not have a primary key is:
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
-CREATE VIEW visitView
-AS SELECT count(1) as visitCount
-FROM Log, Video
-WHERE Log.videoId = Video.videoId
+CREATE VIEW visitView AS SELECT count(1) as visitCount
+FROM Log, Video WHERE Log.videoId = Video.videoId
 GROUP BY videoId
 \end{lstlisting}
 We illustrate this view in Figure \ref{pk-fig}.
-To ensure that this view has a primary key for all subexpressions, we apply the rules.
+To ensure that this view has a primary key for all subexpressions, we apply the rules pushing the primary keys from the base relations to the view.
+Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
+We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}. 
+
 Since both base tables \tbl{Video} and \tbl{Log} have primary keys videoId and sessionId respectively,
 the result of the join will have a primary key (videoId, sessionId).
 Then, since the group by attribute of the count is videoId, that is the primary key of the view.
-[[[Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
-We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}. ]]] \reminder{It looks a little confusing to put this sentense here. You can talk about it earlier.}
 Then, we can apply the rules above to propagate this key up the expression tree.
 \end{example}
 
