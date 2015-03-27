@@ -66,7 +66,7 @@ For the relational expressions defined in the previous section, this method will
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.18]{figs/primary_key.png} \vspace{-.5em}
- \caption{Applying the rules described in Definition \ref{pk}, we illustrate how to assign a primary key to a view. \label{pk-fig}}\vspace{-1em}
+ \caption{Applying the rules described in Definition \ref{pk}, we illustrate how to assign a primary key to a view. \reminder{Why did visitView have ownerId and duration instead of visitCount? } \label{pk-fig}}\vspace{-1em}
 \end{figure}
 
 \begin{example}
@@ -83,8 +83,8 @@ To ensure that this view has a primary key for all subexpressions, we apply the 
 Since both base tables \tbl{Video} and \tbl{Log} have primary keys videoId and sessionId respectively,
 the result of the join will have a primary key (videoId, sessionId).
 Then, since the group by attribute of the count is videoId, that is the primary key of the view.
-Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
-We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}.
+[[[Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
+We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}. ]]] \reminder{It looks a little confusing to put this sentense here. You can talk about it earlier.}
 Then, we can apply the rules above to propagate this key up the expression tree.
 \end{example}
 

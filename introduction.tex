@@ -1,6 +1,6 @@
 \vspace{-0.5em}
 \section{Introduction}
-An increasingly popular approach for fast query processing on large datasets pre-computing query results.
+An increasingly popular approach for fast query processing on large datasets pre-computing query results \reminder{The sentence seems to have some errors.}.
 These pre-computed results, known as Materialized views (MVs), have been well studied over the last 30 years in the
 research community \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized}.
 MVs are now supported by all major commercial vendors and key ideas from MV research have been recently found success in linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
@@ -8,9 +8,9 @@ MVs are now supported by all major commercial vendors and key ideas from MV rese
 However, as with any pre-computation, when the base data is updated, MVs become \emph{stale}. 
 There has been substantial work in deriving incremental updates (incremental maintenance) for many classes of MVs and optimizing their execution \cite{chirkova2011materialized, DBLP:journals/vldb/KochAKNNLS14}.
 In emerging MV applications, such as real time analytics \cite{rainbird}, throughput demands are growing at an ever increasing rate.
-For frequently changing tables, eager incremental maintenance can be inefficient since every update to the base data requires updating all the dependent views; a challenge that only becomes worse in a distributed environment.
-Even with recently proposed optimizations such as DBToaster by Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14}, these bottlenecks can force the deferal of view
-maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96}.
+For frequently changing tables, eager incremental maintenance can be inefficient since every update to the base data requires updating all the dependent views; a challenge that only becomes worse in a distributed environment \reminder{I think distributed environment is our weapon to argue with dbtoaster. I would suggest to move the distributed enviroment argument after dbtoaster, and say such environment can make dbtoster become even worse.}.
+Even with recently proposed optimizations such as DBToaster by Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14}, these bottlenecks can force the deferral of view
+maintenance \cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96}. \reminder{Why can these papers~\cite{chirkova2011materialized, zhou2007lazy, DBLP:conf/sigmod/ColbyGLMT96} prove your claim? }
 As a result, in production environments, it is common to batch updates together to amortize overheads.
 Batch sizes are set according to system constraints, and in production systems, they can vary from a few seconds to even nightly.  
 
@@ -25,14 +25,14 @@ In this paper, we explore an intruiging middle ground, namely, for aggregate que
 \begin{figure}[t] \vspace{-2em}
 \centering
  \includegraphics[scale=0.25]{figs/sys-arch.pdf} \vspace{-.25em}
- \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superfluous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on stale views. \label{sys-arch}}\vspace{-1.75em}
+ \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superfluous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on stale views. \reminder{I replace the \emph{corrected} query results in abstract with the \emph{estimated} query results. Do you think we need to do the same thing in this figure and the introduction?}\label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Our method relies on modeling query answering on stale MVs as a data cleaning problem.
 As with dirty data, a staleness results in incorrect, missing, or superfluous rows.
 Data cleaning has been studied extensively in the literature (e.g., see Rahm and Do for a survey\cite{rahm2000data}) but increasing data volumes have led to development of new, efficient sampling-based approaches for coping with dirty data.   
 In our prior work, we developed the SampleClean framework for scalable aggregate query processing on dirty data \cite{wang1999sample}.
-Since data cleaning is often expensive, we proposed cleaning a sample of data using this sample to improve the results of aggregate queries on the full dataset.
+Since data cleaning is often expensive, we proposed cleaning a sample of data using this sample to improve the results of aggregate queries on the full dataset. \reminder{this sentence looks werid. adding ``and" in front of ``using this ..."?}
 Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility of using a sample of ``clean'' rows in the MV to return more accurate query results.
 
 \svcfull (\svc illustrated in Figure~\ref{sys-arch}) provides a framework that efficiently answers aggregate queries on a stale MV.

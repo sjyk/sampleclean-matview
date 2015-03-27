@@ -96,7 +96,7 @@ We can formalize our earlier example query in Section \ref{infexample} in terms 
 Let us suppose the initial query result is $45$.
 There now have been new log records inserted into the Log table making the old result stale, and suppose we are working with a sampling ratio of 5\%.
 For SVC+AQP, we count the number of videos in the clean sample that currently have counts greater than 100 and scale that result by $\frac{1}{5\%} = 20$. 
-If the answer is count in the clean sample is $4$, then the estimate for SVC+AQP is $80$.
+If the answer is count in the clean sample is $4$ \reminder{syntax error}, then the estimate for SVC+AQP is $80$.
 For SVC+CORR, we also run SVC+AQP on the dirty sample.
 Suppose that there are only two videos in the dirty sample with counts above 100, then the result of running SVC+AQP on the dirty sample is $20\cdot2 = 40$.
 We take the difference of the two values $80 - 40 = 40$.
