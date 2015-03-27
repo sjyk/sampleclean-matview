@@ -26,8 +26,8 @@ For our analysis, we are interested in finding aggregate statistics on visits, s
 To avoid repeatedly performing the join and visit aggregation, we could define the following MV that counts the visits for each videoId associated with owners and the duration: 
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 CREATE VIEW visitView
-AS SELECT videoId, ownerId, duration
-count(1) as visitCount
+AS SELECT videoId, ownerId, duration,
+          count(1) as visitCount
 FROM Log, Video
 WHERE Log.videoId = Video.videoId
 GROUP BY videoId
