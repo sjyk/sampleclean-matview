@@ -50,10 +50,11 @@ Furthermore, we have clarified that the primary key definition proposed in 4.2
 However, the materialized view problem setting addes some new challenges that prior work does not address.
 We have added a paragraph to our related work (Section 8) contrasting these works from \svc:
 \begin{displayquote}
+\svc builds on the prior work about cleaning materialized views by using ideas like provenance.
 Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} proposed a technique to trace errors in an MV to base data and find responsible erroneous tuples, they do not, however, propose a technique to correct the errors as in \svc.
-This problem addressed in Meliou et al. is hard since they do not assume a model for the errors.
+The problem addressed in Meliou et al. is hard since they do not assume a model for why errors are generated.
 Through our formalization of staleness, we have a clear model of how changes in base data effect MVs, which allows to both trace errors and clean them.
-Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model for correct ``outliers" in and MV through deletion of records in the base data.
+Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model to correct ``outliers" in an MV through deletion of records in the base data.
 This is a more restricted model of data cleaning than \svc, where it considers only changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expression (e.g., nested aggregates).
 Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed a technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
 In contrast to \svc, the three works \cite{DBLP:conf/sigmod/MeliouGNS11, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} require an explicit specification of erroneous rows in a materialized view.

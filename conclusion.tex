@@ -34,7 +34,7 @@ The objectives of this work (including techniques such as sketching and approxim
 
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
 Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} proposed a technique to trace errors in an MV to base data and find responsible erroneous tuples, they do not, however, propose a technique to correct the errors as in \svc.
-This problem addressed in Meliou et al. is hard since they do not assume a model for the errors.
+The problem addressed in Meliou et al. is hard since they do not assume a model for the errors.
 Through our formalization of staleness, we have a clear model of how changes in base data effect MVs, which allows to both trace errors and clean them.
 Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model for correct ``outliers" in and MV through deletion of records in the base data.
 This is a more restricted model of data cleaning than \svc, where it considers only changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expression (e.g., nested aggregates).
