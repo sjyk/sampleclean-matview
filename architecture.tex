@@ -1,13 +1,9 @@
 \vspace{-1em}
 \section{Framework Overview}\label{sec-arch}
-In this section, we formalize the two main problems that \svc addresses: (1) cleaning the staleness errors in a sample of a MV and (2) answering an aggregate query with a clean sample.
+In this section, we formalize the two main problems that \svc addresses: (1) cleaning a stale sample MV and (2) answering an aggregate query with the clean sample.
 
 \subsection{Notation and Definitions}\label{notation}
-In \svc, we explore the problem of approximate aggregate query processing on stale materialized views using a data cleaning approach.
-We assume that these materialized views are periodically maintained and thus are stale in between maintenance periods.
-The focus of this paper is analytic workloads where the typical query is a group by aggregate on relatively large views.
-\svc provides a framework for increased query accuracy for a flexible additional maintenance cost that can scale with system constraints.
-
+\svc returns a bounded approximation for aggregate queries result on stale MVs for a flexible additional maintenance cost.
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
 View definitions are composed of standard relational algebra expressions: Select ($\sigma_{\phi}$), Project ($\Pi$), Join ($\bowtie$), Aggregation ($\gamma$), Union ($\cup$), Intersection ($\cap$) and Difference ($-$). 
@@ -58,9 +54,9 @@ S' = \mathcal{M}(S,\mathcal{D}, \partial D)
 \noindent \textbf{Staleness as Data Error: } The consequences of staleness are incorrect, missing, and superfluous rows. 
 Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \begin{itemize}[noitemsep] \sloppy
-	\item \textbf{Incorrect: } Incorrect row errors are the set of rows (identified by the primary key) that are updated in $S'$: \[\{\forall u \in S : (\exists u \in S' \wedge (\sigma_u(S) \ne \sigma_u(S')))\}\]
-	\item \textbf{Missing: } Missing row errors are the set of rows (identified by the primary key) that exist in the up-to-date view but not in the stale view: \[\{\forall u \in S' : \not \exists u \in S\}\]
-	\item \textbf{Superfluous: } Superfluous row errors are the set of rows (identified by the primary key) that exist in the stale view but not in the up-to-date view : \[\{ \forall u \in S : \not\exists u \in S' \}\]
+	\item \textbf{Incorrect: } Incorrect row errors are the set of rows (identified by the primary key) that are updated in $S'$. For $s \in S$, let $s(u)$ be the value of the primary key. An incorrect row is one such that there exists $s' \in S'$ with $s'(u) = s(u)$ and $s \ne s'$.
+	\item \textbf{Missing: } Missing row errors are the set of rows (identified by the primary key) that exist in the up-to-date view but not in the stale view. For $s' \in S'$, let $s'(u)$ be the value of the primary key. A missing row is one such that there does not exist a $s \in S$ with $s(u) = s'(u)$.
+	\item \textbf{Superfluous: } Superfluous row errors are the set of rows (identified by the primary key) that exist in the stale view but not in the up-to-date view. For $s \in S$, let $s(u)$ be the value of the primary key. A superfluous row is one such that there does not exist a $s' \in S'$ with $s(u) = s'(u)$.
 \end{itemize}
 
 \vspace{.25em}
@@ -134,7 +130,7 @@ Therefore, the maintenance strategy is:
 
 \subsection{\svc Workflow}
 %We summarize the system in Figure \ref{sys-arch} in our introduction.
-In this section, we first present an overview of the \svc workflow, and then formalize two challenging problems that we address in the workflow. Formally, the workflow of \svc is:
+Formally, the workflow of \svc is:
 \begin{enumerate}[noitemsep]
 \item We are given a view $S$.
 \item $\mathcal{M}$ defines the maintenance strategy that updates $S$ at each maintenance period.
@@ -142,7 +138,7 @@ In this section, we first present an overview of the \svc workflow, and then for
 \item \emph{(Problem 1: Stale Sample View Cleaning)} We find an expression $\mathcal{C}$ derived from $\mathcal{M}$ 
 that cleans a uniform random sample of the stale view $\widehat{S}$ to produce a ``clean" sample of the up-to-date
 view $\widehat{S'}$.
-\item \emph{(Problem 2. Query Result Estimation)} Given an aggregate query $q$and the state query result $q(S)$, we use $\widehat{S'}$ and $\widehat{S}$ to estimate the up-to-date result.
+\item \emph{(Problem 2. Query Result Estimation)} Given an aggregate query $q$ and the state query result $q(S)$, we use $\widehat{S'}$ and $\widehat{S}$ to estimate the up-to-date result.
 \item We optionally maintain an index of outliers $o$ for improved estimation in skewed data.
 \end{enumerate} 
 
@@ -183,11 +179,8 @@ SELECT COUNT(1) FROM visitView WHERE visitCount > 100;
 Let us suppose the user runs the query and result is $45$.
 However, there have now been new records inserted into the Log table making this result stale (for clarity no changes to \tbl{Video} or deletions).
 First, we take a sample of \tbl{visitView} and suppose this sample is a 5\% sample.
-
-In Stale Sample View Cleaning (Problem 1), we calculate an expression $\mathcal{C}$ based on the maintenance strategy $\mathcal{M}$ described in Example \ref{concepts},
-takes the database $\mathcal{D}$ (\tbl{Log} and \tbl{Video}), and the delta relation $\partial \mathcal{D}$ (\tbl{LogIns}).
-$\mathcal{C}$ is an optimized relational expression that materializes only a sample of of the updates.
-In Query Result Estimation (Problem 2), we take the result of running $\mathcal{C}$ and estimate our above query.
+In Stale Sample View Cleaning (Problem 1), we apply updates,insertions, and deletions to the sample to efficiently materialize a 5\%  sample of the up-to-date view.
+In Query Result Estimation (Problem 2), we estimate aggregate query results based on the up-to-date sample.
 \end{example}
 
 \iffalse

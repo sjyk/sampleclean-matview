@@ -57,7 +57,13 @@ We select a random subset of this domain, e.g., if the attribute is country then
 We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 
 \noindent\textbf{Distributed Experimental Setup}
-We evaluated our approach on a real dataset with Apache Spark~1.1.0 on a 10 node r3.large Amazon EC2 cluster.
+We evaluate \svc on Apache Spark~1.1.0 with a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
+The dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
+We generated a set of views from a corresponding dataset of analyst SQL queries on the log table.
+We identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics for specific customers on a certain day.
+The views were generated from the first 800GB of time-consecutive data, and the remaining 200GB of data was used as the updates.
+We generated aggregate random queries over this view by taking either random time ranges or random subsets of customers.
+
 %Systems like Spark are increasingly popular, and Spark supports materialization through a distributed data structure called an RDD \cite{zaharia2012resilient}.
 %In the most recent release of Spark, there is a SQL interface that allows users to persist query results in memory.
 %Refer to our extended paper for more details on how we implemented \svc in Spark \reminder{TR}.
@@ -66,13 +72,9 @@ We evaluated our approach on a real dataset with Apache Spark~1.1.0 on a 10 node
 %As Spark also does not have support for indices, we rely on partitioned joins for incremental maintenance of the views.
 %We partitioned the views by primary-by key, and apply a full outer join of the updates with the partitioned view.
 %With this set of experiments, we show that \svc implemented on Spark can help overcome some of these limitations and allow users to take advantage of materialized views and incremental maintenance.
-We evaluate \svc on a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
-The dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
+
 %1TB corresponded to a sample of customer data from 1 year of logs.
-With this dataset, there was a corresponding dataset of analyst SQL queries on the log table.
-Using the dataset of analyst queries, we identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics for specific customers on a certain day.
-We generalized these queries by turning them into group-by queries over customers and dates; that is a view that calculates the metric for every customer on every day.
-We generated aggregate random queries over this view by taking either random time ranges or random subsets of customers.
+
 %We list high-level characteristics of the queries:
 \iffalse
 %While, we cannot give the details of the queries, we can present some of the high-level characteristics of 8 summary-statistics type views. 
@@ -89,7 +91,7 @@ We generated aggregate random queries over this view by taking either random tim
 \fi
 
 \subsubsection{Metrics and Evaluation}
-To illustrate how \svc gives the user access to this new trade-off space, we will illustrate that \svc is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
+We will illustrate that \svc is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 In our evaluation, we separate maintenance from query processing.
 We use the following notation to represent the different approaches:
 
@@ -126,7 +128,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
  \caption{For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we generate 100 of each TPCD parameterized queries and answer the queries using the stale materialized view, \svcnospace+CORR, and \svcnospace+AQP. We plot the median relative error for each query. \label{exp-1-acc}}\vspace{-1.5em}
 \end{figure}
 
-\begin{figure}[t]\vspace{-2.5em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.13]{exp/msj_4.pdf}
  \includegraphics[scale=0.13]{exp/msj_6.pdf}
@@ -140,7 +142,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 %\end{figure}
 
 In our first experiment, we evaluate how \svc performs on a materialized view of the join of \textsf{lineitem} and \textsf{orders}.
-We generate a 10GB base TPCD dataset with skew $z=1$, and derive the view from this dataset.
+We generate a 10GB base TPCD dataset with skew $z=2$, and derive the view from this dataset.
 We first generate 1GB (10\% of the base data) of updates (insertions and updates to existing records), and vary the sample size.
 
 \textbf{Performance:}
@@ -224,7 +226,7 @@ For a 10\% sample, we find that \svcnospace+CORR is more accurate until the upda
 \end{figure}
 
 In our next experiment, we evaluate an aggregate view use case similar to a data cube.
-We generate a 10GB base TPCD dataset with skew $z=1$, and derive the base cube as a materialized view from this dataset.
+We generate a 10GB base TPCD dataset with skew $z=2$, and derive the base cube as a materialized view from this dataset.
 We add 1GB of updates and apply \svc to estimate the results of all of the ``roll-up'' dimensions.
 
 \textbf{Performance: }
@@ -259,6 +261,8 @@ This is because the median is less sensitive to variance in the data.
  \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) For a 10\% sample size and 10\% update size, \svcnospace+CORR is more accurate than \svcnospace+AQP and No Maintenance.\label{exp3-acc}}\vspace{-1.5em}
 \end{figure}
 In this experiment, we demonstrate the breadth of views supported by \svc by using the TPCD queries as materialized views.
+We generate a 10GB base TPCD dataset with skew $z=2$, and derive the views from this dataset.
+We first generate 1GB (10\% of the base data) of updates (insertions and updates to existing records), and vary the sample size.
 %Recall from our experiment description that each parameterized TPCD query is treated as a materialized view, and we use the \textsf{qgen} program 
 %to generate 10 instances for each query.
 %When we report results, we average over these 10 instances for each of the query types.

@@ -40,8 +40,8 @@ result estimation technique.
 
 \vspace{0.25em}
 
-\noindent\textbf{SVC+AQP: }  Given a clean sample view $\widehat{S}'$, the query $q$, and a scaling factor $s$. 
-We apply the query to the sample and scale it by $s$:
+\noindent\textbf{SVC+AQP: }  Given a clean sample view $\widehat{S}'$, the query $q$, and a scaling factor $s$, 
+we apply the query to the sample and scale it by $s$:
 \[
 q(S') \approx s \cdot q(\widehat{S}')
 \]
@@ -59,11 +59,11 @@ We call this approach \svcnospace+CORR, which represents calculating a correctio
 \noindent\textbf{SVC+CORR: } Given a clean sample $\widehat{S}'$, its corresponding dirty sample $\widehat{S}$, a query q, and a scaling factor $s$:
 \begin{enumerate}[noitemsep]
 \item Apply \svcnospace+AQP to $\widehat{S}'$:
-\[ r_{est\_fresh} = s \cdot q(\widehat{S}') \] 
+$r_{est\_fresh} = s \cdot q(\widehat{S}') $
 \item Apply \svcnospace+AQP to $\widehat{S}$:
-\[ r_{est\_stale} = s \cdot q(\widehat{S}) \] 
+$r_{est\_stale} = s \cdot q(\widehat{S}) $ 
 \item Apply q to the full stale view:
-\[ r_{stale} = q(S) \]
+$r_{stale} = q(S) $
 \item Take the difference between (1) and (2) and add it to (3):
 \[
 q(S') \approx r_{stale} + (r_{est\_fresh} - r_{est\_stale})
@@ -78,11 +78,11 @@ If there exists an unbiased sample estimator for q(S') then there exists an unbi
 \end{lemma}
 \begin{proof}[Sketch] 
 Suppose, we have an unbiased sample estimator $e_q$ of $q$. 
-Then, it follows that \[\mathbb{E}\big[e_q(\widehat{S'})\big] = q(S')\]
+Then, it follows that $\mathbb{E}\big[e_q(\widehat{S'})\big] = q(S')$
 If we substitute in this expression:
 $c = \mathbb{E}\big[e_q(\widehat{S'})\big] - q(S) $.
 Applying the linearity of expectation:
-\[ c = \mathbb{E}\big[e_q(\widehat{S'}) - q(S)\big] \]
+$ c = \mathbb{E}\big[e_q(\widehat{S'}) - q(S)\big] $
 \end{proof}
 Some queries do not have unbiased sample estimators, but the bias of their sample estimators can be bounded. Example queries include: \medfunc, \percfunc.
 A corollary to the previous lemma, is that if we can bound the bias for our estimator then we can achieve a bounded bias for $c$ as well.
@@ -114,14 +114,14 @@ Table \ref{estimators} describes these families and their properties for common 
 Sample mean family of estimators (\sumfunc, \countfunc, and \avgfunc) has analytic solutions and has been the focus of other approximate query processing works \cite{OlkenR86, wang1999sample}, we analyze this family in detail.
 The general case can only be bounded empirically which is more challenging.
 
-\begin{table}\scriptsize \vspace{-1em}
+\begin{table}\footnotesize \vspace{-1em}
 \centering
 \begin{tabular}{ l l l l}
-  SQL Query & Estimator Family & Unbiased & Estimate Variance \\ \hline
-  \avgfunc, \sumfunc, \countfunc & Sample Mean & Yes & Optimal \\
-  \stdfunc, \varfunc & Sample Variance & Yes & Optimal \\
-  \medfunc, \percfunc & Sample Ranking & Bounded & Suboptimal \\
-  \maxfunc, \minfunc & Sample Extrema & Unbounded & Suboptimal \\
+  SQL Query & Family & Unbiased & Variance \\ \hline
+  \avgfunc, \sumfunc, \countfunc & Mean & Yes & Optimal \\
+  \stdfunc, \varfunc & Variance & Yes & Optimal \\
+  \medfunc, \percfunc & Ranking & Bounded & Suboptimal \\
+  \maxfunc, \minfunc & Extrema & Unbounded & Suboptimal \\
 \end{tabular}
 \caption{SQL queries and the properties of their statistical estimation family. \label{estimators}}\vspace{-0.5em}
 \end{table}

@@ -27,7 +27,6 @@ If we randomly sample the delta relations $\widehat{\partial \mathcal{D}}$, we g
 The problem is that if we propagate the updates based on $\widehat{\partial \mathcal{D}}$ to $\widehat{S}$ it is not guaranteed that 
 every count is completely up-to-date since we may not sample all the records for some groups.
 This is because to achieve a sample of $S'$, we need to ensure that for each $s \in S'$ all contributing rows in subexpressions to $s$ are also sampled. 
-
 This is a problem of row provenance \cite{DBLP:journals/vldb/CuiW03}.
 Provenance, also termed lineage, has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
 \begin{definition}[Provenance]\label{prov}
@@ -35,7 +34,7 @@ Let $r$ be a row in relation $R$, let $R$ be derived from some other
 relation $R = exp(U)$ where $exp(\cdot)$ be a relational
 expression composed of the expressions defined in Section \ref{notation}.
 The provenance of row $r$ with respect to $U$ is $p_U(r)$. 
-This defined as the set of rows in $U$ such that for an update to any row $u \not\in p_U(r)$, it guarantees that $r$ is unchanged.
+This is defined as the set of rows in $U$ such that for an update to any row $u \not\in p_U(r)$, it guarantees that $r$ is unchanged.
 \end{definition}
 
 \subsection{Primary Keys}
@@ -65,8 +64,8 @@ For the relational expressions defined in the previous section, this method will
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.18]{figs/primary_key.png} \vspace{-.5em}
- \caption{Applying the rules described in Definition \ref{pk}, we illustrate how to assign a primary key to a view. \reminder{Why did visitView have ownerId and duration instead of visitCount? } \label{pk-fig}}\vspace{-1em}
+ \includegraphics[scale=0.24]{figs/primary_key.png} \vspace{-.5em}
+ \caption{Applying the rules described in Definition \ref{pk}, we illustrate how to assign a primary key to a view. \label{pk-fig}}\vspace{-1.5em}
 \end{figure}
 
 \begin{example}
@@ -129,7 +128,7 @@ In special cases, we can push the hashing operator down through joins.
 Given the hash function $\eta_{a, m}(R)$:
 \vspace{.25em}
 
-{\noindent \textbf{Equality Join:}} If the join is an equality join and $a$ is one of the attributes in the equality join condition $R_1.a = R_2.b$, then $\eta$ can be pushed down to both $R_1$ and $R_2$. On $R_1$ the pushed down operator is $\eta_{a, m}(R_1)$ and on $R_2$ the operator is $\eta_{b, m}(R_2)$. This case often happens near the top of maintenance strategy expression tree where there is a equality outer join on the primary key of the stale view and a ``delta view''.
+{\noindent \textbf{Equality Join:}} If the join is an equality join and $a$ is one of the attributes in the equality join condition $R_1.a = R_2.b$, then $\eta$ can be pushed down to both $R_1$ and $R_2$. On $R_1$ the pushed down operator is $\eta_{a, m}(R_1)$ and on $R_2$ the operator is $\eta_{b, m}(R_2)$. This case often happens near the top of maintenance strategy expression tree where there is an equality outer join on the primary key of the stale view and a ``delta view''.
 
 \vspace{.25em}
 
@@ -152,7 +151,7 @@ Thus, it addresses Problem 1 from the previous section.
 
 \begin{figure}[t] \vspace{-2em}
 \centering
- \includegraphics[scale=0.18]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
+ \includegraphics[scale=0.24]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \label{exexpr2}}\vspace{-1em}
 \end{figure}
 
@@ -183,9 +182,9 @@ Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, re
 \vspace{-.25em}
 \begin{itemize}[noitemsep]
 \item Uniformity: $\widehat{S'}$ and $\widehat{S}$ are uniform random samples of $S'$ and $S$ respectively with a sampling ratio of $m$
-\item Removal of Superfluous Rows: $D = \{\forall u \in \widehat{S} \wedge u \not\in S'\}$, $D \cap \widehat{S'} = \emptyset$ 
-\item Sampling of Missing Rows: $I = \{\forall u \not\in S : u \in S'\}$, $\mathbb{E}(\mid I \cap \widehat{S'} \mid) = m\mid I \mid $ 
-\item Key Preservation for Updated Rows: For all $u\in \widehat{S}$ and not in $D$ or $I$, $u\in \widehat{S}'$.
+\item Removal of Superfluous Rows: $D = \{\forall s \in \widehat{S} !\exists s' \in S': s(u) = s'(u)\}$, $D \cap \widehat{S'} = \emptyset$ 
+\item Sampling of Missing Rows: $I = \{\forall s' \in \widehat{S'} !\exists s \in S: s(u) = s'(u)\}$, $\mathbb{E}(\mid I \cap \widehat{S'} \mid) = m\mid I \mid $ 
+\item Key Preservation for Updated Rows: For all $s\in \widehat{S}$ and not in $D$ or $I$, $s' \in \widehat{S}': s'(u) = s(u)$.
 \end{itemize}
 \vspace{-.25em}
 \label{correspondence}

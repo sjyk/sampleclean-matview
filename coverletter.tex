@@ -5,7 +5,7 @@ We thank the reviewers and chair for the very helpful feedback on our paper. We 
 To summarize :
 \begin{enumerate}
 \item We revised our background section (Section \ref{subsec-inc}) to include a detailed running example which is referenced in Examples 1-6 after each major concept.
-\item We revised our overview section (Section 3) to formalize our problem setting, assumptions, terminology, and key prerequisite concepts and includes more formal problem statements.
+\item We revised our overview section (Section 3) to formalize our problem setting, assumptions, terminology, and key prerequisite concepts.
 \item The sampling section (Section 4) included a detailed discussion about the challenges and new ideas (Section 4.1) and clarified a reviewer request about the definition of ``primary keys".
 \item The result estimation section (Section 5) has been revised to include itemized descriptions of all of the algorithms and is self-contained with respect to our prior work.
 \item The experiments section (Section 7) has been revised to merge redundant experimental results. We feel that the distributed experiment is a valuable contribution since it evaluates the technique at scale and on a real dataset. However, we noticed that the views in the distributed experiment were group by aggregates and we removed a TPCD evaluation of this same class of views.
@@ -47,7 +47,7 @@ Furthermore, we have clarified that the primary key definition proposed in 4.2
 
 {\bf Responses:} Thank you for bringing this to our attention.
 \svc builds on the prior work about cleaning materialized views by using ideas like provenance.
-However, the materialized view problem setting adds new challenges that prior work does not address.
+However, the materialized view maintenance problem setting (with staleness as the source of dirtiness) adds new challenges that prior work does not address.
 We have added a paragraph to our related work (Section 8) contrasting these works from \svc:
 \begin{displayquote}
 \svc shares ideas, such as provenance, with prior work on cleaning materialized views.
@@ -56,12 +56,12 @@ They do not, however, propose a technique to correct the errors as in \svc.
 Correcting general errors as in Meliou et al. is a hard constraint satisfaction problem.
 However, in \svc, through our formalization of staleness, we have a model of how updates to the base data (modeled as errors) affect MVs, which allows us to both trace errors and clean them.
 Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model to correct ``outliers" in an MV through deletion of records in the base data.
-This is a more restricted model of data cleaning than \svc, where the authors only consider changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expressions (e.g., nested aggregates).
+This is a more restricted model of data cleaning than \svc, where the Wu and Madden only consider changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expressions (e.g., nested aggregates).
 Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed an approximate technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
 While complementary, one major difference between the three works \cite{DBLP:conf/sigmod/MeliouGNS11, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} and \svc is that they require an explicit specification of erroneous rows in a materialized view.
 Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
 We use the formalism of a ``maintenance strategy", the relational expression that updates the view, to allow us to sample rows that are not yet materialized.
-However, while not directly applicable for staleness, we see \svc as complementary to these works in the dirty data setting. 
+\svc as complementary to these works in the dirty data setting. 
 The sampling technique proposed in Section 4 of our paper could be used to approximate the data cleaning techniques in \cite{DBLP:conf/sigmod/MeliouGNS11, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} and this is an exciting avenue of future work.\end{displayquote}
 
 \vspace{1em}
@@ -73,7 +73,10 @@ The sampling technique proposed in Section 4 of our paper could be used to appro
 We further clarified our contribution for the two compared query processing approaches, SVC+ CORR and SVC+AQP. Both techniques use our Stale View Cleaning technique but have a different result estimation procedure. 
 
 There were also reviewer concerns about the selectivity (for which we added a theoretical analysis) and the update size (for which we clarified the experiment in which those results can be seen).
-In addition, two reviewers suggested removing our detailed evaluation on a distributed platform to save space. We have consolidated our experiments such that we still present accuracy and performance results for the real dataset from Conviva Inc. but do not describe the details of our implementation and deployment on Apache Spark.
+In addition, two reviewers suggested removing our detailed evaluation on a distributed platform to save space. 
+We feel that the distributed experiment is a valuable contribution since it evaluates the technique at scale and on a real dataset. However, we noticed that the views in the distributed experiment were group by aggregates and we removed a TPCD evaluation of this same class of views.
+Rather than presenting two different experimental results, we use our real dataset to evaluate \svc on group by aggregate views, while also discussing the performance at scale. 
+We, however, save space by excluding details on the experimental setup and performance characterization of Apache Spark.
 
 \vspace{1em}
 \emph{M5. The paper's main motivation is that eager IVM cannot keep up with the rate of incoming updates. However, there have been approaches in the literature (most notable DBToaster) suggesting that this issue can be resolved by accelerating IVM. Do you think that there is still a need of SVC? What is the rate of updates over which a system such as DBToaster cannot keep up with the updates?}
@@ -199,7 +202,8 @@ If we chose twice as selective queries, the errors would scale by up $\sqrt{2} \
 \begin{displayquote}There are many approaches to select a threshold. We can use prior information from the base table, a calculation which can be done in the background during the periodic maintenance cycles. If our size limit is $k$, for a given attribute we can select the top-k records with that attributes. Then, we can use that top-k list to set a threshold for our index.  Then, the attribute value of the lowest record becomes the threshold $t$. Alternatively, we can calculate the variance of the attribute and set the threshold to represent $c$ standard deviations above the mean.\end{displayquote}
 We used the top-k approach in our experiments (Section 7.2.4) and list the tradeoff between outlier index size and improvements in query result accuracy.
 This outlier optimization is only relevant to sampling based approaches as those can be sensitive to the presence of outliers. Traditional IVM cannot benefit from this approach. 
-We have also clarified that none of our experiments before 7.2.4 used an outlier index. The caveat is that these experiments were done with moderately skewed data with Zipfian parameter = 2, if this parameter is set to 4 then the 75\% quartile query estimation error is nearly 20\% (Figure 8).
+We have also clarified that none of our experiments before 7.2.4 used an outlier index. 
+The caveat is that these experiments were done with moderately skewed data with Zipfian parameter = 2, if this parameter is set to 4 then the 75\% quartile query estimation error is nearly 20\% (Figure 8).
 Outlier indexing always improves query results as we are reducing the variance of the estimation set, however, this reduction in variance is largest when there is a longer tail.
 In this setting, outlier indexing significantly helps for both SVC+AQP and SVC+CORR. 
 
@@ -266,6 +270,7 @@ We also clarified the correspondence formally in Property 1 (Section~4.5), where
 \vspace{.25em}
 
 {\bf Responses:} Due to space restrictions, we have removed our discussion of support for non-aggregate queries as it is not essential to our work. 
+In future work, we are particularly interested in exploring non-aggregate and point lookup queries. 
 
 \vspace{1em}
 \emph{WP3. Motivation is slightly weak, given that recent IVM approaches, such as DBToaster have suggested that IVM can be greatly accelerated, making it thus much easier to keep up with changes to the base tables.}
