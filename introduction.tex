@@ -1,12 +1,12 @@
 \vspace{-0.5em}
 \section{Introduction}
-Materialized Views (MVs), or pre-computed query results, are an extensively studied approach to reduce query latency on large data \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized}. 
-MVs are now supported by all major commercial vendors and have been successfully applied in linear algebra and machine learning \cite{nikolic2014linview, zhang2014mat}.
-The key challenge in using MVs is keeping them up-to-date as base data changes.
+Pre-computing views of a database, also known as materialization, is an extensively studied approach to reduce query latency on large data \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized}. 
+Materialized Views (MVs) are now supported by all major commercial vendors.
+However, as with any pre-computation or caching, the key challenge in using MVs is maintaining their freshness as base data changes.
 While there has been substantial work in incremental maintenance of MVs \cite{chirkova2011materialized, DBLP:journals/vldb/KochAKNNLS14}, eager maintenance (i.e., immediately applying updates) is not always feasible.
 
 In real-time analytics applications, such as monitoring or visualization \cite{rainbird, DBLP:journals/cgf/LiuJH13}, analysts may create many MVs by slicing or aggregating over different dimensions.
-The challenge with eager maintenance is that every incoming transaction requires updating all affected MVs, and thus, each additional MV reduces the available transaction throughput.
+An eager maintenance strategy would mean that every incoming transaction requires updating all affected MVs, and thus, each additional MV potentially reduces the available transaction throughput.
 %Even with recently proposed optimizations such as DBToaster by Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14}, the cost of simultaneously maintaining multiple MVs can be very significant.
 This problem becomes significantly harder when the views are distributed and computational resources are contended by other tasks.
 %In fact, many commercial vendors caution against eager maintenance of MVs that join mutliple tables or have selective aggregates \cite{vendors}.
@@ -15,10 +15,11 @@ Batch sizes are set according to system constraints, and can vary from a few sec
 
 While increasing the batching period gives the user more flexibility to schedule around system constraints, a disadvantage is that MVs are stale between maintenance periods.
 %As a result, queries using those MVs can return incorrect answers in the interim.
-Other than an educated guess based on past trends, in general, the user has no way of knowing how incorrect their query results are.
+Other than an educated guess based on past data, in general, the user has no way of knowing how incorrect their query results are.
 Some types of views and query workloads can be sensitive to even a small number of base data updates, for example, if updates disproportionately affect a subset of frequently queried rows.
 Thus, any amount of staleness is potentially dangerous, and this presents us a dichotomy between facing the cost of eager maintenance or coping with consequences of unknown inaccuracy.
-In this paper, we explore an intriguing middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for a fraction of the maintenance cost. 
+In this paper, we explore an intriguing middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for a fraction of the maintenance cost.
+With a small amount of up-to-date data, we can correct for the query result error induces by staleness and improve query result accuracy.
 
 
 %This observation leads us to the main insight behind our work; namely, that a data cleaning approach can be applied to mitigate the negative impacts of deferred MV maintenance.
@@ -50,7 +51,7 @@ However, the MV setting presents new challenges that we did not consider in prio
 To summarize our contributions:
 \begin{enumerate}[noitemsep]
 \item We propose a hashing-based technique that efficiently materializes an up-to-date sample view.
-\item We process queries on this view by applying techniques proposed in data cleaning, but significantly extending them to a broader class of queries. Expanding the class of queries results in new challenges in bounding these estimates in confidence intervals. So we also derive a statistical bootstrap estimator to calculate bounds.
+\item We process queries on this view by applying techniques proposed in data cleaning, but significantly extending them to a broader class of queries. Expanding the class of queries results in new challenges in bounding these estimates in confidence intervals. To address this challenge, we also derive a statistical bootstrap estimator to calculate bounds.
 \item We apply an outlier indexing technique to reduce sensitivity to skewed datasets. Outlier indexing has not been applied in the MV setting, and we propose an index push-up algorithm that allows us to propagate the outliers to derived relations.
 \end{enumerate} 
 %\end{itemize}

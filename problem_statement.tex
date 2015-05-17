@@ -4,8 +4,8 @@
 \subsection{Motivation And Example}\label{subsec-inc}
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
 However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the size of data (e.g, correlated aggregate in a sub-query).
-Increasingly large views require distribution and this further increases maintenance costs due to coordination.
-Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall maintenance throughput. 
+Large views may require distribution and this further increases maintenance costs due to coordination.
+Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple materialized views (along with other analytics tasks) adding further contention to computational resources and reducing overall available throughput. 
 When faced with such challenges, it is common to batch updates to amortize maintenance overheads and add flexibility to scheduling.
 
 \noindent \textbf{Log Analysis Example: } 

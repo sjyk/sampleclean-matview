@@ -71,7 +71,7 @@ q(S') \approx r_{stale} + (r_{est\_fresh} - r_{est\_stale})
 \end{enumerate}
 
 A commonly studied property in the AQP literature is unbiasedness.
-An unbiased result estimate means that average value of the estimate over all possible samples is $q(S')$.
+An unbiased result estimate means that expected value of the estimate over all samples of the same size is $q(S')$ \footnote{The \avgfunc query is considered conditionally unbiased in some works, however, this difference is largely notational and does not affect any subsequent bounds.}.
 We can prove that if \svcnospace+AQP is unbiased (there is an AQP method that gives an unbiased result) then \svcnospace+CORR also gives unbiased results.
 \begin{lemma}\label{lemma:unbiased}
 If there exists an unbiased sample estimator for q(S') then there exists an unbiased sample estimator for c.

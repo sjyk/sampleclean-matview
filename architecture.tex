@@ -4,6 +4,7 @@ In this section, we formalize the two main problems that \svc addresses: (1) cle
 
 \subsection{Notation and Definitions}\label{notation}
 \svc returns a bounded approximation for aggregate queries result on stale MVs for a flexible additional maintenance cost.
+
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
 View definitions are composed of standard relational algebra expressions: Select ($\sigma_{\phi}$), Project ($\Pi$), Join ($\bowtie$), Aggregation ($\gamma$), Union ($\cup$), Intersection ($\cap$) and Difference ($-$). 
