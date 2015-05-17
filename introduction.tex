@@ -1,6 +1,6 @@
 \vspace{-0.5em}
 \section{Introduction}
-Pre-computing views of a database, also known as materialization, is an extensively studied approach to reduce query latency on large data \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized}. 
+Storing pre-computed query results, also known as materialization, is an extensively studied approach to reduce query latency on large data \cite{LarsonY85, gupta1995maintenance, chirkova2011materialized}. 
 Materialized Views (MVs) are now supported by all major commercial vendors.
 However, as with any pre-computation or caching, the key challenge in using MVs is maintaining their freshness as base data changes.
 While there has been substantial work in incremental maintenance of MVs \cite{chirkova2011materialized, DBLP:journals/vldb/KochAKNNLS14}, eager maintenance (i.e., immediately applying updates) is not always feasible.
