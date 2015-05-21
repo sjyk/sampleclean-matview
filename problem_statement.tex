@@ -51,8 +51,8 @@ Thus, we explore how samples of ``clean" (up-to-date) data can be used for impro
 
 However, the metaphor of stale MVs as a Sample-and-Clean problem only goes so far and the new setting leads to several contributions.
 In prior work, we modeled data cleaning as a row-by-row user-specified transformation.
-This model does hold for missing and superfluous MV rows due to staleness.
-In particular, our sampling method has to account for this issue and propose a hashing based technique to efficiently materialize a uniform sample even in the presence of missing/superfluous rows.
+This model does not work for missing and superfluous MV rows due to staleness.
+In particular, our sampling method has to account for this issue and we propose a hashing based technique to efficiently materialize a uniform sample even in the presence of missing/superfluous rows.
 Next, we greatly expand the query processing scope of SampleClean beyond \sumfunc, \countfunc, and \avgfunc queries which were studied in prior work.
 Bounding estimates that are not \sumfunc, \countfunc, and \avgfunc, is significantly more complicated.
 This requires new analytic tools such as a statistical bootstrap estimation to calculate confidence intervals.
