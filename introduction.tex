@@ -5,7 +5,7 @@ Materialized Views (MVs) are now supported by all major commercial vendors.
 However, as with any pre-computation or caching, the key challenge in using MVs is maintaining their freshness as base data changes.
 While there has been substantial work in incremental maintenance of MVs \cite{chirkova2011materialized, DBLP:journals/vldb/KochAKNNLS14}, eager maintenance (i.e., immediately applying updates) is not always feasible.
 
-In real-time analytics applications, such as monitoring or visualization \cite{rainbird, DBLP:journals/cgf/LiuJH13}, analysts may create many MVs by slicing or aggregating over different dimensions.
+In real-time analytics\reminder{analytic?} applications, such as monitoring or visualization \cite{rainbird, DBLP:journals/cgf/LiuJH13}, analysts may create many MVs by slicing or aggregating over different dimensions.
 An eager maintenance strategy would mean that every incoming transaction requires updating all affected MVs, and thus, each additional MV potentially reduces the available transaction throughput.
 %Even with recently proposed optimizations such as DBToaster by Koch et al. \cite{DBLP:journals/vldb/KochAKNNLS14}, the cost of simultaneously maintaining multiple MVs can be very significant.
 This problem becomes significantly harder when the views are distributed and computational resources are contended by other tasks.
@@ -18,8 +18,8 @@ While increasing the batching period gives the user more flexibility to schedule
 Other than an educated guess based on past data, in general, the user has no way of knowing how incorrect their query results are.
 Some types of views and query workloads can be sensitive to even a small number of base data updates, for example, if updates disproportionately affect a subset of frequently queried rows.
 Thus, any amount of staleness is potentially dangerous, and this presents us a dichotomy between facing the cost of eager maintenance or coping with consequences of unknown inaccuracy.
-In this paper, we explore an intriguing middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for a fraction of the maintenance cost.
-With a small amount of up-to-date data, we can correct for the query result error induces by staleness and improve query result accuracy.
+In this paper, we explore an intriguing middle ground, namely, for aggregate queries, we can derive a bounded approximation for the correct answer for a fraction of the maintenance cost \reminder{``for" appears three times. Rephrase?}. 
+With a small amount of up-to-date data, we can correct for the query result error induces \reminder{induced?} by staleness and improve query result accuracy.
 
 
 %This observation leads us to the main insight behind our work; namely, that a data cleaning approach can be applied to mitigate the negative impacts of deferred MV maintenance.
@@ -35,7 +35,7 @@ A stale MV has incorrect, missing, or superfluous rows, which are problems that 
 Increasing data volumes have led to development of new, efficient sampling-based approaches for coping with dirty data.   
 In our prior work, we developed the SampleClean framework for scalable aggregate query processing on dirty data \cite{wang1999sample}.
 Since data cleaning is often expensive, we proposed cleaning a sample of data and using this sample to improve the results of aggregate queries on the full dataset.
-Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility of using a sample of ``clean'' rows in the MV to return more accurate query results.
+Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility of using a sample of ``clean'' rows in the MVs to return more accurate query results.
 
 \svcfull (\svc illustrated in Figure~\ref{sys-arch}) provides a framework that approximates aggregate queries on a stale MV.
 We calculate a relational expression that materializes a uniform sample of up-to-date rows.
@@ -51,8 +51,10 @@ However, the MV setting presents new challenges that we did not consider in prio
 To summarize our contributions:
 \begin{enumerate}[noitemsep]
 \item We propose a hashing-based technique that efficiently materializes an up-to-date sample view.
-\item We process queries on this view by applying techniques proposed in data cleaning, but significantly extending them to a broader class of queries. Expanding the class of queries results in new challenges in bounding these estimates in confidence intervals. To address this challenge, we also derive a statistical bootstrap estimator to calculate bounds.
-\item We apply an outlier indexing technique to reduce sensitivity to skewed datasets. Outlier indexing has not been applied in the MV setting, and we propose an index push-up algorithm that allows us to propagate the outliers to derived relations.
+\item We process queries on this view by applying techniques proposed in SampleClean, but significantly extending them to a broader class of queries. Expanding the class of queries results in new challenges in bounding these estimates in confidence intervals. To address this challenge, we also derive a statistical bootstrap estimator to calculate bounds.
+\item We apply an outlier indexing technique to reduce sensitivity to skewed datasets. %Outlier indexing has not been applied in the MV setting, and 
+We propose an index push-up algorithm that allows us to propagate the outliers to derived relations.
+\item \reminder{Three contributions are not enough. Need one more contribution (e.g., experiment)}
 \end{enumerate} 
 %\end{itemize}
 
