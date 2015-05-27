@@ -104,16 +104,17 @@ If we have a deterministic way of mapping a primary key defined in the previous 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.
-If the hash function is sufficiently uniform, then the condition $h(a) \le m$ is true for close to a fraction $m$ of the rows. 
+If the hash function is sufficiently uniform, then the condition $h(a) \le m$ is true for a fraction of approximately $m$ of the rows. 
 %This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
-We push down the hashing operator through the query tree.
-The further that we can push $\eta$ down the expression tree, the more operators can benefit from the sampling.
-However, it is important to note that for some of the expressions, notably joins, the push down rules are more complex. 
-It turns out in general we cannot push down even a deterministic sample through those expressions.
+To avoid materializing extra rows, we push down the hashing operator through the expression tree.
+The further that we can push $\eta$ down, the more operators (i.e., above the sampling) can benefit.
+This push down is analogous to predicate push-down operations used in query optimizers. 
+In particular, we are interested in finding an optimized relational expression that materializes an identical sample before and after the push down.
+
 We formalize the push down rules below:
-\begin{definition}[Hash Pushdown]
-Let $a$ be a primary key of a materialized view. The following rules can be applied to push $\eta_{a, m}(R)$ down the expression tree of the maintenance strategy. 
+\begin{definition}[Hash push down]
+For a derived relation $R$, the following rules can be applied to push $\eta_{a, m}(R)$ down the expression tree. 
 \begin{itemize}[noitemsep]
 \item $\sigma_{\phi}(R)$: Push $\eta$ through the expression.  
 \item $\Pi_{(a_1,...,a_k)}(R)$: Push $\eta $ through if $a$ is in the projection.
@@ -128,21 +129,37 @@ In special cases, we can push the hashing operator down through joins.
 Given the hash function $\eta_{a, m}(R)$:
 \vspace{.25em}
 
-{\noindent \textbf{Equality Join:}} If the join is an equality join and $a$ is one of the attributes in the equality join condition $R_1.a = R_2.b$, then $\eta$ can be pushed down to both $R_1$ and $R_2$. On $R_1$ the pushed down operator is $\eta_{a, m}(R_1)$ and on $R_2$ the operator is $\eta_{b, m}(R_2)$. This case often happens near the top of maintenance strategy expression tree where there is an equality outer join on the primary key of the stale view and a ``delta view''.
+{\noindent \textbf{Equality Join:}} If the join is an equality join and $a$ is one of the attributes in the equality join condition $R_1.a = R_2.b$, then $\eta$ can be pushed down to both $R_1$ and $R_2$. On $R_1$ the pushed down operator is $\eta_{a, m}(R_1)$ and on $R_2$ the operator is $\eta_{b, m}(R_2)$. 
 
 \vspace{.25em}
 
-{\noindent \textbf{Foreign Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with foreign key $a$) and $R_2$ (dimension table with primary key $b \subseteq a$) and we are sampling the key $a$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$. This case happens in our running example. If we sample the view on the primary key (\texttt{videoId}, \texttt{ownerId}, \texttt{language}, \texttt{duration}), since each video has only one owner, language and duration, we can push down the sampling of \texttt{videoId} to the \tbl{Log} relation and the \tbl{LogIns} table.
-
-%A special case of the equality join rule is if we have a join with two foreign-key relations $R_1$ (fact table) and $R_2$ (dimension table). If we are sampling the foreign key (the primary key of the dimension table), then we can push down $\eta$ to both relations as in the equality join case. 
-
-%\vspace{.25em}
-
-%{\noindent \textbf{(Semi/Anti)-Join:}} Similarly, if we are hashing the primary key of a semi-join, we can always push $\eta$ down $R_1$. For anti-joins we can push $\eta$ down because we can rewrite the node as $R_1 - (R_1 \ltimes R_2) $ and apply the pushdown rules for set difference and Semi-Joins.
+{\noindent \textbf{Foreign Key Join:}} If we have a join with two foreign-key relations $R_1$ (fact table with foreign key $a$) and $R_2$ (dimension table with primary key $b \subseteq a$) and we are sampling the key $a$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$. 
 
 \vspace{0.25em}
 
-The result of this hash operator pushdown on $\mathcal{M}$ is the cleaning expression $\mathcal{C}$. 
+\begin{theorem}
+Given a derived relation $R$, primary key $a$, and the sample $\eta_{a, m}(R)$.
+Let $S$ be the sample created by applying $\eta_{a, m}$ without push down and 
+$S'$ be the sample created by applying the push down rules to $\eta_{a, m}(R)$.
+$S$ and $S'$ are identical samples with sampling ratio $m$.
+\end{theorem}
+\begin{proof}[Sketch]
+We can prove this by induction.
+The base case is where the expression tree is only one node, trivialy making this true.
+Then, we can induct considering one level of operators in the tree.
+$\sigma, \cup, \cap, -$ clearly commute with hashing the key $a$ allowing for push down.
+$\Pi$ commutes only if $a$ is in the projection.
+For $\bowtie$, a sampling operator on $Q$ can be pushed down if $a$ is in either $k_r$ or $k_s$, or if there is a constraint that links $k_r$ to $k_s$ (a foreign key constraint).
+For group by aggregates, if $a$ is in the group clause (i.e., it is in the aggregate) then a hash of the operand filters all rows that have $a$ which is sufficent to materialize the derived row.
+\end{proof}
+
+{\noindent \textbf{Limitations: }} There are two basic cases where push down does not always work: joins and group by aggregates. 
+Consider the all-pairs join $R \times S$, a single hash of the keys $(k_s, k_r)$ cannot be pushed down to either A or B. 
+If we pushed down the operator, we would get a join of a sample of $R$ and a sample of $S$ which would not be the sample as a sample of $R \times S$.
+For group by aggregates, if the hashing attribute is not in the group clause (i.e., it is in the aggregate) then push down will not work since the provenance is not uniquely determined.
+
+\subsection{Efficient View Cleaning}
+The result of this hash operator push down on $\mathcal{M}$ is the cleaning expression $\mathcal{C}$. 
 When applied to a stale sample of a view $\widehat{S}$, the database $\mathcal{D}$, and the delta relations $\partial \mathcal{D}$, it produces an up-to-date sample with sampling ratio $m$:
 \[
 \widehat{S}' = \mathcal{C}(\widehat{S},\mathcal{D},\partial \mathcal{D})
