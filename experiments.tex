@@ -60,7 +60,7 @@ We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view
 We evaluate \svc on Apache Spark~1.1.0 with a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
 The dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
 We generated a set of views from a corresponding dataset of analyst SQL queries on the log table.
-We identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics for specific customers on a certain day.
+We identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics.
 The views were generated from the first 800GB of time-consecutive data, and the remaining 200GB of data was used as the updates.
 We generated aggregate random queries over this view by taking either random time ranges or random subsets of customers.
 

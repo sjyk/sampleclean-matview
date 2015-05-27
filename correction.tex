@@ -1,12 +1,12 @@
 \section{Efficiently Cleaning a Sample} \label{sampling}
 %\reminder{Make sure that we do a good survey on ``sampling from a view'' and discuss them in the related work, e.g., [Frank et al., VLDB 86], [Nirkhiwale et al., VLDB 13]}
 In this section, we describe how to find a relational expression $\mathcal{C}$ derived from the maintenance strategy $\mathcal{M}$ that
-efficiently cleans a sample of a stale view $\widehat{S}$ and produces a sample of the up-to-date view $\widehat{S}'$.
+efficiently cleans a sample of a stale view $\widehat{S}$ to produce $\widehat{S}'$.
 
 \subsection{Challenges}
-We present first two naive solutions to this problem that will not work. 
+To setup the problem, we first consider two naive solutions to this problem that will not work. 
 %First, the maintenance strategy $\mathcal{M}$ can be thought of as a data cleaning procedure to clean these errors, since applying the strategy to a stale view $S$ and the delta relations $\partial \mathcal{D}$ returns an up-to-date view $S'$ without data error.
-First, we could trivially apply $\mathcal{M}$ to the entire stale view $S$ and update it to $S'$, and then sample.
+We could trivially apply $\mathcal{M}$ to the entire stale view $S$ and update it to $S'$, and then sample.
 While the result is correct according to our problem formulation, it does not save us on any computation for maintenance.
 We want to avoid materialization of up-to-date rows outside of the sample. 
 However, the naive alternative solution is also flawed. 
@@ -15,18 +15,17 @@ The challenge is that $\mathcal{M}$ does not always commute with sampling.
 
 \subsection{Provenance}
 \label{lin}
-We explore the commutativity problem in more detail.
-Consider the case of maintaining a view that is a group by aggregate:
+To understand this commutativity problem, consider the maintaining a group by aggregate:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT videoId, count(1) FROM Log
 GROUP BY videoId
 \end{lstlisting}
 The resulting view has one row for every distinct \texttt{videoId}.
-We want to materialize a sample of $S'$, that is a sample of videos with up-to-date counts.
-If we randomly sample the delta relations $\widehat{\partial \mathcal{D}}$, we get a subset of records from LogIns.
-The problem is that if we propagate the updates based on $\widehat{\partial \mathcal{D}}$ to $\widehat{S}$ it is not guaranteed that 
-every count is completely up-to-date since we may not sample all the records for some groups.
-This is because to achieve a sample of $S'$, we need to ensure that for each $s \in S'$ all contributing rows in subexpressions to $s$ are also sampled. 
+We want to materialize a sample of $S'$, that is a sample of distinct \texttt{videoId}.
+If we sample the base relation \texttt{Log} first, we do not get a sample of the view.
+Instead, we get a view where every count is partial and this is not what we want.
+
+To achieve a sample of $S'$, we need to ensure that for each $s \in S'$ all contributing rows in subexpressions to $s$ are also sampled. 
 This is a problem of row provenance \cite{DBLP:journals/vldb/CuiW03}.
 Provenance, also termed lineage, has been an important tool in the analysis of materialized views \cite{DBLP:journals/vldb/CuiW03} and in approximate query processing \cite{DBLP:conf/sigmod/ZengGMZ14}.
 \begin{definition}[Provenance]\label{prov}
@@ -86,19 +85,7 @@ Since the group by attribute is videoId, that becomes the primary key of the vie
 
 \subsection{Hashing Operator}
 \label{push}
-These primary keys define the provenance of a row $r$, which allows us to easily determine the set of rows in subexpressions that contribute
-to $r$:
-\begin{proposition}[Primary Key Provenance]\label{provalg}
-Let $R$ and $U$ be relations as defined in Definition \ref{prov}. 
-Let $A_R$ be the primary key of $R$ and $A_U$ be the primary key of $U$.
-For a row $r\in R$, define $r(A_R)$ to be the value of the primary key.
-Similarly, for a row $u\in U$, define $u(A_U)$ to be the value of the primary key.
-$p_U(r)$ (the rows in U that contribute to r) is determined as follows: 
-(1) if $A_R \subseteq A_U$ then 
-$\{u \in U: u(A_R) = r(A_R)\}$, (2) if $A_R \not \subseteq A_U$ then
-return $U$.
-\end{proposition}
-We want to guarantee that all of the rows in Proposition \ref{provalg} are sampled if $r$ is sampled.
+The primary keys allow us to determine the set of rows that contribute to a row $r$ in a derived relation.
 If we have a deterministic way of mapping a primary key defined in the previous subsection to Boolean true or false, we can ensure that all contributing rows are also sampled. 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
