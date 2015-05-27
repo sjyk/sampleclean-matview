@@ -40,15 +40,15 @@ This is defined as the set of rows in $U$ such that for an update to any row $u 
 \subsection{Primary Keys}
 For the relational expressions defined in the previous sections, this provenance is well defined and can be tracked using primary key rules that are enforced on
 each subexpression \cite{DBLP:journals/vldb/CuiW03}. 
-Each row will have a designated primary key that will propagate to the next level of the relational tree.
-%Formally, we recursively define a set of primary keys for all nodes in the expression tree:
+%Each row will have a designated primary key that will propagate to the next level of the relational tree.
+We recursively define a set of primary keys for all relations in the expression tree:
 \begin{definition} [Primary Key Generation]\label{pk}
 For every relational expression $R$, we define the primary key attribute(s) of every expression to be:
 \begin{itemize}[noitemsep]
-\item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. That uniquely identifies rows.
+\item Base Case: All relations (leaves) must have an attribute $p$ which is designated as a primary key. 
 \item $\sigma_{\phi}(R)$: Primary key of the result is the primary key of R 
 \item $\Pi_{(a_1,...,a_k)}(R)$: Primary key of the result is the primary key of R. The primary key must always be included in the projection.
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: The primary key of the result is the tuple of the primary keys of $R_1$ and $R_2$. 
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Primary key of the result is the tuple of the primary keys of $R_1$ and $R_2$. 
 \item $\gamma_{f,A}(R)$: The primary key of the result is the group by key $A$ (which may be a set of attributes).
 \item $R_1 \cup R_2$: Primary key of the result is the union of the primary keys of $R_1$ and $R_2$
 \item $R_1 \cap R_2$: Primary key of the result is the intersection of the primary keys of $R_1$ and $R_2$
@@ -57,8 +57,9 @@ For every relational expression $R$, we define the primary key attribute(s) of e
 For every node at the expression tree, these keys are guaranteed to uniquely identify a row.
 \end{definition}
 These rules define a constructive definition that can always be applied for our defined relational expressions. 
-As we will subsequently see, this primary key definition allows us to efficiently sample the relational expression.
-For the relational expressions defined in the previous section, this method will always work. 
+
+%As we will subsequently see, this primary key definition allows us to efficiently sample the relational expression.
+%For the relational expressions defined in the previous section, this method will always work. 
 %We only have to ensure that any projection operation $\Pi$ includes the operand's primary key, and enforcing this condition
 %defines an equivalent materialized view. \reminder{Why do you emphazie the projection operation? Has this rule been defined above?}
 
@@ -75,15 +76,12 @@ CREATE VIEW visitView AS SELECT count(1) as visitCount
 FROM Log, Video WHERE Log.videoId = Video.videoId
 GROUP BY videoId
 \end{lstlisting}
-We illustrate this view in Figure \ref{pk-fig}.
-To ensure that this view has a primary key for all subexpressions, we apply the rules pushing the primary keys from the base relations to the view.
+We illustrate the key generation process in Figure \ref{pk-fig}.
 Suppose there is a base relation, such as \tbl{Log}, that is missing a primary key (sessionId)\footnote{It does not make sense for Video to be missing a primary key in our running example due to the foreign key relationship}.
 We can add this attribute by generating an increasing sequence of integers for each record in \tbl{Log}. 
-
 Since both base tables \tbl{Video} and \tbl{Log} have primary keys videoId and sessionId respectively,
 the result of the join will have a primary key (videoId, sessionId).
-Then, since the group by attribute of the count is videoId, that is the primary key of the view.
-Then, we can apply the rules above to propagate this key up the expression tree.
+Since the group by attribute is videoId, that becomes the primary key of the view.
 \end{example}
 
 \subsection{Hashing Operator}
@@ -92,18 +90,19 @@ These primary keys define the provenance of a row $r$, which allows us to easily
 to $r$:
 \begin{proposition}[Primary Key Provenance]\label{provalg}
 Let $R$ and $U$ be relations as defined in Definition \ref{prov}. 
-Let $A_R$ be the primary key set of $R$ and $A_U$ be the primary key 
-set of $U$.
-Define $r(A_R)$ as the primary key sets values for the row $r$.
-$p_U(r)$ is defined as follows: (1) if $A_R \subseteq A_U$ then 
+Let $A_R$ be the primary key of $R$ and $A_U$ be the primary key of $U$.
+For a row $r\in R$, define $r(A_R)$ to be the value of the primary key.
+Similarly, for a row $u\in U$, define $u(A_U)$ to be the value of the primary key.
+$p_U(r)$ (the rows in U that contribute to r) is determined as follows: 
+(1) if $A_R \subseteq A_U$ then 
 $\{u \in U: u(A_R) = r(A_R)\}$, (2) if $A_R \not \subseteq A_U$ then
 return $U$.
 \end{proposition}
-We now explore how we can design a sampling technique to guarantee that all of the rows in Proposition \ref{provalg} are sampled if $r$ is sampled.
+We want to guarantee that all of the rows in Proposition \ref{provalg} are sampled if $r$ is sampled.
 If we have a deterministic way of mapping a primary key defined in the previous subsection to Boolean true or false, we can ensure that all contributing rows are also sampled. 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
-For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash value less than or equal to $m$.
+For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash less than or equal to $m$.
 If the hash function is sufficiently uniform, then the condition $h(a) \le m$ is true for a fraction of approximately $m$ of the rows. 
 %This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
@@ -118,7 +117,7 @@ For a derived relation $R$, the following rules can be applied to push $\eta_{a,
 \begin{itemize}[noitemsep]
 \item $\sigma_{\phi}(R)$: Push $\eta$ through the expression.  
 \item $\Pi_{(a_1,...,a_k)}(R)$: Push $\eta $ through if $a$ is in the projection.
-\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: Blocks $\eta $ in general. There are special cases below where push down is possible.
+\item $\bowtie_{\phi (r1,r2)}(R_1,R_2)$: No push down in general. There are special cases below where push down is possible.
 \item $\gamma_{f,A}(R)$: Push $\eta $ through if $a$ is in the group by clause $A$.
 \item $R_1 \cup R_2$: Push $\eta $ through to both $R_1$ and $R_2$
 \item $R_1 \cap R_2$: Push $\eta $ through to both $R_1$ and $R_2$
@@ -199,8 +198,8 @@ Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, re
 \vspace{-.25em}
 \begin{itemize}[noitemsep]
 \item Uniformity: $\widehat{S'}$ and $\widehat{S}$ are uniform random samples of $S'$ and $S$ respectively with a sampling ratio of $m$
-\item Removal of Superfluous Rows: $D = \{\forall s \in \widehat{S} !\exists s' \in S': s(u) = s'(u)\}$, $D \cap \widehat{S'} = \emptyset$ 
-\item Sampling of Missing Rows: $I = \{\forall s' \in \widehat{S'} !\exists s \in S: s(u) = s'(u)\}$, $\mathbb{E}(\mid I \cap \widehat{S'} \mid) = m\mid I \mid $ 
+\item Removal of Superfluous Rows: $D = \{\forall s \in \widehat{S} \nexists s' \in S': s(u) = s'(u)\}$, $D \cap \widehat{S'} = \emptyset$ 
+\item Sampling of Missing Rows: $I = \{\forall s' \in \widehat{S'} \nexists s \in S: s(u) = s'(u)\}$, $\mathbb{E}(\mid I \cap \widehat{S'} \mid) = m\mid I \mid $ 
 \item Key Preservation for Updated Rows: For all $s\in \widehat{S}$ and not in $D$ or $I$, $s' \in \widehat{S}': s'(u) = s(u)$.
 \end{itemize}
 \vspace{-.25em}

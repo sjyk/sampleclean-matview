@@ -71,7 +71,7 @@ q(S') \approx r_{stale} + (r_{est\_fresh} - r_{est\_stale})
 \end{enumerate}
 
 A commonly studied property in the AQP literature is unbiasedness.
-An unbiased result estimate means that expected value of the estimate over all samples of the same size is $q(S')$ \footnote{The \avgfunc query is considered conditionally unbiased in some works, however, this difference is largely notational and does not affect any subsequent bounds.}.
+An unbiased result estimate means that the expected value of the estimate over all samples of the same size is $q(S')$ \footnote{The \avgfunc query is considered conditionally unbiased in some works, however, this difference is largely notational and does not affect any subsequent bounds.}.
 We can prove that if \svcnospace+AQP is unbiased (there is an AQP method that gives an unbiased result) then \svcnospace+CORR also gives unbiased results.
 \begin{lemma}\label{lemma:unbiased}
 If there exists an unbiased sample estimator for q(S') then there exists an unbiased sample estimator for c.
@@ -111,7 +111,7 @@ There are some key properties of interest within different estimator families: u
 \svcnospace+AQP and \svcnospace+CORR inherit the properties of the estimator family.
 
 Table \ref{estimators} describes these families and their properties for common queries.
-Sample mean family of estimators (\sumfunc, \countfunc, and \avgfunc) has analytic solutions and has been the focus of other approximate query processing works \cite{OlkenR86, wang1999sample}, we analyze this family in detail.
+The sample mean family of estimators (\sumfunc, \countfunc, and \avgfunc) has analytic solutions and has been the focus of other approximate query processing works \cite{OlkenR86, wang1999sample}, and we analyze this family in detail.
 The general case can only be bounded empirically which is more challenging.
 
 \begin{table}\footnotesize \vspace{-1em}
@@ -134,7 +134,7 @@ Let $\bar{\mu}$ be a sample mean calculated from $k$ samples, $\sigma^2$ be the 
 Then, the error $(\mu - \bar{\mu})$ is normally distributed:
 $
  N(0,\frac{\sigma^2}{k})
-$
+$.
 Therefore, the confidence interval is given by:
 \[
 \bar{\mu} \pm \gamma \sqrt{\frac{\sigma^2}{k}}
@@ -170,9 +170,9 @@ SELECT $\gamma\cdot$stdev(trans_attr)/sqrt(count(1)) FROM trans
 \vspace{0.25em}
 
 To calculate the confidence intervals for \svcnospace+CORR we have to look at the statistics of the difference, i.e., $c = q(S) - q(S')$, from a sample.
-If we did not have rows in $\widehat{S}$ do not exist in $\widehat{S}'$ and vice versa, we could use the associativity of addition and subtraction to rewrite this as:
+If all rows in $\widehat{S}$ exist in $\widehat{S}'$, we could use the associativity of addition and subtraction to rewrite this as:
 $c = q(S - S')$, where $-$ is the row-by-row difference between $S$ and $S'$.
-The challenge is that the missing rows make this ill-defined.
+The challenge is that the missing rows on either side make this ill-defined.
 Thus, we have define the following null-handling semantics with a subtraction operator we call $\dot{-}$.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 
 $\dot{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_2.a_2} ( R_1 \fullouterjoin R_2 ) \]
@@ -199,7 +199,7 @@ Therefore, a correction will have less variance when:
 \[\sigma_{S}^2 \le 2cov(S,S')\]
 
 As we saw in the previous section, correspondence correlates the samples.
-If the difference is small, i.e. $S$ is nearly identical to $S'$, then $cov(S,S')~\approx~\sigma_{S}^2$. 
+If the difference is small, i.e., $S$ is nearly identical to $S'$, then $cov(S,S')~\approx~\sigma_{S}^2$. 
 This result also shows that there is a point when updates to the stale MV are significant enough that direct estimates are more accurate.
 When we cross the break-even point we can switch from using \svcnospace+CORR to \svcnospace+AQP.
 %An intersting implication of this break-even point is it gives us a bound on the approximation error no matter how significant the staleness is.
