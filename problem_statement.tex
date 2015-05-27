@@ -2,10 +2,14 @@
 %In this section, we briefly overview the problem setting.
 
 \subsection{Motivation and Example}\label{subsec-inc}
+Materialized view maintenance can be very expensive resulting in staleness. 
+Many important use-cases require creating a large number of views including: visualization, personalization, privacy, and real-time monitoring.  
+The problem with eager maintenance is that every view created by an analyst places a bottleneck on incoming transactions.
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
-However, even with these optimizations, some materialized views are computationally difficult to maintain and will have maintenance costs that can grow with the size of data (e.g., correlated aggregate in a sub-query \reminder{hard to understand}).
-Large views may require distribution and this further increases maintenance costs due to coordination.
-Furthermore, in real deployments, it is common to use the same infrastructure to maintain multiple MVs (along with other analytics tasks) adding further contention to computational resources and reducing overall available throughput. 
+However, even with these optimizations, some materialized views are computationally difficult to incrementally maintain.
+For example, incremental maintenance of views with correlated subqueries can grow with the size of the data.
+Additionally, large views may require distribution and this further increases maintenance costs due to coordination.
+In real deployments, it is common to use the same infrastructure to maintain multiple MVs (along with other analytics tasks) adding further contention to computational resources and reducing overall available throughput. 
 When faced with such challenges, it is common to batch updates to amortize maintenance overheads and add flexibility to scheduling.
 
 \noindent \textbf{Log Analysis Example: } 
@@ -34,7 +38,7 @@ LogIns(sessionId$\textrm{,}$ videoId)
 
 Staleness does not affect every query uniformly.
 Even when the number of new entries in \texttt{LogIns} is small relative to \texttt{Log}, some queries might be very inaccurate.
-For example, views to newly added videos may account for most of \texttt{LogIns}, so queries that aggregate visits to the most recent videos will be more inaccurate.
+For example, views to newly added videos may account for most of \texttt{LogIns}, so queries that count visits to the most recent videos will be more inaccurate.
 The amount of inaccuracy is unknown to the user, who can only estimate an expected error based on prior experience.
 This assumption may not hold in rapidly evolving data.
 We see an opportunity for approximation through sampling which can give bounded query results for a reduced maintenance cost.
