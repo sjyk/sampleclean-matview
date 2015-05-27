@@ -53,8 +53,8 @@ We proposed SampleClean to add an additional trade-off to this design space by u
 The problem of high computational costs for accurate results mirrors the challenge faced in the MV setting with the tradeoff between immediate maintenance (expensive and up-to-date) and deferred maintenance (inexpensive and stale). 
 Thus, we explore how samples of ``clean" (up-to-date) data can be used for improved query processing on MVs without incurring the full cost of maintenance.
 
-However, the metaphor of stale MVs as a Sample-and-Clean problem only goes so far and there are significant new challenges that we have to address in this paper.
-In prior work, we modeled data cleaning as a row-by-row user-specified transformation.
+However, the metaphor of stale MVs as a Sample-and-Clean problem only goes so far and there are significant new challenges that we address in this paper.
+In prior work, we modeled data cleaning as a row-by-row black-box transformation.
 This model does not work for missing and superfluous rows in stale MVs.
 In particular, our sampling method has to account for this issue and we propose a hashing based technique to efficiently materialize a uniform sample even in the presence of missing/superfluous rows.
 Next, we greatly expand the query processing scope of SampleClean beyond \sumfunc, \countfunc, and \avgfunc queries.

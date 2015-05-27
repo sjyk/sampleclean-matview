@@ -3,7 +3,7 @@
 We thank the reviewers for bringing up these concerns and have revised our paper accordingly. To summarize our changes:
 \begin{enumerate}[noitemsep]
 \item We have improved the presentation by addressing all of the editing issues identified by the reviewers.
-\item We revised the motivation for the work by clarifying the relationship between staleness, query result error, and approximation. In particular, staleness does not affect queries uniformly. Even if the number of updated/inserted/deleted rows is small (e.g., 1\% of the view size), the resulting ``error" in a given query can be far greater (i.e., much larger than 1\%). %Currently, the user has no way of measuring this error without full maintenance. 
+\item We revised the motivation for the work by clarifying the relationship between staleness, query result error, and approximation. In particular, staleness does not affect queries uniformly. Even if the number of updated/inserted/deleted rows is small (e.g., 1\% of the view size), the resulting ``error" in a given query can be far greater (much larger than 1\%). %Currently, the user has no way of measuring this error without full maintenance. 
 SVC returns approximate aggregate query results that are bounded in confidence intervals.
 \item We clarified our specific research contributions in this revision and how they contrast with our prior work.
 \item We revised our experimental description to clarify that we indeed used a real dataset with real updates to evaluate SVC's performance. 
@@ -39,7 +39,7 @@ The problem with eager maintenance is that every view created by an analyst plac
 Any amount of staleness can significantly bias analysis. Suppose 1\% of the base table's records have been updated, this does not necessarily mean the queries on the view have 1\% error.  Consider the case where all of those updates correspond to a small subpopulation of frequently queried entities in the database or the data is skewed. For example, in Figure 8a, we show that for some queries an update size of 10\% results in more than 50\% on  skewed datasets (Zipfian parameter 3,4).
 
 %To make matters worse, without SVC, the user has no way of knowing how significant these errors are for a given query, other than an educated guess based on past data. 
-To make matters worse, without SVC, the user cannot easily know how significant these errors are for a given query. 
+Without SVC, the user does not know the significance of these errors for a given query. 
 %In our current revision, we emphasize that our method gives confidence intervals on the result. SVC uses a small amount of up-to-date data to compensate for staleness (also giving a more accurate answer) via a bounded approximation with confidence intervals. The intuitive reasoning is that SVC turns an unknown systematic bias into random approximation error.
 In our current revision, we emphasize that SVC returns approximations that are bounded in confidence intervals.
 In addition to these bounds, these approximations are often more accurate than the stale query results.
@@ -48,7 +48,7 @@ In addition to these bounds, these approximations are often more accurate than t
 
 \textbf{The presentation needs to be improved further. All reviewers have detailed comments on the presentation improvements. One general comments is to make sure the paper is free of typos.}
 
-We have carefully revised the paper to ensure that it is free of typos. We have also incorporated the reviewers' valuable suggestions on clarifying the presentation.
+We have carefully revised the paper to fix all of the editing issues. We have also incorporated the reviewers' valuable suggestions on clarifying the presentation.
 
 \vspace{1.5em}
 
@@ -56,7 +56,7 @@ We have carefully revised the paper to ensure that it is free of typos. We have 
 
 We have added the following clarification to Section 2.2 of the paper:
 
-\emph{However, the metaphor of stale MVs as a Sample-and-Clean problem only goes so far and there are significant new challenges that we have to address in this paper. In prior work, we modeled data cleaning as a row-by-row user-specified transformation.
+\emph{However, the metaphor of stale MVs as a Sample-and-Clean problem only goes so far and there are significant new challenges that we have to address in this paper. In prior work, we modeled data cleaning as a row-by-row black-box transformation.
 This model does not work for missing and superfluous rows in stale MVs. In particular, our sampling method has to account for this issue and we propose a hashing based technique to efficiently materialize a uniform sample even in the presence of missing/superfluous rows. Next, we greatly expand the query processing scope of SampleClean beyond \sumfunc, \countfunc, and \avgfunc queries. Bounding estimates that are not \sumfunc, \countfunc, and \avgfunc queries, is significantly more complicated. This requires new analytic tools such as a statistical bootstrap estimation to calculate confidence intervals. Finally, we add an outlier indexing technique to improve estimates on skewed data.}
 
 \vspace{1.5em}
@@ -77,21 +77,22 @@ We revised the definition to be the following:
 
 Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \begin{itemize}[noitemsep] \sloppy
-	\item \textbf{Incorrect: } Incorrect row errors are the set of rows (identified by the primary key) that are updated in $S'$. For $s \in S$, let $s(u)$ be the value of the primary key. An incorrect row is one such that there exists a $s' \in S'$ with $s'(u) = s(u)$ and $s \ne s'$.
-	\item \textbf{Missing: } Missing row errors are the set of rows (identified by the primary key) that exist in the up-to-date view but not in the stale view. For $s' \in S'$, let $s'(u)$ be the value of the primary key. A missing row is one such that there does not exist a $s \in S$ with $s(u) = s'(u)$.
-	\item \textbf{Superfluous: } Superfluous row errors are the set of rows (identified by the primary key) that exist in the stale view but not in the up-to-date view. For $s \in S$, let $s(u)$ be the value of the primary key. A superfluous row is one such that there does not exist a $s' \in S'$ with $s(u) = s'(u)$.
+	\item \textbf{Incorrect: } Incorrect rows are the set of rows (identified by the primary key) that are updated in $S'$. For $s \in S$, let $s(u)$ be the value of the primary key. An incorrect row is one such that there exists a $s' \in S'$ with $s'(u) = s(u)$ and $s \ne s'$.
+	\item \textbf{Missing: } Missing rows are the set of rows (identified by the primary key) that exist in the up-to-date view but not in the stale view. For $s' \in S'$, let $s'(u)$ be the value of the primary key. A missing row is one such that there does not exist a $s \in S$ with $s(u) = s'(u)$.
+	\item \textbf{Superfluous: } Superfluous rows are the set of rows (identified by the primary key) that exist in the stale view but not in the up-to-date view. For $s \in S$, let $s(u)$ be the value of the primary key. A superfluous row is one such that there does not exist a $s' \in S'$ with $s(u) = s'(u)$.
 \end{itemize}
 
 \vspace{1.5em}
 
 \textbf{Reviewer 3 suggested: The presentation needs to be improved further. The motivation is not clear now. Materialized views will be incrementally maintained from time to time and brought up to date. So, the use of a sampling-based method is between such updates. The question is how important it is to return an accurate result. While it is always better to return accurate results --- and that argument is where the strong point of this work lies --- the paper does not show the real need for this work. That is, if the errors are small, then a sampling based update method will improve the estimate by a small amount. And, if the errors are large, then the method does not do that well again. So the motivation needs to be made clearer.}
-We would like the add the following clarifications:
 
-\noindent  (1) If the update size is small, some queries can still have large errors (Figure 8a). Without SVC, the user has no way of estimating the error in the query results on stale data without making a strong assumption about the similarity between the incoming updates and past data. 
+We addressed this concern in the meta reviews, but would also like the add the following clarifications in response to this review:
 
-\noindent (2) Even when the update size is fairly large (40\% of the base data), the average query result error with SVC is less than 3\% (Figure 6b).
+\noindent  (1) If the update size is small, some queries may still be very inaccurate (Figure 8a). Without SVC, the user has no way of estimating the error in the query results on stale data without making a strong assumption about the similarity between the incoming updates and past data. 
 
-\noindent (3) While it is true that the error of SVC+Corr grows with the update size, SVC+AQP gives a fixed relative error for \sumfunc, \countfunc, and \avgfunc for a fixed sampling ratio (fraction of the data sampled). Thus, we can take the best of SVC+CORR and SVC+AQP to get a fixed relative error for any update size. 
+\noindent (2) Even when the update size is fairly large (40\% of the base data), the average error with SVC is less than 3\% (Figure 6b).
+
+\noindent (3) While it is true that the error of SVC+CORR grows with the update size, SVC+AQP gives a fixed relative error for \sumfunc, \countfunc, and \avgfunc for a fixed sampling ratio (fraction of the data sampled). Thus, we can take the best of SVC+CORR and SVC+AQP to get a fixed relative error for any update size. 
 
 
 \vspace{1.5em}
@@ -99,7 +100,7 @@ We would like the add the following clarifications:
 \textbf{Reviewer 3 suggested: The evaluation must be more realistic. The improvement of performance from 56 seconds to 7.5 seconds is not that exciting. Does it really matter? It could for larger datasets and larger workloads of queries. But, what actually happens when such datasets and queries are used is not demonstrated well. It would be interesting to see the difference on a real workload.}
 
 
-In this revision, we clarified the details of the Conviva experiment and demonstrated the performance difference on a real workload. The Conviva dataset is a 1TB user activity log. We derived materialized views based on actual analyst queries. Many queries were nested queries so we factored out inner queries as materialized views. For example, in Figure 9a, V5 was based on a nested query that groups users from similar regions/service providers together then aggregates over error types. For this view, eager maintenance required 858 seconds while sample maintenance required 96 seconds. 
+In this revision, we clarified the details of the Conviva experiment and that this set of experiments demonstrates the performance on a real workload. The Conviva dataset is a 1TB user activity log. We derived materialized views based on actual analyst queries. Many queries were nested queries so we factored out inner queries as materialized views. For example, in Figure 9a, V5 was based on a nested query that groups users from similar regions/service providers together then aggregates over error types. For this view, eager maintenance required 858 seconds while sample maintenance required 96 seconds. 
 
 \vspace{1.5em}
 
@@ -109,13 +110,13 @@ The purpose of this experiment was to illustrate SVC's applicability to real dat
 Our views are constructed from a query workload where we identified 8 key subqueries.
 Over four months of query data, we found 15414 queries (roughly 120 queries/day) based on these subqueries.
 These queries are executed throughout during the day by analysts, and could significantly benefit from materialized views. 
-However, as the data are rapidly changing, to effectively use materialized views, this application requires frequently updated views.
+However, as the data are rapidly changing, to effectively use materialized views, this application requires fresh data.
 
 \vspace{1.5em}
 
 \textbf{Reviewer 3 suggested:  If you maintain a view, then it takes a bit more time, but, that effort would be used by all future queries to give better quality answers. Whereas the work done by SVC+CORR for drawing the sample is all gone and largely cannot be used for future queries. Or at least, the work does not show how the samples can be saved and reused later on and what impact that has. So, the real evaluation should not be on individual queries, but, on a workload of real queries and then it will possibly lessen the savings of the sampling-based method versus the view maintenance-based method. Would this sampling-based method then be useful enough? The paper should address this issue --- that has not been done very convincingly.}
 
-We apologize if it was unclear, but SVC only materializes an up-to-date sample view once and then all future queries are processed using this materialized sample. In terms of query time, since SVC+AQP only queries the up-to-date sample, it is guaranteed to be faster than querying the full up-to-date view. For SVC+CORR, although it adds a small amount of overhead (estimating a result correction from the sample), this overhead is quite small compared to maintaining and querying the full view. 
+To clarify, SVC only materializes an up-to-date sample view once and then all future queries are processed using this materialized sample. In terms of query time, since SVC+AQP only queries the up-to-date sample, it is guaranteed to be faster than querying the full up-to-date view. For SVC+CORR, although it adds a small amount of overhead (estimating a result correction from the sample), this overhead is quite small compared to maintaining and querying the full view. 
 
 \vspace{1.5em}
 
@@ -123,7 +124,7 @@ We apologize if it was unclear, but SVC only materializes an up-to-date sample v
 
 We have elaborated on the limitations in Section 4.4.
 To summarize, we highlight the limitations for joins in the cover letter (see Section 4.4. for full details).
-The sampling push down proposed in this paper is analogous to predicate push-down operations used in query optimizers. 
+The sampling push down proposed in this paper is analogous to predicate push down operations used in query optimizers. 
 Suppose we have a join between two relations $Q = R \bowtie S$, then the primary key of the resulting relation is $(k_r, k_s)$.
 A sampling operator on $Q$ can be pushed down if the hashing operator depends on either $k_r$ or $k_s$, or if there is a constraint that links $k_r$ to $k_s$ (a foreign key constraint).
 A simple example where this condition does not hold is the all-pairs join $R \times S$, a single hash of the keys $(k_s, k_r)$ cannot be pushed down to either A or B. 
@@ -133,13 +134,13 @@ If we pushed down the operator, we would get a join of a sample of $R$ and a sam
 
 \textbf{Reviewer 3 suggested: I would also like things to be worked out carefully. Theorems and propositions about what type of sampling can be done for what type of operations would be useful. Correctness and error bounds should be proved too.}
 
-We have clarified that our approach uses hashing results in a type of uniform sampling called Bernoulli sampling (refer Nirkhiwale et al. VLDB 2013). We have included a proof sketch (Theorem 1) and a description of limitations in Section 4.4. In terms of estimation, SVC contains two query processing methods:  SVC+AQP and SVC+CORR. SVC+AQP is an AQP-style result estimation technique which directly estimates a query result from a sample. Its correctness and error bounds have been proved in the existing literature \cite{AgarwalMPMMS13,agarwalknowing}. SVC+CORR estimates a query result correction from a sample. Lemma~1 describes its unbiasedness w.r.t SVC+AQP, and our error bounds follow directly from the Central Limit Theorem and Bootstrap Estimation which are established in existing literature (\cite{agarwalknowing}).
+We have clarified that our approach uses hashing results in a type of uniform sampling called Bernoulli sampling (refer Nirkhiwale et al. VLDB 2013). We have included a proof sketch (Theorem 1) and a description of limitations in Section 4.4. In terms of estimation, SVC contains two query processing methods:  SVC+AQP and SVC+CORR. SVC+AQP is an AQP-style result estimation technique which directly estimates a query result from a sample. Its correctness and error bounds have been proved in the existing literature \cite{AgarwalMPMMS13,agarwalknowing}. SVC+CORR estimates a query result correction from a sample. Lemma~1 describes its unbiasedness w.r.t SVC+AQP, and our error bounds follow directly from the Central Limit Theorem and Bootstrap Estimation which are also established in existing literature(\cite{agarwalknowing}).
 
 \vspace{1.5em}
 
 \textbf{Reviewer 3 suggested: While it is true that large datasets can be approximated using Gaussian models irrespective of the distribution to an extent, a lot of columns would get data from a mixture of Gaussians and approximating it with one Gaussian distribution would lead to serious errors. What happens in this case? Can the sampling still be done?}
 
-We apologize for the confusion and have clarified that the CLT models the distribution of query estimates as Gaussian and not the data. More specifically, suppose a column gets data from a mixture of Gaussians. For a large sample size, the distribution of the sample mean will approach a Gaussian distribution. This property has been widely used in the existing AQP literature (Olken et al. VLDB 1986, Hellerstein et al. SIGMOD 1997, Agarwal et al. EuroSys 2013). 
+We apologize for the confusion and have clarified that the CLT models the distribution of aggregate query estimates as Gaussian and not the data. For example, if a column is distributed as a mixture of Gaussians (or any other distribution), for a large sample size, the distribution of the sample mean will still approach a Gaussian distribution. In this work, we consider data sizes and sample sizes for which this bound is accurate. This property has been widely used in the existing AQP literature (Olken et al. VLDB 1986, Hellerstein et al. SIGMOD 1997, Agarwal et al. EuroSys 2013). 
 
 %Even in highly skewed datasets, the Gaussian approximation tends to be conservative; for a fixed mean and variance, the Gaussian distribution is the highest entropy distribution. However, as the sample sizes become smaller this approximation no longer holds and looser bounds can be used (e.g. Hoeffding or Markov Inequality). 
 
