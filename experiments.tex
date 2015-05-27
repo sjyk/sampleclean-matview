@@ -56,7 +56,7 @@ For each attribute $a$, the domain is specified in the TPCD standard.
 We select a random subset of this domain, e.g., if the attribute is country then the predicate can be $\text{countryCode} > 50$ and $\textsf{countryCode} < 100$.
 We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 
-\noindent\textbf{Distributed Experimental Setup}
+\noindent\textbf{Distributed Experimental Setup: }
 We evaluate \svc on Apache Spark~1.1.0 with a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
 The dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
 We generated a set of views from a corresponding dataset of analyst SQL queries on the log table.
