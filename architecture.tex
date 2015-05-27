@@ -3,7 +3,7 @@
 In this section, we formalize the two main problems that \svc addresses: (1) cleaning a stale sample MV and (2) answering an aggregate query with the clean sample.
 
 \subsection{Notation and Definitions}\label{notation}
-\svc returns a bounded approximation for aggregate queries result \reminder{aggregate queries result?} on stale MVs for a flexible additional maintenance cost.
+\svc returns a bounded approximation for aggregate queries on stale MVs for a flexible additional maintenance cost.
 
 %\reminder{You have defined $\mathcal{D}$, $\{R_i\}$, etc in Definition 1. Maybe you can move Def 1 to this Section?}
 \noindent \textbf{Materialized View:} Let $\mathcal{D}$ be a database which is a collection of relations $\{R_i\}$. A \emph{materialized view} $S$ is the result of applying a \emph{view definition} to $\mathcal{D}$. 
@@ -16,7 +16,7 @@ We use the following parametrized notation for joins, aggregations and generaliz
 	The DISTINCT operation can be considered as a special case of the Aggregation operation. 
 \end{itemize}
 The composition of the unary and binary relational expressions can be represented as a tree, which is called the \emph{expression tree}.
-At the leaves of the tree are all of the \emph{base relations} for a view. \reminder{``At ... are" seems have a syntax error.}
+The leaves of the tree are the \emph{base relations} for the view. 
 Each non-leave node is the result of applying one of the above relational expressions to a relation.
 To avoid ambiguity, we refer to tuples of the base relations as \emph{records} and tuples of derived relations as \emph{rows}.
 
@@ -25,7 +25,6 @@ that assigns an increasing sequence of integers to each record.
 For the defined relational expressions, every row in a materialized view can also be given a primary key \cite{DBLP:journals/vldb/CuiW03, DBLP:conf/sigmod/ZengGMZ14},
 which we will describe in Section \ref{sampling}. 
 This primary key is formally a subset of attributes $u \subseteq \{a_1,a_2,...,a_k\}$ such that all $s \in S(u)$ are unique.
-We denote the entire row for that primary key as a selection $\sigma_u(S)$. \reminder{This can not determine the entire row for that primary key. For example, think about what $\sigma_{sessionId}(Log)$ means?}
 
 \vspace{.25em}
 
@@ -74,7 +73,7 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 
 \noindent \textbf{Uniform Random Sampling:}
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
-We use the ``hat'' notation (e.g., $\widehat{S}$) to denote sampled relations and sampled relational expressions\reminder{What is ``sampled relational expression"?}.
+We use the ``hat'' notation (e.g., $\widehat{S}$) to denote sampled relations.
 We say the relation $\widehat{S}$ is a \emph{uniform sample} of $S$ if
 \[\text{(1) } \forall s \in \widehat{S} : s \in S\text{;~~~~~ (2) }Pr(s_1 \in \widehat{S}) =  Pr(s_2 \in \widehat{S}) = m.\]
 We say a sample is \emph{clean} if and only if it is a uniform random sample of the up-to-date view $S'$. 
