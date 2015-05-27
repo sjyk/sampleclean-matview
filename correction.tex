@@ -15,7 +15,7 @@ The challenge is that $\mathcal{M}$ does not always commute with sampling.
 
 \subsection{Provenance}
 \label{lin}
-To understand this commutativity problem, consider the maintaining a group by aggregate:
+To understand the commutativity problem, consider the maintaining a group by aggregate:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT videoId, count(1) FROM Log
 GROUP BY videoId
@@ -23,7 +23,7 @@ GROUP BY videoId
 The resulting view has one row for every distinct \texttt{videoId}.
 We want to materialize a sample of $S'$, that is a sample of distinct \texttt{videoId}.
 If we sample the base relation \texttt{Log} first, we do not get a sample of the view.
-Instead, we get a view where every count is partial and this is not what we want.
+Instead, we get a view where every count is partial.
 
 To achieve a sample of $S'$, we need to ensure that for each $s \in S'$ all contributing rows in subexpressions to $s$ are also sampled. 
 This is a problem of row provenance \cite{DBLP:journals/vldb/CuiW03}.
@@ -86,7 +86,7 @@ Since the group by attribute is videoId, that becomes the primary key of the vie
 \subsection{Hashing Operator}
 \label{push}
 The primary keys allow us to determine the set of rows that contribute to a row $r$ in a derived relation.
-If we have a deterministic way of mapping a primary key defined in the previous subsection to Boolean true or false, we can ensure that all contributing rows are also sampled. 
+If we have a deterministic way of mapping a primary key to a Boolean, we can ensure that all contributing rows are also sampled. 
 To achieve this we use a hashing procedure.
 Let us denote the hashing operator $\eta_{a, m}(R)$. 
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash less than or equal to $m$.
@@ -139,13 +139,13 @@ For $\bowtie$, a sampling operator on $Q$ can be pushed down if $a$ is in either
 For group by aggregates, if $a$ is in the group clause (i.e., it is in the aggregate) then a hash of the operand filters all rows that have $a$ which is sufficent to materialize the derived row.
 \end{proof}
 
-{\noindent \textbf{Limitations: }} There are two basic cases where push down does not always work: joins and group by aggregates. 
+{\noindent \textbf{Limitations: }} There are two basic cases where push down fails: joins and group by aggregates. 
 Consider the all-pairs join $R \times S$, a single hash of the keys $(k_s, k_r)$ cannot be pushed down to either A or B. 
 If we pushed down the operator, we would get a join of a sample of $R$ and a sample of $S$ which would not be the sample as a sample of $R \times S$.
 For group by aggregates, if the hashing attribute is not in the group clause (i.e., it is in the aggregate) then push down will not work since the provenance is not uniquely determined.
 
 \subsection{Efficient View Cleaning}
-The result of this hash operator push down on $\mathcal{M}$ is the cleaning expression $\mathcal{C}$. 
+If we apply the hashing operator to $\mathcal{M}$, we can get an optimized cleaning expression $\mathcal{C}$ that avoid materializing unnecessary rows. 
 When applied to a stale sample of a view $\widehat{S}$, the database $\mathcal{D}$, and the delta relations $\partial \mathcal{D}$, it produces an up-to-date sample with sampling ratio $m$:
 \[
 \widehat{S}' = \mathcal{C}(\widehat{S},\mathcal{D},\partial \mathcal{D})
