@@ -99,7 +99,7 @@ We would like the add the following clarifications:
 \textbf{Reviewer 3 suggested: The evaluation must be more realistic. The improvement of performance from 56 seconds to 7.5 seconds is not that exciting. Does it really matter? It could for larger datasets and larger workloads of queries. But, what actually happens when such datasets and queries are used is not demonstrated well. It would be interesting to see the difference on a real workload.}
 
 
-In this revision, we clarified the details of the Convia experiment and demonstrated the performance difference on a real workload. The Conviva dataset is a 1TB user activity log. We derived materialized views based on actual analyst queries. Many queries were nested queries so we factored out inner queries as materialized views. For example, in Figure 9a, V5 was based on a nested query that groups users from similar regions/service providers together then aggregates over error types. For this view, eager maintenance required 858 seconds while sample maintenance required 96 seconds. 
+In this revision, we clarified the details of the Conviva experiment and demonstrated the performance difference on a real workload. The Conviva dataset is a 1TB user activity log. We derived materialized views based on actual analyst queries. Many queries were nested queries so we factored out inner queries as materialized views. For example, in Figure 9a, V5 was based on a nested query that groups users from similar regions/service providers together then aggregates over error types. For this view, eager maintenance required 858 seconds while sample maintenance required 96 seconds. 
 
 \vspace{1.5em}
 
