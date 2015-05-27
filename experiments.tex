@@ -258,7 +258,7 @@ This is because the median is less sensitive to variance in the data.
 \centering
  \includegraphics[scale=0.14]{exp/msqv_1.pdf}
  \includegraphics[scale=0.14]{exp/msqv_2.pdf}\vspace{-0.5em}
- \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) For a 10\% sample size and 10\% update size, \svcnospace+CORR is more accurate than \svcnospace+AQP and No Maintenance.\label{exp3-acc}}\vspace{-1.5em}
+ \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) For a 10\% sample size and 10\% update size, \svcnospace+CORR is more accurate than \svcnospace+AQP and No Maintenance.\label{exp3-acc}}
 \end{figure}
 In this experiment, we demonstrate the breadth of views supported by \svc by using the TPCD queries as materialized views.
 We generate a 10GB base TPCD dataset with skew $z=2$, and derive the views from this dataset.
