@@ -45,18 +45,9 @@ The estimates from this procedure, while approximate, reflect the most recent da
 Approximation error is more manageable than staleness because: (1) the uniformity of sampling allows us to apply theory from statistics such as the Central Limit Theorem to give tight bounds on approximate results, and (2) the approximate error is parametrized by the sample size which the user can control trading off accuracy for computation.
 %\svc is complementary to existing deferred maintenance approaches.
 %When the MVs become stale between maintenance batches, we apply \svc for a far smaller cost than having to maintain the entire view but still get approximate, up-to-date answers.
-
 %Both MVs and queries can be complex.
 However, the MV setting presents new challenges that we did not consider in prior work.
-To summarize our contributions:
-\begin{enumerate}[noitemsep]
-\item We propose a hashing-based technique that efficiently materializes an up-to-date sample view.
-\item We process queries on this view by applying techniques proposed in SampleClean, but significantly extending them to a broader class of queries. Expanding the class of queries results in new challenges in bounding these estimates in confidence intervals. To address this challenge, we also derive a statistical bootstrap estimator to calculate bounds.
-\item We apply an outlier indexing technique to reduce sensitivity to skewed datasets. %Outlier indexing has not been applied in the MV setting, and 
-We propose an index push-up algorithm that allows us to propagate the outliers to derived relations.
-\item We evaluate this technique on real and synthetic datasets to show that SVC gives highly accurate results for a relatively small maintenance cost.
-\end{enumerate} 
-%\end{itemize}
+To summarize our contributions:(1) a hashing-based technique that efficiently materializes an up-to-date sample view, (2) algorithms for processing general aggregate queries on a sample view and bounding results in confidence intervals, (3) an outlier indexing technique to reduce sensitivity to skewed datasets that can push the index up to derived relations, and (4) an evaluation of this technique on real and synthetic datasets to show that SVC gives highly accurate results for a relatively small maintenance cost.
 
 The paper is organized as follows: 
 In Section~\ref{sec-background}, we give the necessary background for our work.
@@ -64,6 +55,6 @@ Next, in Section~\ref{sec-arch}, we formalize the problem.
 In Sections~\ref{sampling} and~\ref{correction}, we describe the sampling and query processing of our technique.
 In Section~\ref{outlier}, we describe the outlier indexing framework.
 Then, in Section~\ref{exp}, we evaluate our approach.
-Finally, we discuss Related Work in Section~\ref{related}.
-In Section~\ref{sec:disc}, we discuss the limitations and future opportunities of our approach, and we present our Conclusions in Section~\ref{conclusion}.
+We discuss Related Work in Section~\ref{related}.
+Finally, we present our Conclusions in Section~\ref{conclusion}.
 %Full versions of our proofs and experimental details are available in our extended technical report \cite{technicalReport}.

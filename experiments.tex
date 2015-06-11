@@ -26,7 +26,7 @@ The incremental maintenance algorithm used in our experiments is the ``change-ta
 In all of the applications, the updates are kept in memory in a temporary table, and we discount this loading time from our experiments.
 We build an index on the primary keys of the view, the base data, but not on the updates.
 %\fi
-Below we describe the view definitions and the queries on the views\footnote{Refer to our extended paper on more details about the experimental setup \cite{technicalReport}.}:
+Below we describe the view definitions and the queries on the views\footnote{\scriptsize Refer to our extended paper on more details about the experimental setup \cite{technicalReport}.}:
 
 \emph{Join View:} In the TPCD specification, two tables receive insertions and updates: \textsf{lineitem} and \textsf{orders}.
 Out of 22 parametrized queries in the specification, 12 are group-by aggregates of the join of \textsf{lineitem} and \textsf{orders} (Q3, Q4, Q5, Q7, Q8, Q9, Q10, Q12, Q14, Q18, Q19, Q21).
@@ -57,11 +57,13 @@ We select a random subset of this domain, e.g., if the attribute is country then
 We generated 100 random \sumfunc, \avgfunc, and \countfunc queries for each view.
 
 \noindent\textbf{Distributed Experimental Setup: }
-We evaluate \svc on Apache Spark~1.1.0 with a 1TB dataset of logs from a video streaming company, Conviva \cite{conviva}.
-The dataset is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
-We generated a set of views from a corresponding dataset of analyst SQL queries on the log table.
+We evaluate \svc on Apache Spark~1.1.0 with 1TB of logs from a video streaming company, Conviva \cite{conviva}.
+This is a denormalized user activity log corresponding to video views and various metrics such as data transfer rates, and latencies.
+Accompanying this data is a four month trace of analyst queries in SQL.
 We identified 8 common summary statistics-type queries that calculated engagement and error-diagnosis metrics.
-The views were generated from the first 800GB of time-consecutive data, and the remaining 200GB of data was used as the updates.
+These 8 queries defined the views in our experiments.
+We populated these view definitions using the first 800GB of user activity log records.  
+We then applied the remaining 200GB of user activity log records as the updates (i.e., in the order they arrived) in our experiments.
 We generated aggregate random queries over this view by taking either random time ranges or random subsets of customers.
 
 %Systems like Spark are increasingly popular, and Spark supports materialization through a distributed data structure called an RDD \cite{zaharia2012resilient}.
@@ -91,7 +93,6 @@ We generated aggregate random queries over this view by taking either random tim
 \fi
 
 \subsubsection{Metrics and Evaluation}
-We will illustrate that \svc is more accurate than the stale query result (No Maintenance); but is less computationally intensive than full IVM. 
 %In our evaluation, we separate maintenance from query processing.
 We use the following notation to represent the different approaches:
 
@@ -115,7 +116,7 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 
 \subsection{Join View}
 
-\begin{figure}[t]\vspace{-2.5em}
+\begin{figure}[t]
 \centering
 \includegraphics[scale=0.14]{exp/msj_1.pdf}
 \includegraphics[scale=0.14]{exp/msj_2.pdf}\vspace{-1em}
