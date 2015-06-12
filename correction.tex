@@ -62,7 +62,7 @@ These rules define a constructive definition that can always be applied for our 
 %We only have to ensure that any projection operation $\Pi$ includes the operand's primary key, and enforcing this condition
 %defines an equivalent materialized view. \reminder{Why do you emphazie the projection operation? Has this rule been defined above?}
 
-\begin{figure}[t] \vspace{-2em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.20]{figs/primary_key.png} \vspace{-.5em}
  \caption{Applying the rules described in Definition \ref{pk}, we illustrate how to assign a primary key to a view.  \label{pk-fig}}\vspace{-1.5em}
@@ -172,7 +172,7 @@ When applied to a stale sample of a view $\widehat{S}$, the database $\mathcal{D
 \]
 Thus, it addresses Problem 1 from the previous section.
 
-\begin{figure}[t] \vspace{-2em}
+\begin{figure}[t]
 \centering
  \includegraphics[scale=0.22]{figs/example_expression_tree_2.pdf} \vspace{-.5em}
  \caption{Applying the rules described in Section \ref{push}, we illustrate how to optimize the sampling of our example maintenance strategy. \label{exexpr2}}\vspace{-1em}

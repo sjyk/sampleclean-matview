@@ -65,12 +65,7 @@ This ensures that we do not double count the outliers.
 
 \subsection{Query Processing}\label{oqp} 
 For result estimation, we can think of our sample $\hat{S'}$ and our outlier index $O$ as two distinct parts.
-Since $O \subset S'$, and we give membership in our outlier index precedence, our sample is actually a sample restricted to the set $\widehat{(S'-O)}$. 
-The outlier index has two uses: (1) we can query all the rows that correspond to outlier rows, 
-and (2) we can improve the accuracy of our \emph{aggregation} queries.
-To query the outlier rows, we can select all of the rows in the materialized view that are flagged as outliers, and these rows are guaranteed to be up-to-date.
-
-For (2), we can also incorporate the outliers into our correction estimates.  
+Since $O \subset S'$, and we give membership in our outlier index precedence, our sample is actually a sample restricted to the set $\widehat{(S'-O)}$.   
 For a given query, let $c_{reg}$ be the correction calculated on $\widehat{(S'-O)}$ using the technique proposed in the previous section and adjusting the sampling ratio $m$ to account for outliers removed from the sample.
 We can also apply the technique to the outlier set $O$ since this set is deterministic the sampling ratio for this set is $m=1$, and we call this result $c_{out}$.
 Let $N$ be the count of records that satisfy the query's condition and $l$ be the number of outliers that satisfy the condition.
