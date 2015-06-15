@@ -171,7 +171,7 @@ The same way that SVC takes advantage of micro idle times during communication s
 
 \subsection{Extended Proofs}
 
-\subsection{Is Hashing Equivalent To RNG?}
+\subsubsection{Is Hashing Equivalent To RNG?}
 In this work, we argue that hashing can be used for ``sampling" a relational expression.
 However, from a complexity theory perspective, hashing is not equivalent to random number generation (RNG).
 The existence of true one-way hash functions is a conjecture that would imply $P \ne NP$.
@@ -253,6 +253,38 @@ sample size is for sampling fraction $m$:
 This equation is derived from the formula for the variance of a mixture distribution.
 In this setting, our sampling would have to consider this variance against the benefits of pushing the hash operator further down the query tree. 
 
+\subsection{Confidence Intervals For Sample Means}
+Let result of the aggregation function~$q$ on the dirty relation $R$ be erroneous by~$\epsilon$:
+\[q(R) = q(R_{clean}) + \epsilon\]
+Therefore, we can write:
+\begin{equation}
+q(R) = \frac{1}{N}\sum_{t\in R}e(t)\hspace{2em}
+q(R_{clean}) = \frac{1}{N}\sum_{t'\in R_{clean}} e(t')
+\end{equation}
+If we have correspondence (i.e., defining $\in$ in terms of primary keys), we can solve for $\epsilon$:
+\[
+\epsilon = \alpha \cdot \sum_{t\in R, R_{clean}} (e(t)-e(t'))
+\] 
+\[+ \beta \cdot \sum_{t\in R, !R_{clean}}(e(t)-0) \]
+\[+ \gamma \cdot \sum_{t\in ! R, R_{clean}}(0-e(t'))\] 
+In other words, for every tuple t, we calculate how much $e(t')$ changes $e(t)$.
+$\alpha, \beta, \gamma$ are the proportionality constants based on the number of tuples
+in that category.
+For a sample $S$, we can construct the set of differences between the two functions $Q$.
+The mean difference is an unbiased estimate of $\epsilon$, the difference between $q(P)$ and $q(R_{clean})$.
+We go through this process since it is well understood how to bound means of random variables using the CLT, Hoeffding, and other concentration inequalities.
+We can subtract this estimate from an existing aggregation of data to get an estimate of $q(R_{clean})$.
+
+\subsection{Confidence Intervals General Case}
+However, when the aggregate cannot be written as a sample mean, we cannot commute subtraction.
+This makes result estimation and bounding more challenging.
+In this case, we have to use an empirical technique to bound our estimates.
+A statistical bootstrap repeatedly subsamples a sample and evaluates an aggregate on this sample.
+Thus, we can come up with an estimation procedure and calculate an empirical confidence interval based on the repeated evaluations.
+Bootstrap estimates are valid for a class of aggregates called Hadamard Differentiable (e.g. median, corr, variance).
+The bootstrap estimates are not guaranteed to be unbiased but they are consistent (i.e. as the sample size increases they converge to the correct bound).
+Due to this nuance, there is work on diagnostics for when bootstrap estimates are usable \cite{agarwalknowing}.
+
 \subsection{Experimental Details}
 
 \subsubsection{Join View TPCD Queries}
@@ -321,7 +353,7 @@ We denormalize the TPCD schema and treat each of the 22 queries as views on the 
 In our experiments, we evaluate 10 of these with SVC. 
 Here, we provide a table of the queries and reasons why a query was not suitable for our experiments.
 The main reason a query was not used was because the cardinality of the result was small.
-Since we sample from the view, if the result was small eg. < 10, it would not make sense to apply SVC.
+Since we sample from the view, if the result was small eg. $le$ 10, it would not make sense to apply SVC.
 Furthermore, in the TPCD specification the only tables that are affected by updates are lineitem and orders; and queries that
 do not depend on these tables do not change; thus there is no need for maintenance.
 
