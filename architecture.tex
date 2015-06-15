@@ -1,6 +1,6 @@
 
 \section{Framework Overview}\label{sec-arch}
-In this section, we formalize the two main problems that \svc addresses: (1) cleaning a stale sample MV and (2) answering an aggregate query with the clean sample.
+%In this section, we formalize the two main problems that \svc addresses: (1) cleaning a stale sample MV and (2) answering an aggregate query with the clean sample.
 
 \subsection{Notation and Definitions}\label{notation}
 \svc returns a bounded approximation for aggregate queries on stale MVs for a flexible additional maintenance cost.
@@ -15,10 +15,13 @@ We use the following parametrized notation for joins, aggregations and generaliz
 	\item $\gamma_{f,A}(R)$: Apply the aggregate function $f$ to the relation R grouped by the distinct values of $A$, where $A$ is a subset of the attributes.  
 	The DISTINCT operation can be considered as a special case of the Aggregation operation. 
 \end{itemize}
+\vspace{-0.5em}
 The composition of the unary and binary relational expressions can be represented as a tree, which is called the \emph{expression tree}.
 The leaves of the tree are the \emph{base relations} for the view. 
 Each non-leave node is the result of applying one of the above relational expressions to a relation.
 To avoid ambiguity, we refer to tuples of the base relations as \emph{records} and tuples of derived relations as \emph{rows}.
+
+\vspace{0.5em}
 
 \noindent \textbf{Primary Key:} We assume that each of the base relations has a \emph{primary key}. If this is not the case, we can always add an extra column 
 that assigns an increasing sequence of integers to each record.
@@ -26,7 +29,7 @@ For the defined relational expressions, every row in a materialized view can als
 which we will describe in Section \ref{sampling}. 
 This primary key is formally a subset of attributes $u \subseteq \{a_1,a_2,...,a_k\}$ such that all $s \in S(u)$ are unique.
 
-\vspace{.25em}
+\vspace{0.5em}
 
 \noindent \textbf{Staleness:} For each relation $R_i$ there is a set of insertions $\Delta R_i$ (modeled as a relation)
 and a set of deletions $\nabla R_i$.
@@ -38,7 +41,7 @@ We refer to the set of insertion and deletion relations as ``delta relations", d
 A view $S$ is considered \emph{stale} when there exist insertions or deletions to any of its base relations.
 This means that at least one of the delta relations in $\partial \mathcal{D}$ is non-empty.
 
-\vspace{.25em}
+\vspace{0.5em}
 
 \noindent \textbf{Maintenance:} There may be multiple ways (e.g., incremental maintenance or recomputation) to maintain a view $S$, and we denote the up-to-date view as $S'$.
 We formalize the procedure to maintain the view as a \emph{maintenance strategy} $\mathcal{M}$.
@@ -49,7 +52,7 @@ In this work, we consider maintenance strategies composed of the same relational
 S' = \mathcal{M}(S,\mathcal{D}, \partial D)
 \]
 
-\vspace{.25em}
+\vspace{0.5em}
 
 \noindent \textbf{Staleness as Data Error:} The consequences of staleness are incorrect, missing, and superfluous rows. 
 Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
@@ -59,7 +62,6 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 	\item \textbf{Superfluous: } Superfluous rows are the set of rows (identified by the primary key) that exist in the stale view but not in the up-to-date view. For $s \in S$, let $s(u)$ be the value of the primary key. A superfluous row is one such that there does not exist a $s' \in S'$ with $s(u) = s'(u)$.
 \end{itemize}
 
-\vspace{.25em}
 
 \iffalse
 \begin{figure}[t] \vspace{-2em}
@@ -71,14 +73,19 @@ Formally, for a stale view $S$ with primary key $u$ and an up-to-date view $S'$:
 \vspace{0.45em}
 \fi
 
+\vspace{2.0em}
+
 \noindent \textbf{Uniform Random Sampling:}
 We define a sampling ratio $m\in [0,1]$ and for each row in a view $S$, we include it into a sample with probability $m$.
 We use the ``hat'' notation (e.g., $\widehat{S}$) to denote sampled relations.
-We say the relation $\widehat{S}$ is a \emph{uniform sample} of $S$ if
+The relation $\widehat{S}$ is a \emph{uniform sample} of $S$ if
 \[\text{(1) } \forall s \in \widehat{S} : s \in S\text{;~~~~~ (2) }Pr(s_1 \in \widehat{S}) =  Pr(s_2 \in \widehat{S}) = m.\]
+
+\vspace{0.5em}
+
 We say a sample is \emph{clean} if and only if it is a uniform random sample of the up-to-date view $S'$. 
 
-\vspace{0.25em}
+\vspace{-0.5em}
 
 \begin{example}\label{concepts}
 In this example, we summarize all of the key concepts and terminology pertaining to materialized views, stale data error, and maintenance strategies.
@@ -130,7 +137,7 @@ Therefore, the maintenance strategy is:
 
 \subsection{\svc Workflow}
 %We summarize the system in Figure \ref{sys-arch} in our introduction.
-Formally, the workflow of \svc is:
+Formally, the workflow of \svc is:\vspace{-0.5em}
 \begin{enumerate}[noitemsep]
 \item We are given a view $S$.
 \item $\mathcal{M}$ defines the maintenance strategy that updates $S$ at each maintenance period.

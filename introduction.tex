@@ -26,8 +26,8 @@ With a small amount of up-to-date data, we can compensate for the error in aggre
 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.25]{figs/sys-arch.pdf} \vspace{-.25em}
- \caption{Deferred maintenance can lead to stale MVs which have incorrect, missing, and superfluous rows. In \svc, we pose this as a data cleaning problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on stale views.\label{sys-arch}}\vspace{-1.75em}
+ \includegraphics[scale=0.29]{figs/sys-arch.pdf} \vspace{-.25em}
+ \caption{In \svc, we pose view maintenance as a sample-and-clean problem and show that we can use a sample of clean (up-to-date) rows from an MV to correct inaccurate query results on stale views.\label{sys-arch}}\vspace{-1.75em}
 \end{figure}
 
 Our method relies on modeling query answering on stale MVs as a data cleaning problem.
@@ -36,6 +36,8 @@ Increasing data volumes have led to development of new, efficient sampling-based
 In our prior work, we developed the SampleClean framework for scalable aggregate query processing on dirty data \cite{wang1999sample}.
 Since data cleaning is often expensive, we proposed cleaning a sample of data and using this sample to improve the results of aggregate queries on the full dataset.
 Since stale MVs are dirty data, an approach similar to SampleClean raises a new possibility of using a sample of ``clean'' rows in the MVs to return more accurate query results.
+
+\vspace{0.5em}
 
 \svcfull (\svc illustrated in Figure~\ref{sys-arch}) approximates aggregate query results from a stale MV and a small sample of up-to-date data.
 We calculate a relational expression that materializes a uniform sample of up-to-date rows.

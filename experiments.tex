@@ -94,7 +94,7 @@ We generated aggregate random queries over this view by taking either random tim
 
 \subsubsection{Metrics and Evaluation}
 %In our evaluation, we separate maintenance from query processing.
-We use the following notation to represent the different approaches:
+%We use the following notation to represent the different approaches:
 
 \noindent\textbf{No maintenance (Stale): } The baseline for evaluation is not applying any maintenance to the materialized view.
 
@@ -115,33 +115,11 @@ When a query has multiple results (a group-by query), then, unless otherwise not
 \noindent\textbf{Maintenance Time: } We define the maintenance time as the time needed to produce the up-to-date view for incremental view maintenance, and the time needed to produce the up-to-date sample in \svc. 
 
 \subsection{Join View}
-
-\begin{figure}[t]
-\centering
-\includegraphics[scale=0.14]{exp/msj_1.pdf}
-\includegraphics[scale=0.14]{exp/msj_2.pdf}\vspace{-1em}
- \caption{(a) On a 10GB view with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance. \vspace{-.5em}\label{exp-1-samplesize}}\vspace{-1.0em}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[scale=0.14]{exp/msj_3.pdf}\vspace{-1.5em}
- \caption{For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we generate 100 of each TPCD parameterized queries and answer the queries using the stale materialized view, \svcnospace+CORR, and \svcnospace+AQP. We plot the median relative error for each query. \label{exp-1-acc}}\vspace{-1.5em}
-\end{figure}
-
-\begin{figure}[t]
-\centering
- \includegraphics[scale=0.13]{exp/msj_4.pdf}
- \includegraphics[scale=0.13]{exp/msj_6.pdf}
-  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. (b) \svcnospace+CORR is more accurate than \svcnospace+AQP until a break even point. \vspace{-1em} \label{exp-1-total}}
-\end{figure}
-
 %\begin{figure}[t]
 %\centering
 %  \includegraphics[scale=0.16]{exp/msj_5.pdf}
 % \caption{We fix the update size at 1GB and the sampling ratio at 10\% and vary the skew of the dataset. The gap between \svcnospace+AQP and \svc increases in more skew datasets suggesting that corrections are more robust to skew. \label{exp-1-zipf}}
 %\end{figure}
-
 In our first experiment, we evaluate how \svc performs on a materialized view of the join of \textsf{lineitem} and \textsf{orders}.
 We generate a 10GB base TPCD-Skew dataset with skew $z=2$, and derive the view from this dataset.
 We first generate 1GB (10\% of the base data) of updates (insertions and updates to existing records), and vary the sample size.
@@ -190,6 +168,25 @@ For a 10\% sample, we find that \svcnospace+CORR is more accurate until the upda
 %Even though a dataset might be skewed, if (in relative terms) the updates are more uniform \svcnospace+CORR will give more accurate results.
 %We can make \svcnospace+CORR and \svcnospace+AQP even more accurate using the outlier indexing which we will evaluate in the later sections.
 
+\begin{figure}[t]
+\centering
+\includegraphics[scale=0.14]{exp/msj_1.pdf}
+\includegraphics[scale=0.14]{exp/msj_2.pdf}\vspace{-1em}
+ \caption{(a) On a 10GB view with 1GB of insertions and updates, we vary the sampling ratio and measure the maintenance time of \svc. (b) For a fixed sampling ratio of 10\%, we vary the update size and plot the speedup compared to full incremental maintenance. \vspace{-.5em}\label{exp-1-samplesize}}\vspace{-0.5em}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[scale=0.15]{exp/msj_3.pdf}\vspace{-0.5em}
+ \caption{For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we generate 100 of each TPCD parameterized queries and answer the queries using the stale materialized view, \svcnospace+CORR, and \svcnospace+AQP. We plot the median relative error for each query. \label{exp-1-acc}}\vspace{-0.5em}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+ \includegraphics[scale=0.13]{exp/msj_4.pdf}
+ \includegraphics[scale=0.13]{exp/msj_6.pdf}
+  \caption{(a) For a fixed sampling ratio of 10\% and update size of 10\% (1GB), we measure the total time incremental maintenance + query time. (b) \svcnospace+CORR is more accurate than \svcnospace+AQP until a break even point. \vspace{-1em} \label{exp-1-total}}
+\end{figure}
 
 \iffalse
 \subsubsection{Aggregate View}
@@ -254,13 +251,12 @@ This is because the median is less sensitive to variance in the data.
 \fi
 
 \subsection{Complex Views}\label{complexviews}
-
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.14]{exp/msqv_1.pdf}
- \includegraphics[scale=0.14]{exp/msqv_2.pdf}\vspace{-0.5em}
+ \includegraphics[scale=0.16]{exp/msqv_1.pdf}
+ \includegraphics[scale=0.16]{exp/msqv_2.pdf}
  \caption{(a) For 1GB update size, we compare maintenance time and accuracy of \svc with a 10\% sample on different views. V21 and V22 do not benefit as much from \svc due to nested query structures. (b) For a 10\% sample size and 10\% update size, \svcnospace+CORR is more accurate than \svcnospace+AQP and No Maintenance.\label{exp3-acc}}
-\end{figure}
+\end{figure}\vspace{-0.5em}
 In this experiment, we demonstrate the breadth of views supported by \svc by using the TPCD queries as materialized views.
 We generate a 10GB base TPCD-Skew dataset with skew $z=2$, and derive the views from this dataset.
 We first generate 1GB (10\% of the base data) of updates (insertions and updates to existing records), and vary the sample size.
@@ -293,6 +289,8 @@ We evaluate the outlier index on the complex TPCD views.
 We find that four views: V3, V5, V10, V15, can benefit from this index with our push-up rules. 
 These are four views dependent on \textsf{l\_extendedprice} that were also in the set of ``Complex'' views chosen before.
 
+\vspace{1em}
+
 In our first outlier indexing experiment (Figure \ref{exp5-oi}(a)), we analyze V3.
 We set an index of 100 records, and applied \svcnospace+CORR and \svcnospace+AQP to views derived from a dataset with a skew parameter $z=\{1,2,3,4\}$. 
 We run the same queries as before, but this time we measure the error at the 75\% quartile.
@@ -308,8 +306,8 @@ Outlier indexing always improves query results as we are reducing the variance o
 %Recall, that we implement \svc on a 10-node Spark cluster. 
 \begin{figure}[t]
 \centering
- \includegraphics[scale=0.14]{exp/con_3.pdf}
- \includegraphics[scale=0.14]{exp/con_4.pdf} \vspace{-1.5em}
+ \includegraphics[scale=0.16]{exp/con_3.pdf}
+ \includegraphics[scale=0.16]{exp/con_4.pdf} \vspace{-1.5em}
  \caption{(a) We compare the maintenance time of \svc with a 10\% sample and full incremental maintenance, and find that as with TPCD \svc saves significant maintenance time. (b) We also evaluate the accuracy of the estimation techniques. \label{conv-1}}\vspace{-1.5em}
 \end{figure}
 We derive the views from 800GB of base data and add 80GB of updates. 

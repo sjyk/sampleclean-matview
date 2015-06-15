@@ -22,13 +22,15 @@ Video(videoId$\textrm{,}$ ownerId$\textrm{,}$ duration)
 The \tbl{Log} table stores each visit to a specific video with primary key (\texttt{sessionId}) and a foreign-key to the \tbl{Video} table (\texttt{videoId}).
 %The \tbl{Video} stores each video with the primary key (\texttt{videoId}), a number identifying the owner of the view (\texttt{ownerId}), and the video duration (\texttt{duration}).
 For our analysis, we are interested in finding aggregate statistics on visits, such as the average visits per video and the total number of visits predicated on different subsets of owners. 
-We could define the following MV that counts the visits for each \texttt{videoId} associated with owners and the duration: 
+We could define the following MV that counts the visits for each \texttt{videoId} associated with owners and the duration.
+
+\vspace{2em}
+
 \begin{lstlisting}[mathescape,basicstyle={\scriptsize}]
 CREATE VIEW visitView
-AS SELECT videoId, ownerId, duration,
-          count(1) as visitCount
-FROM Log, Video
-WHERE Log.videoId = Video.videoId
+AS SELECT videoId, ownerId, duration, 
+count(1) as visitCount
+FROM Log, Video WHERE Log.videoId = Video.videoId
 GROUP BY videoId
 \end{lstlisting}
 As \tbl{Log} table grows, this MV becomes stale, and we denote the insertions to the table as:
