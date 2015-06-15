@@ -128,8 +128,8 @@ However, when there is a constraint that enforces these attributes are equal the
 \begin{example}
 We illustrate our hashing procedure in terms of SQL expressions on our running example.
 We can push down the hash function for the following expressions:
-\begin{lstlisting}
-SELECT * FROM Video WHERE Condition( \cdot )
+\begin{lstlisting}[mathescape]
+SELECT * FROM Video WHERE Condition($\cdot$)
 SELECT * FROM Video,Log WHERE Video.videoId = Log.videoId
 SELECT videoId, count(1) FROM Log GROUP BY videoId
 \end{lstlisting}
