@@ -8,9 +8,9 @@ The problem with eager maintenance is that every view created by an analyst plac
 There has been significant research on fast MV maintenance algorithms, most recently DBToaster \cite{DBLP:journals/vldb/KochAKNNLS14} which uses SQL query compilation and higher-order maintenance.
 However, even with these optimizations, some materialized views are computationally difficult to incrementally maintain.
 For example, incremental maintenance of views with correlated subqueries can grow with the size of the data.
-Additionally, large views may require distribution and this further increases maintenance costs due to coordination.
-In real deployments, it is common to use the same infrastructure to maintain multiple MVs (along with other analytics tasks) adding further contention to computational resources and reducing overall available throughput. 
-When faced with such challenges, it is common to batch updates to amortize maintenance overheads and add flexibility to scheduling.
+%Additionally, large views may require distribution and this further increases maintenance costs due to coordination.
+It is also common to use the same infrastructure to maintain multiple MVs (along with other analytics tasks) adding further contention to computational resources and reducing overall available throughput. 
+When faced with such challenges, one solution is to batch updates and amortize maintenance overheads.
 
 \noindent \textbf{Log Analysis Example: } 
 Suppose we are a video streaming company analyzing user engagement.

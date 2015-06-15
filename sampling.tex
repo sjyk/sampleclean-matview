@@ -71,7 +71,7 @@ q(S') \approx r_{stale} + (r_{est\_fresh} - r_{est\_stale})
 \end{enumerate}
 
 A commonly studied property in the AQP literature is unbiasedness.
-An unbiased result estimate means that the expected value of the estimate over all samples of the same size is $q(S')$ \footnote{\scriptsize The \avgfunc query is considered conditionally unbiased in some works, however, this difference is largely notational and does not affect any subsequent bounds.}.
+An unbiased result estimate means that the expected value of the estimate over all samples of the same size is $q(S')$ \footnote{\scriptsize The \avgfunc query is considered conditionally unbiased in some works.}.
 We can prove that if \svcnospace+AQP is unbiased (there is an AQP method that gives an unbiased result) then \svcnospace+CORR also gives unbiased results.
 \begin{lemma}\label{lemma:unbiased}
 If there exists an unbiased sample estimator for q(S') then there exists an unbiased sample estimator for c.
@@ -103,15 +103,13 @@ We take the difference of the two values $80 - 40 = 40$.
 This means that we should correct the old result by $40$ resulting in the estimate of $45+40 = 85$.
 \end{example}
 
-\subsection{Estimate Accuracy}
-To analyze the estimate accuracy, we taxonomize common SQL aggregate queries into different \emph{estimator families}.
-For example, \sumfunc, \countfunc, and \avgfunc can all be written as sample means.
+\subsection{Confidence Intervals}
+To bound our estimates in confidence intervals we explore three cases: (1) aggregates that can be written as sample means, (2) aggregates that can be bounded empirically with a statistical bootstrap, and (3) \minfunc and \maxfunc.
+For (1), \sumfunc, \countfunc, and \avgfunc can all be written as sample means.
 \sumfunc is the sample mean scaled by the relation size and \countfunc is the mean of the indicator function scaled by the relation size.
-There are some key properties of interest within different estimator families: unbiasedness, existence analtyic confidence intervals, and optimality.
-\svcnospace+AQP and \svcnospace+CORR inherit the properties of the estimator family.
-%Table \ref{estimators} describes these families and their properties for common queries.
-The sample mean family of estimators (\sumfunc, \countfunc, and \avgfunc) has analytic solutions and has been the focus of other approximate query processing works \cite{OlkenR86, wang1999sample}, and we analyze this family in detail.
-The general case can only be bounded empirically which is more challenging.
+In this case, we can get analytic confidence intervals which allows us to analyze the efficiency tradeoffs.
+In case (2), for example \medfunc, we lose this property and have to use an empirical technique to bound the results.
+Queries such as \minfunc and \maxfunc fall into their own category as they cannot easily be bounded empirically \cite{agarwalknowing}, and we discuss these queries in our Technical Report \cite{technicalReport}.
 
 %\begin{table}\footnotesize \vspace{-1em}
 %\centering
@@ -126,8 +124,7 @@ The general case can only be bounded empirically which is more challenging.
 %\end{table}
 
 \subsubsection{Confidence Intervals For Sample Means}
-Now we will discuss bounding our estimates in confidence intervals for \sumfunc, \countfunc, and \avgfunc, which can be
-estimated with ``sample mean" estimators.
+The first case is aggregates that can be expressed as a sample mean (\sumfunc, \countfunc, and \avgfunc)
 Sample means for uniform random samples (also called sampling without replacement) converge to the population mean by the Central Limit Theorem (CLT).
 Let $\bar{\mu}$ be a sample mean calculated from $k$ samples, $\sigma^2$ be the variance of the sample, and $\mu$ be the population mean. 
 Then, the error $(\mu - \bar{\mu})$ is normally distributed:
@@ -172,7 +169,7 @@ To calculate the confidence intervals for \svcnospace+CORR we have to look at th
 If all rows in $\widehat{S}$ exist in $\widehat{S}'$, we could use the associativity of addition and subtraction to rewrite this as:
 $c = q(S - S')$, where $-$ is the row-by-row difference between $S$ and $S'$.
 The challenge is that the missing rows on either side make this ill-defined.
-Thus, we have define the following null-handling semantics with a subtraction operator we call $\dot{-}$.
+Thus, we defined the following null-handling with a subtraction operator we call $\dot{-}$.
 \begin{definition}[Correspondence Subtract] Given an aggregate query, and two corresponding relations $R_1$ and $R_2$ with the schema $(a_1, a_2, ...)$ where $a_1$ is the primary key for $R_1$ and $R_2$, and $a_2$ is the aggregation attribute for the query. 
 $\dot{-}$ is defined as a projection of the full outer join on equality of $R_1.a_1 = R_2.a_1$: \[ \Pi_{R_1.a_2 - R_2.a_2} ( R_1 \fullouterjoin R_2 ) \]
 Null values $\emptyset$ are represented as~zero.
@@ -185,7 +182,7 @@ Using this operator, we can define a new intermediate result $diff$:
 SELECT $\gamma\cdot$stdev(trans_attr)/sqrt(count(1)) FROM diff
 \end{lstlisting}
 
-\subsubsection{AQP vs. CORR For Sample Means}
+\subsubsection{AQP vs. CORR For Sample Means}\label{aqp-v-cor}
 In terms of these bounds, we can analyze how \svcnospace+AQP compares to \svcnospace+CORR for a fixed sample size $k$.
 \sloppy
 \svcnospace+AQP gives an estimate that is proportional to the variance of the clean sample view: 
@@ -228,9 +225,9 @@ There are, however, some cases when the assumptions, namely zero-knowledge, of t
  %Furthermore, the sample mean is unbiased for any distribution, but it is often the case that alternative MVUEs are biased when the data is not exactly from the correct model family (such as our example of the line). 
  Our approach is valid for any choice of estimator if one exists, even though we do the analysis for sample mean estimators and this is the setting in which that estimator is optimal.
 
-\subsubsection{General Estimators}
-The theory for bounding general estimators outside of the sample mean family is more complex.
-We may not get analytic confidence intervals on our results, nor is it guaranteed that our estimates are optimal.
+\subsubsection{Bootstrap Confidence Intervals}
+In the second case, we explore bounding queries that cannot be expressed as sample means.
+We do not get analytic confidence intervals on our results, nor is it guaranteed that our estimates are optimal.
 In AQP, the commonly used technique is called a statistical bootstrap \cite{AgarwalMPMMS13} to empirically bound the results.
 In this approach, we repeatedly subsample with replacement from our sample and apply the query to the sample.
 This gives us a technique to bound SVC+AQP the details of which can be found in \cite{AgarwalMPMMS13, agarwalknowing, DBLP:conf/sigmod/ZengGMZ14}. 
@@ -243,7 +240,7 @@ In this variant, repeatedly estimate $c$ from subsamples and build an empirical 
 \begin{enumerate}[noitemsep]
 \item Subsample $\widehat{S}_{sub}'$ and $\widehat{S}_{sub}$ with replacement from $\widehat{S}'$ and $\widehat{S}$ respectively
 \item Apply SVC+AQP to $\widehat{S}_{sub}'$ and $\widehat{S}_{sub}$
-\item Record the difference $s\cdot(q(\widehat{S}_{sub}')-q(\widehat{S}_{sub}))$, note that for some queries such as \medfunc $s=1$.
+\item Record the difference $\cdot(aqp(\widehat{S}_{sub}')-aqp(\widehat{S}_{sub}))$
 \item Return to 1, for k iterations.
 \item Return the $97.5$\% and the $2.5$\% percentile of the distribution of results. 
 \end{enumerate}

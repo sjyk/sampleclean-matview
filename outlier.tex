@@ -25,7 +25,7 @@ If our size limit is $k$, for a given attribute we can select the the top-k reco
 Then, we can use that top-k list to set a threshold for our index. 
 Then, the attribute value of the lowest record becomes the threshold $t$.
 Alternatively, we can calculate the variance of the attribute and set the threshold to represent $c$ standard deviations above the mean.
-This threshold can be adaptively set at each maintenance period to include more or less outliers.
+This threshold can be adaptively set at each maintenance period.
 
 %The caveat is that the outlier index should not be too expensive to calculate nor should it be too large as it negates the performance benefits of sampling.  
 %The query processing approach that we propose in the following sub-sections is agnostic to how we choose this threshold.

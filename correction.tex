@@ -15,7 +15,7 @@ The challenge is that $\mathcal{M}$ does not always commute with sampling.
 
 \subsection{Provenance}
 \label{lin}
-To understand the commutativity problem, consider the maintaining a group by aggregate:
+To understand the commutativity problem, consider maintaining a group by aggregate view:
 \begin{lstlisting} [mathescape,basicstyle={\scriptsize}]
 SELECT videoId, count(1) FROM Log
 GROUP BY videoId
@@ -92,19 +92,19 @@ Let us denote the hashing operator $\eta_{a, m}(R)$.
 For all tuples in R, this operator applies a hash function whose range is $[0,1]$ to primary key $a$ (which may be a set) and selects those records with hash less than or equal to $m$ \footnote{\scriptsize For example, if hash function is a 32-bit unsigned integer which we can normalize by \texttt{MAXINT} to be in $[0,1]$.}.
 
 In this work, we study uniform hashing where the condition $h(a) \le m$ implies that a fraction of approximately $m$ of the rows are sampled.
-Such hash functions are utilized in other aspects of database research and practice (e.g. hash partitioning, hashed joins, and hash tables).
+Such hash functions are utilized in other aspects of database research and practice (e.g. hash partitioning, hash joins, and hash tables).
 Hash functions in these applications are designed to be as uniform as possible to avoid collisions.
-There are numerous empirical studies that establish that for many commonly applied hash functions (e.g., Linear, SDBM, MD5, SHA) the difference with a true uniform random variable is very small \cite{henke2009empirical, l2007testu01}.
-Cryptographic hashes work particularly well and are supported by most commercial and open source systems, for example MySQL provides MD5 and SHA1/2.
+Numerous empirical studies establish that many commonly applied hash functions (e.g., Linear, SDBM, MD5, SHA) have negligible differences with a true uniform random variable \cite{henke2009empirical, l2007testu01}.
+Cryptographic hashes work particularly well and are supported by most commercial and open source systems, for example MySQL provides MD5 and SHA1.
 
 %This definition is without loss of generality for uniform hash function, as if we have a hash function whose range is the set of integers (as implemented in MySQL or Apache Hive) we can take the absolute value and divide by the maximum integer mapping this range back $[0,1]$. 
 
 To avoid materializing extra rows, we push down the hashing operator through the expression tree.
 The further that we can push $\eta$ down, the more operators (i.e., above the sampling) can benefit.
-This push down is analogous to predicate push-down operations used in query optimizers. 
-In particular, we are interested in finding an optimized relational expression that materializes an identical sample before and after the push down.
-We formalize the push down rules below:
-\begin{definition}[Hash push down]
+This push-down is analogous to predicate push-down operations used in query optimizers. 
+In particular, we are interested in finding an optimized relational expression that materializes an identical sample before and after the push-down.
+We formalize the push-down rules below:
+\begin{definition}[Hash push-down]
 For a derived relation $R$, the following rules can be applied to push $\eta_{a, m}(R)$ down the expression tree. 
 \begin{itemize}[noitemsep]
 \item $\sigma_{\phi}(R)$: Push $\eta$ through the expression.  
@@ -118,8 +118,8 @@ For a derived relation $R$, the following rules can be applied to push $\eta_{a,
 \end{definition}
 
 \noindent \textbf{Special Case of Joins: }
-In general, a join $R \bowtie S$ blocks the pushdown of the hash function $\eta_{a, m}(R)$ since $a$ possibly consists of attributes in both $R$ and $S$.
-However, when there is a constraint that enforces these attributes are equal then pushdown is possible.
+In general, a join $R \bowtie S$ blocks the push-down of the hash operator $\eta_{a, m}(R)$ since $a$ possibly consists of attributes in both $R$ and $S$.
+However, when there is a constraint that enforces these attributes are equal then push-down is possible.
 
 \emph{Foreign Key Join. } If we have a join with two foreign-key relations $R_1$ (fact table with foreign key $a$) and $R_2$ (dimension table with primary key $b \subseteq a$) and we are sampling the key $a$, then we can push the sampling down to $R_1$. This is because we are guaranteed that for every $r_1\in R_1$ there is only one $r_2 \in R_2$. 
 
@@ -127,14 +127,14 @@ However, when there is a constraint that enforces these attributes are equal the
 
 \begin{example}
 We illustrate our hashing procedure in terms of SQL expressions on our running example.
-We can pushdown the hash function for the following expressions:
+We can push down the hash function for the following expressions:
 \begin{lstlisting}
-SELECT * FROM Video WHERE Predicate()
+SELECT * FROM Video WHERE Condition( \cdot )
 SELECT * FROM Video,Log WHERE Video.videoId = Log.videoId
 SELECT videoId, count(1) FROM Log GROUP BY videoId
 \end{lstlisting}
 \vspace{0.3em}
-The following expressions are examples where we cannot pushdown the hash function:
+The following expressions are examples where we cannot push-down the hash function:
 \begin{lstlisting}
 SELECT * FROM Video, Log
 
@@ -148,24 +148,26 @@ GROUP BY c
 
 \end{example}
 
-\begin{theorem}
+In Theorem \ref{push-down-corr}, we prove the correctness of our push-down rules.
+
+\begin{theorem}\label{push-down-corr}
 Given a derived relation $R$, primary key $a$, and the sample $\eta_{a, m}(R)$.
-Let $S$ be the sample created by applying $\eta_{a, m}$ without push down and 
-$S'$ be the sample created by applying the push down rules to $\eta_{a, m}(R)$.
+Let $S$ be the sample created by applying $\eta_{a, m}$ without push-down and 
+$S'$ be the sample created by applying the push-down rules to $\eta_{a, m}(R)$.
 $S$ and $S'$ are identical samples with sampling ratio $m$.
 \end{theorem}
 \begin{proof}[Sketch]
 We can prove this by induction.
 The base case is where the expression tree is only one node, trivially making this true.
 Then, we can induct considering one level of operators in the tree.
-$\sigma, \cup, \cap, -$ clearly commute with hashing the key $a$ allowing for push down.
+$\sigma, \cup, \cap, -$ clearly commutes with hashing $a$.
 $\Pi$ commutes only if $a$ is in the projection.
 For $\bowtie$, a sampling operator on $Q$ can be pushed down if $a$ is in either $k_r$ or $k_s$, or if there is a constraint that links $k_r$ to $k_s$.
-For group by aggregates, if $a$ is in the group clause (i.e., it is in the aggregate) then a hash of the operand filters all rows that have $a$ which is sufficient to materialize the derived row.
+For group by aggregates, if $a$ is in the group clause (i.e., it is in the aggregate), then hashing the operand filters all rows that have $a$ which is sufficient to materialize the derived row.
 \end{proof}
 
 \subsection{Efficient View Cleaning}
-If we apply the hashing operator to $\mathcal{M}$, we can get an optimized cleaning expression $\mathcal{C}$ that avoid materializing unnecessary rows. 
+If we apply the hashing operator to $\mathcal{M}$, we can get an optimized cleaning expression $\mathcal{C}$ that avoids materializing unnecessary rows. 
 When applied to a stale sample of a view $\widehat{S}$, the database $\mathcal{D}$, and the delta relations $\partial \mathcal{D}$, it produces an up-to-date sample with sampling ratio $m$:
 \[
 \widehat{S}' = \mathcal{C}(\widehat{S},\mathcal{D},\partial \mathcal{D})
@@ -179,11 +181,10 @@ Thus, it addresses Problem 1 from the previous section.
 \end{figure}
 
 \begin{example}
-We illustrate our proposed approach on our example view \texttt{visitView} (Figure \ref{exexpr2}). 
-The primary key for the view is the tuple (\texttt{videoId}) making that the primary key of the MV.
-We start by applying the hashing operator to this key.
+We illustrate our proposed approach on our example view \texttt{visitView} with the expression tree listed in Figure \ref{exexpr2}. 
+We start by applying the hashing operator to the primary key (\texttt{videoId}).
 The next operator we see in the expression tree is a projection that increments the \texttt{visitCount} in the view, and this allows
-for push down since primary key is in the projection.
+for push-down since primary key is in the projection.
 The second expression is a hash of the equality join key which merges the aggregate from the ``delta view'' to the old view allowing us to push down on both branches of the tree using our special case for equality joins.
 On the left side, we reach the stale view so we stop.
 On the right side, we reach the aggregate query (count) and since the primary key is in group by clause, we can push down the sampling.
@@ -205,8 +206,8 @@ Suppose $\widehat{S'}$ and $\widehat{S}$ are uniform samples of $S'$ and $S$, re
 \vspace{-.25em}
 \begin{itemize}[noitemsep]
 \item Uniformity: $\widehat{S'}$ and $\widehat{S}$ are uniform random samples of $S'$ and $S$ respectively with a sampling ratio of $m$
-\item Removal of Superfluous Rows: $D = \{\forall s \in \widehat{S} \nexists s' \in S': s(u) = s'(u)\}$, $D \cap \widehat{S'} = \emptyset$ 
-\item Sampling of Missing Rows: $I = \{\forall s' \in \widehat{S'} \nexists s \in S: s(u) = s'(u)\}$, $\mathbb{E}(\mid I \cap \widehat{S'} \mid) = m\mid I \mid $ 
+\item Removal of Superfluous Rows: $D = \{\forall s \in \widehat{S} \; \nexists s' \in S': s(u) = s'(u)\}$, $D \cap \widehat{S'} = \emptyset$ 
+\item Sampling of Missing Rows: $I = \{\forall s' \in \widehat{S'} \; \nexists s \in S: s(u) = s'(u)\}$, $\mathbb{E}(\mid I \cap \widehat{S'} \mid) = m\mid I \mid $ 
 \item Key Preservation for Updated Rows: For all $s\in \widehat{S}$ and not in $D$ or $I$, $s' \in \widehat{S}': s'(u) = s(u)$.
 \end{itemize}
 \vspace{-.25em}

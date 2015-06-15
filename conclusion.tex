@@ -20,20 +20,20 @@ Srinivasan and Carey studied a problem related to query correction which they ca
 
 Sampling has also been studied from the perspective of maintaining samples \cite{DBLP:conf/icde/OlkenR92}.
 In~\cite{joshi2008materialized}, Joshi and Jermaine studied indexed materialized views that are amenable to random sampling.
-While similar in spirit (queries on the view are approximate), the goal of this work was to optimize query processing not address the cost of incremental maintenance.
+While similar in spirit (queries on the view are approximate), the goal of this work was to optimize query processing and not to address the cost of incremental maintenance.
 There has been work using sampled views in a limited context of cardinality estimation \cite{larson2007cardinality}, which is the special case of our framework, namely, the \countfunc query.
 Nirkhiwale et al. \cite{DBLP:journals/pvldb/NirkhiwaleDJ13}, studied an algebra for estimating confidence intervals in aggregate queries.
 The objective of this work is not sampling efficiency, as in \svc, but estimation.
 As a special case, where we consider only views constructed from select and project operators, \svc's hash pushdown will yield the same results as their model.
 There has been theoretical work on the maintenance of approximate histograms, synopses, and sketches ~\cite{gibbons1997fast, DBLP:journals/ftdb/CormodeGHJ12}, which closely resemble aggregate materialized views.
-The objectives of this work (including techniques such as sketching and approximate counting) has been to reduce the required storage, not to reduce the required update time.
+The objectives of this work (including techniques such as sketching and approximate counting) have been to reduce the required storage, not to reduce the required update time.
 
 Meliou et al. \cite{DBLP:conf/sigmod/MeliouGNS11} proposed a technique to trace errors in an MV to base data and find responsible erroneous tuples. 
 They do not, however, propose a technique to correct the errors as in \svc.
 Correcting general errors as in Meliou et al. is a hard constraint satisfaction problem.
 However, in \svc, through our formalization of staleness, we have a model of how updates to the base data (modeled as errors) affect MVs, which allows us to both trace errors and clean them.
 Wu and Madden \cite{DBLP:journals/pvldb/0002M13} did propose a model to correct ``outliers" in an MV through deletion of records in the base data.
-This is a more restricted model of data cleaning than \svc, where the authors only consider changes to existing rows in an MV (no insertion or deletion) and does not handle the same generality of relational expressions (e.g., nested aggregates).
+This is a more restricted model of data cleaning than \svc, where the authors only consider changes to existing rows in an MV (no insertion or deletion) and do not handle the same generality of relational expressions (e.g., nested aggregates).
 Challamalla et al. \cite{DBLP:conf/sigmod/ChalamallaIOP14} proposed an approximate technique for specifying errors as constraints on a materialized view and proposing changes to the base data such that these constraints can be satisfied.
 While complementary, one major difference between the three works \cite{DBLP:conf/sigmod/MeliouGNS11, DBLP:journals/pvldb/0002M13, DBLP:conf/sigmod/ChalamallaIOP14} and \svc is that they require an explicit specification of erroneous rows in a materialized view.
 Identifying whether a row is erroneous requires materialization and thus specifying the errors is equivalent to full incremental maintenance. 
@@ -81,7 +81,7 @@ We presented both empirical and theoretical results showing that our sample data
 
 Our results are promising and suggest many avenues for future work.
 In this work, we focused on aggregate queries and showed that accuracy decreases as the selectivity of the query increases.
-Sampled-based methods are fundamentally limited in the way they can support ``point lookup" queries that select a single row, and we believe we can address this problem with new results in non-parameteric machine learning instead of using single-parameter estimators.
+Sampled-based methods are fundamentally limited in the way they can support ``point lookup" queries that select a single row, and we believe we can address this problem with new results in non-parametric machine learning instead of using single-parameter estimators.
 In particular, we are interested in deeper exploration of the multiple MV setting.
 There are also many interesting design problems such as given storage constraints and throughput demands, optimize sampling ratios over all views.
 
